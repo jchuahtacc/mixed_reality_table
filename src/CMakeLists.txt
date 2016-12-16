@@ -1,7 +1,0 @@
-cmake_minimum_required(VERSION 2.8)
-project(aruco_testproject)
-find_package( OpenCV REQUIRED )
-add_executable(test_markers test_markers.cpp)
-add_executable(generate_markers generate_markers.cpp)
-target_link_libraries(test_markers ${OpenCV_LIBS})
-target_link_libraries(generate_markers ${OpenCV_LIBS})

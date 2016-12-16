@@ -3,6 +3,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/features2d/features2d.hpp>
+#include <tclap/CmdLine.h>
 #include <vector>
 #include <iostream>
 #include <chrono>
@@ -11,6 +12,7 @@ using namespace cv;
 using namespace std;
 using namespace cv::aruco;
 using namespace std::chrono;
+using namespace TCLAP;
 
 DetectorParameters parameters;
 Dictionary dictionary = getPredefinedDictionary(DICT_4X4_100);
@@ -23,14 +25,15 @@ Mat processImage(Mat input) {
     Mat output;
     // image = imread("IMAG1277-contrast.jpg");
     detectMarkers(input, dictionary, markerCorners, markerIds, parameters, rejectedCandidates);
-    image.copyTo(output);
+    input.copyTo(output);
     if (bEstimatePose) {
         Mat cameraMatrix, distCoeffs;
         vector< Vec3d > rvecs, tvecs;
         estimatePoseSingleMarkers(markerCorners, 0.05, cameraMatrix, distCoeffs, rvecs, tvecs);
-        for (vector< Vec3d >::iterator rvec = rvecs.begin(), vector< Vec3d >::iterator tvec = tvecs.begin(); 
-                rvec != rvecs.end() && tvec != tvecs.end(); ++rvec, ++tvec) {
-            drawAxis(output, cameraMatrix, distCoeffs, rvec, tvec, 0.05);
+        vector< Vec3d >::iterator rvec = rvecs.begin();
+        vector< Vec3d >::iterator tvec = tvecs.begin(); 
+        for (;rvec != rvecs.end() && tvec != tvecs.end(); ++rvec, ++tvec) {
+            drawAxis(output, cameraMatrix, distCoeffs, *rvec, *tvec, 0.05);
         }
     }
     drawDetectedMarkers(output, markerCorners, markerIds);
@@ -84,7 +87,7 @@ double processVideo() {
 }
 
 
-int main(int argc, char **argv) {
+int oldmain(int argc, char **argv) {
     /*
     parameters.adaptiveThreshWinSizeMin = 3;
     parameters.adaptiveThreshWinSizeMax = 118;
@@ -111,5 +114,33 @@ int main(int argc, char **argv) {
         imwrite(filename, output);
     }
     */
-    process();
+    //process();
+    return 0;
+}
+
+int main(int argc, char** argv) {
+    try {
+        // Setup TCLAP command line parser
+        CmdLine cmd("Utility to test detection and pose estimation of Aruco markers", ' ', "0.1");
+
+        // Add TCLAP switches and parameters
+        ValueArg<string> inputfileArg("i", "inputfile", "Image or video file of Aruco markers for testing", false, "", "string", cmd);
+        SwitchArg displaySwitch("d", "display", "Display Aruco marker detection in a UI window", cmd, false);
+
+        // Parse switches and parameters 
+        cmd.parse(argc, argv);
+        string inputfile = inputfileArg.getValue();
+        if (inputfile.length() <= 0) {
+            cout << "No input file" << endl;
+        } else {
+            cout << "Input file: " << inputfile << endl; 
+        }
+        if (displaySwitch.getValue()) {
+            cout << "Display Aruco marker detection in UI window" << endl;
+        }
+    } catch (TCLAP::ArgException &e) {
+        cerr << "error: " << e.error() << " for argument " << e.argId() << endl;
+        return 1;
+    }
+    return 0;
 }
