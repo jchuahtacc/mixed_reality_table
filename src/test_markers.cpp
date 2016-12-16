@@ -4,15 +4,20 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/features2d/features2d.hpp>
 #include <tclap/CmdLine.h>
+#include <rapidxml/rapidxml.hpp>
 #include <vector>
 #include <iostream>
 #include <chrono>
+#include <string>
+#include <fstream>
+#include <streambuf>
 
 using namespace cv;
 using namespace std;
 using namespace cv::aruco;
 using namespace std::chrono;
 using namespace TCLAP;
+using namespace rapidxml;
 
 DetectorParameters parameters;
 Dictionary dictionary = getPredefinedDictionary(DICT_4X4_100);
@@ -125,16 +130,46 @@ int main(int argc, char** argv) {
 
         // Add TCLAP switches and parameters
         ValueArg<string> inputfileArg("i", "inputfile", "Image or video file of Aruco markers for testing", false, "", "string", cmd);
+        ValueArg<string> cameraxmlArg("c", "cameraxml", "XML file containing camera calibration data. Required for pose detection.", false, "", "string", cmd);
+        ValueArg<string> markerdetectorArg("m", "markerxml", "XML file containing marker detector settings.", false, "", "string", cmd);
         SwitchArg displaySwitch("d", "display", "Display Aruco marker detection in a UI window", cmd, false);
 
         // Parse switches and parameters 
         cmd.parse(argc, argv);
+
         string inputfile = inputfileArg.getValue();
-        if (inputfile.length() <= 0) {
-            cout << "No input file" << endl;
-        } else {
+        if (inputfile.length() > 0) {
             cout << "Input file: " << inputfile << endl; 
         }
+
+        string cameraxml = cameraxmlArg.getValue();
+        if (cameraxml.length() > 0) {
+            cout << "Camera XML file: " << cameraxml << endl;
+            try {
+                ifstream file;
+                file.exceptions( ifstream::failbit | ifstream::badbit );
+                file.open (cameraxml);
+                string contents;
+                file.seekg(0, std::ios::end);
+                contents.reserve(file.tellg());
+                file.seekg(0, std::ios::beg);
+                contents.assign((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+                xml_document<> doc;
+                try {
+                    char* contents_buf = new char[(int)contents.length() + 1];
+                    strcpy(contents_buf, contents.c_str());
+                    doc.parse<0>(contents_buf);
+                    cout << "First node: " << doc.first_node()->name() << endl;
+
+                } catch (const parse_error& e) {
+                    cout << "Error parsing " << cameraxml << ": " << e.what() << endl;
+                }
+            } catch (const ifstream::failure& e) {
+                cout << "Exception reading Camera XML file" << endl;
+            }
+
+        }
+
         if (displaySwitch.getValue()) {
             cout << "Display Aruco marker detection in UI window" << endl;
         }
