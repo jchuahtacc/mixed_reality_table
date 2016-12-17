@@ -11,7 +11,7 @@
 #include <string>
 #include <fstream>
 #include <streambuf>
-#include <mrtable/parsers.hpp>
+#include <mrtable/settings.hpp>
 
 using namespace cv;
 using namespace std;
@@ -19,7 +19,7 @@ using namespace cv::aruco;
 using namespace std::chrono;
 using namespace TCLAP;
 using namespace rapidxml;
-using namespace mrtable::parsers;
+using namespace mrtable::settings;
 
 Mat cameraMatrix;
 Mat distCoeffs;
@@ -137,7 +137,7 @@ int main(int argc, char** argv) {
         // Add TCLAP switches and parameters
         ValueArg<string> inputfileArg("i", "inputfile", "Image or video file of Aruco markers for testing", false, "", "filename", cmd);
         ValueArg<string> cameraxmlArg("c", "cameraxml", "XML file containing camera settings calibration data. Required for pose detection.", false, "", "filename", cmd);
-        ValueArg<string> markerdetectorArg("m", "markerxml", "XML file containing marker detector settings.", false, "", "filename", cmd);
+        ValueArg<string> parameterxmlArg("p", "parameterxml", "XML file containing marker detector parameters.", false, "", "filename", cmd);
         SwitchArg displaySwitch("d", "display", "Display Aruco marker detection in a UI window", cmd, false);
 
         // Parse switches and parameters 
@@ -158,6 +158,18 @@ int main(int argc, char** argv) {
                 cout << "distCoeffs: " << endl << distCoeffs << endl;
             } catch (const std::exception& e) {
                 cout << "Exception reading Camera Settings XML file" << endl;
+                return 1;
+            }
+        }
+
+        string parameterxml = parameterxmlArg.getValue();
+        if (parameterxml.length() > 0) {
+            cout << "Parsing detector parameter XML file: " << parameterxml << endl;
+            try {
+                parseDetectorSettings(parameterxml.c_str(), &parameters);
+            } catch (const std::exception& e) {
+                cout << "Exception reading Detector Parameter XML file" << endl;
+                return 1;
             }
         }
 

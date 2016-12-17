@@ -2,7 +2,6 @@
 #ifndef __PARSERS_HPP__
 #define __PARSERS_HPP__
 
-#include "parsers.hpp"
 #include <iostream>
 #include <vector>
 #include <opencv2/aruco.hpp>
@@ -18,7 +17,7 @@ using namespace cv::aruco;
 using namespace rapidxml;
 
 namespace mrtable {
-    namespace parsers {
+    namespace settings {
        void parseCameraSettings(const char * filename, Mat *cameraMatrix, Mat *distCoeffs) throw() {
             FileStorage fs(filename, FileStorage::READ);
             Mat cameraMatrix2, distCoeffs2;
@@ -140,7 +139,6 @@ namespace mrtable {
                     params->doCornerRefinement = true;
                 }
             }
-
         }
     }
 }
