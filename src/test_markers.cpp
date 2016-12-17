@@ -11,6 +11,7 @@
 #include <string>
 #include <fstream>
 #include <streambuf>
+#include <mrtable/parsers.hpp>
 
 using namespace cv;
 using namespace std;
@@ -18,8 +19,13 @@ using namespace cv::aruco;
 using namespace std::chrono;
 using namespace TCLAP;
 using namespace rapidxml;
+using namespace mrtable::parsers;
 
+Mat cameraMatrix;
+Mat distCoeffs;
+bool bCameraSettings = false;
 DetectorParameters parameters;
+
 Dictionary dictionary = getPredefinedDictionary(DICT_4X4_100);
 vector<int> markerIds;
 vector< vector<Point2f> > markerCorners, rejectedCandidates;
@@ -129,9 +135,9 @@ int main(int argc, char** argv) {
         CmdLine cmd("Utility to test detection and pose estimation of Aruco markers", ' ', "0.1");
 
         // Add TCLAP switches and parameters
-        ValueArg<string> inputfileArg("i", "inputfile", "Image or video file of Aruco markers for testing", false, "", "string", cmd);
-        ValueArg<string> cameraxmlArg("c", "cameraxml", "XML file containing camera calibration data. Required for pose detection.", false, "", "string", cmd);
-        ValueArg<string> markerdetectorArg("m", "markerxml", "XML file containing marker detector settings.", false, "", "string", cmd);
+        ValueArg<string> inputfileArg("i", "inputfile", "Image or video file of Aruco markers for testing", false, "", "filename", cmd);
+        ValueArg<string> cameraxmlArg("c", "cameraxml", "XML file containing camera settings calibration data. Required for pose detection.", false, "", "filename", cmd);
+        ValueArg<string> markerdetectorArg("m", "markerxml", "XML file containing marker detector settings.", false, "", "filename", cmd);
         SwitchArg displaySwitch("d", "display", "Display Aruco marker detection in a UI window", cmd, false);
 
         // Parse switches and parameters 
@@ -144,30 +150,15 @@ int main(int argc, char** argv) {
 
         string cameraxml = cameraxmlArg.getValue();
         if (cameraxml.length() > 0) {
-            cout << "Camera XML file: " << cameraxml << endl;
+            cout << "Parsing camera XML file: " << cameraxml << endl;
             try {
-                ifstream file;
-                file.exceptions( ifstream::failbit | ifstream::badbit );
-                file.open (cameraxml);
-                string contents;
-                file.seekg(0, std::ios::end);
-                contents.reserve(file.tellg());
-                file.seekg(0, std::ios::beg);
-                contents.assign((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-                xml_document<> doc;
-                try {
-                    char* contents_buf = new char[(int)contents.length() + 1];
-                    strcpy(contents_buf, contents.c_str());
-                    doc.parse<0>(contents_buf);
-                    cout << "First node: " << doc.first_node()->name() << endl;
-
-                } catch (const parse_error& e) {
-                    cout << "Error parsing " << cameraxml << ": " << e.what() << endl;
-                }
-            } catch (const ifstream::failure& e) {
-                cout << "Exception reading Camera XML file" << endl;
+                parseCameraSettings(cameraxml.c_str(), &cameraMatrix, &distCoeffs);
+                bCameraSettings = true;
+                cout << "cameraMatrix: " << endl << cameraMatrix << endl;
+                cout << "distCoeffs: " << endl << distCoeffs << endl;
+            } catch (const std::exception& e) {
+                cout << "Exception reading Camera Settings XML file" << endl;
             }
-
         }
 
         if (displaySwitch.getValue()) {
