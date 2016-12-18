@@ -31,6 +31,9 @@ vector<int> markerIds;
 vector< vector<Point2f> > markerCorners, rejectedCandidates;
 bool bEstimatePose = false;
 
+bool bOutputAll = false;
+string outputPrefix;
+
 Mat processImage(Mat input) {
     // Mat image;
     Mat output;
@@ -136,9 +139,12 @@ int main(int argc, char** argv) {
 
         // Add TCLAP switches and parameters
         ValueArg<string> inputfileArg("i", "inputfile", "Image or video file of Aruco markers for testing", false, "", "filename", cmd);
-        ValueArg<string> cameraxmlArg("c", "cameraxml", "XML file containing camera settings calibration data. Required for pose detection.", false, "", "filename", cmd);
-        ValueArg<string> parameterxmlArg("p", "parameterxml", "XML file containing marker detector parameters.", false, "", "filename", cmd);
-        SwitchArg displaySwitch("d", "display", "Display Aruco marker detection in a UI window", cmd, false);
+        ValueArg<string> cameraxmlArg("c", "camera", "XML file containing camera settings calibration data. Required for pose detection.", false, "", "filename", cmd);
+        ValueArg<string> detectorxmlArg("d", "detector", "XML file containing marker detector parameters.", false, "", "filename", cmd);
+        ValueArg<string> outputArg("o", "output", "Output camera settings, marker detector parameters and preview of images/video with superimposed detected markers/pose estimation axes using the specified filename prefix.", false, "output_", "filename prefix", cmd); 
+        ValueArg<string> parametersArg("p", "parameters", "List of detector parameter settings, i.e. adaptiveThreshConstant=7.2,adaptiveThreshWinSizeMax=28,doCornerRefinement=false. Overrides default settings and settings specified in detector XML file.", false, "", "string", cmd);
+        SwitchArg showSwitch("s", "show", "Show Aruco marker detection in a UI window", cmd, false);
+        SwitchArg verboseSwitch("v", "verbose", "Verbose output of camera settings, distortion coefficients and detector parameters.", cmd, false);
 
         // Parse switches and parameters 
         cmd.parse(argc, argv);
@@ -162,18 +168,42 @@ int main(int argc, char** argv) {
             }
         }
 
-        string parameterxml = parameterxmlArg.getValue();
+        string parameterxml = detectorxmlArg.getValue();
         if (parameterxml.length() > 0) {
             cout << "Parsing detector parameter XML file: " << parameterxml << endl;
             try {
-                parseDetectorSettings(parameterxml.c_str(), &parameters);
+                readDetectorParameters(parameterxml.c_str(), &parameters);
+                printDetectorParameters(parameters);
             } catch (const std::exception& e) {
                 cout << "Exception reading Detector Parameter XML file" << endl;
                 return 1;
             }
         }
 
-        if (displaySwitch.getValue()) {
+        if (parametersArg.isSet()) {
+            string params = parametersArg.getValue();
+            parseDetectorParameters(params.c_str(), &parameters);
+        }
+
+        if (verboseSwitch.getValue()) {
+            cout << "Camera matrix: " << endl << cameraMatrix << endl;
+            cout << "Distortion coefficients: " << endl << distCoeffs << endl;
+            cout << "Marker detection parameters: " << endl;
+            printDetectorParameters(parameters);
+            cout << endl;
+        }
+
+        outputPrefix = outputArg.getValue();
+        if (outputArg.isSet()) {
+            bOutputAll = true;
+            cout << "Output camera settings, detector parameters, preview with prefix: " << outputPrefix << endl;
+            string camFile = outputPrefix + "cameraSettings.xml";
+            string paramFile = outputPrefix + "detectorParameters.xml"; 
+            writeCameraSettings(camFile.c_str(), cameraMatrix, distCoeffs);
+            writeDetectorParameters(paramFile.c_str(), parameters);
+        }
+
+        if (showSwitch.getValue()) {
             cout << "Display Aruco marker detection in UI window" << endl;
         }
     } catch (TCLAP::ArgException &e) {

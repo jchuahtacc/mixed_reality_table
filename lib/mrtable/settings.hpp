@@ -18,7 +18,14 @@ using namespace rapidxml;
 
 namespace mrtable {
     namespace settings {
-       void parseCameraSettings(const char * filename, Mat *cameraMatrix, Mat *distCoeffs) throw() {
+       
+        void writeCameraSettings(const char * filename, Mat cameraMatrix, Mat distCoeffs) throw() {
+            FileStorage fs(filename, FileStorage::WRITE);
+            fs << "cameraMatrix" << cameraMatrix << "distCoeffs" << distCoeffs;
+            fs.release();
+        }
+
+        void parseCameraSettings(const char * filename, Mat *cameraMatrix, Mat *distCoeffs) throw() {
             FileStorage fs(filename, FileStorage::READ);
             Mat cameraMatrix2, distCoeffs2;
             fs["cameraMatrix"] >> cameraMatrix2;
@@ -37,7 +44,7 @@ namespace mrtable {
             return stod(contents);
         }
 
-        void parseDetectorSettings(const char * filename, DetectorParameters* params) throw() {
+        void readDetectorParameters(const char * filename, DetectorParameters* params) throw() {
             // Load xml file contents
             ifstream file;
             file.exceptions( ifstream::failbit | ifstream::badbit );
@@ -138,6 +145,124 @@ namespace mrtable {
                 if (strcasecmp(contents, "true") == 0) {
                     params->doCornerRefinement = true;
                 }
+            }
+        }
+
+        void writeDetectorParameters(const char * filename, DetectorParameters params) {
+            ofstream file(filename);
+            file << "<?xml version=\"1.0\" standalone=\"yes\" ?>" << endl;
+            file << "<DetectorParameters>" << endl;
+            file << "<adaptiveThreshConstant>" << params.adaptiveThreshConstant << "</adaptiveThreshConstant>" << endl;
+            file << "<adaptiveThreshWinSizeMax>" << params.adaptiveThreshWinSizeMax << "</adaptiveThreshWinSizeMax>" << endl;
+            file << "<adaptiveThreshWinSizeMin>" << params.adaptiveThreshWinSizeMin << "</adaptiveThreshWinSizeMin>" << endl;
+            file << "<adaptiveThreshWinSizeStep>" << params.adaptiveThreshWinSizeStep << "</adaptiveThreshWinSizeStep>" << endl;
+            file << "<cornerRefinementMaxIterations>" << params.cornerRefinementMaxIterations << "</cornerRefinementMaxIterations>" << endl;
+            file << "<cornerRefinementMinAccuracy>" << params.cornerRefinementMinAccuracy << "</cornerRefinementMinAccuracy>" << endl;
+            file << "<cornerRefinementWinSize>" << params.cornerRefinementWinSize << "</cornerRefinementWinSize>" << endl;
+            file << "<errorCorrectionRate>" << params.errorCorrectionRate << "</errorCorrectionRate>" << endl;
+            file << "<markerBorderBits>" << params.markerBorderBits << "</markerBorderBits>" << endl;
+            file << "<maxErroneousBitsInBorderRate>" << params.maxErroneousBitsInBorderRate << "</maxErroneousBitsInBorderRate>" << endl;
+            file << "<maxMarkerPerimeterRate>" << params.maxMarkerPerimeterRate << "</maxMarkerPerimeterRate>" << endl;
+            file << "<minCornerDistanceRate>" << params.minCornerDistanceRate << "</minCornerDistanceRate>" << endl;
+            file << "<minDistanceToBorder>" << params.minDistanceToBorder << "</minDistanceToBorder>" << endl;
+            file << "<minMarkerDistanceRate>" << params.minMarkerDistanceRate << "</minMarkerDistanceRate>" << endl;
+            file << "<minMarkerPerimeterRate>" << params.minMarkerPerimeterRate << "</minMarkerPerimeterRate>" << endl;
+            file << "<minOtsuStdDev>" << params.minOtsuStdDev << "</minOtsuStdDev>" << endl;
+            file << "<perspectiveRemoveIgnoredMarginPerCell>" << params.perspectiveRemoveIgnoredMarginPerCell << "</perspectiveRemoveIgnoredMarginPerCell>" << endl;
+            file << "<perspectiveRemovePixelPerCell>" << params.perspectiveRemovePixelPerCell << "</perspectiveRemovePixelPerCell>" << endl;
+            file << "<polygonalApproxAccuracyRate>" << params.polygonalApproxAccuracyRate << "</polygonalApproxAccuracyRate>" << endl;
+            file << "<doCornerRefinement>" << (params.doCornerRefinement ? "true" : "false") << "</doCornerRefinement>" << endl;
+            file << "</DetectorParameters>" << endl;
+            file.close();
+        }
+
+        void printDetectorParameters(DetectorParameters params) {
+            cout << "adaptiveThreshConstant: " << params.adaptiveThreshConstant << endl;
+            cout << "adaptiveThreshWinSizeMax: " << params.adaptiveThreshWinSizeMax << endl;
+            cout << "adaptiveThreshWinSizeMin: " << params.adaptiveThreshWinSizeMin << endl;
+            cout << "adaptiveThreshWinSizeStep: " << params.adaptiveThreshWinSizeStep << endl;
+            cout << "cornerRefinementMaxIterations: " << params.cornerRefinementMaxIterations << endl;
+            cout << "cornerRefinementMinAccuracy: " << params.cornerRefinementMinAccuracy << endl;
+            cout << "cornerRefinementWinSize: " << params.cornerRefinementWinSize << endl;
+            cout << "errorCorrectionRate: " << params.errorCorrectionRate << endl;
+            cout << "markerBorderBits: " << params.markerBorderBits << endl;
+            cout << "maxErroneousBitsInBorderRate: " << params.maxErroneousBitsInBorderRate << endl;
+            cout << "maxMarkerPerimeterRate: " << params.maxMarkerPerimeterRate << endl;
+            cout << "minCornerDistanceRate: " << params.minCornerDistanceRate << endl;
+            cout << "minDistanceToBorder: " << params.minDistanceToBorder << endl;
+            cout << "minMarkerDistanceRate: " << params.minMarkerDistanceRate << endl;
+            cout << "minMarkerPerimeterRate: " << params.minMarkerPerimeterRate << endl;
+            cout << "minOtsuStdDev: " << params.minOtsuStdDev << endl;
+            cout << "perspectiveRemoveIgnoredMarginPerCell: " << params.perspectiveRemoveIgnoredMarginPerCell << endl;
+            cout << "perspectiveRemovePixelPerCell: " << params.perspectiveRemovePixelPerCell << endl;
+            cout << "polygonalApproxAccuracyRate: " << params.polygonalApproxAccuracyRate << endl;
+            cout << "doCornerRefinement: " << (params.doCornerRefinement ? "true" : "false") << endl;
+        }
+
+        void parseDetectorParameters(const char * paramString, DetectorParameters *params) {
+            string input = paramString;
+            istringstream ss(input);
+            string token;
+            while (std::getline(ss, token, ',')) {
+                istringstream pair(token);
+                string key, value;
+                if (std::getline(pair, key, '=') && std::getline(pair, value)) {
+                    transform(key.begin(), key.end(), key.begin(), ::tolower);
+                    transform(value.begin(), value.end(), value.begin(), ::tolower);
+                    if (key.compare("adaptivethreshconstant") == 0) {
+                        params->adaptiveThreshConstant = stof(value);
+                    }
+                    if (key.compare("adaptivethreshwinsizemax") == 0) {
+                        params->adaptiveThreshWinSizeMax = stoi(value);
+                    }
+                    if (key.compare("adaptivethreshwinsizemin") == 0) {
+                        params->adaptiveThreshWinSizeMin = stoi(value);
+                    }
+                    if (key.compare("adaptivethreshwinsizestep") == 0) {
+                        params->adaptiveThreshWinSizeStep = stoi(value);
+                    }
+                    if (key.compare("cornerrefinementmaxiterations") == 0) {
+                        params->cornerRefinementMaxIterations = stoi(value);
+                    }
+                    if (key.compare("cornerrefinementminaccuracy") == 0) {
+                        params->cornerRefinementMinAccuracy = stof(value);
+                    }
+                    if (key.compare("cornerrefinementwinsize") == 0) {
+                        params->cornerRefinementWinSize = stoi(value);
+                    }
+                    if (key.compare("errorcorrectionrate") == 0) {
+                        params->errorCorrectionRate = stof(value);
+                    }
+                    if (key.compare("markerborderbits") == 0) {
+                        params->markerBorderBits = stoi(value);
+                    }
+                    if (key.compare("maxerroneousbitsinborderrate") == 0) {
+                        params->maxErroneousBitsInBorderRate = stof(value);
+                    }
+                    if (key.compare("maxmarkerperimeterrate") == 0) {
+                        params->maxMarkerPerimeterRate = stof(value);
+                    }
+                    if (key.compare("minotsustddev") == 0) {
+                        params->minOtsuStdDev = stof(value);
+                    }
+                    if (key.compare("perspectiveremoveignoredmarginpercell") == 0) {
+                        params->perspectiveRemoveIgnoredMarginPerCell = stof(value);
+                    }
+                    if (key.compare("perspectiveremovepixelpercell") == 0) {
+                        params->perspectiveRemovePixelPerCell = stoi(value);
+                    }
+                    if (key.compare("polygonalapproxaccuracyrate") == 0) {
+                        params->polygonalApproxAccuracyRate = stof(value);
+                    }
+                    if (key.compare("docornerrefinement") == 0) {
+                        if (value.compare("true") == 0) {
+                            params->doCornerRefinement = true;
+                        }
+                        if (value.compare("false") == 0) {
+                            params->doCornerRefinement = false;
+                        }
+                    }
+                }                
             }
         }
     }
