@@ -45,8 +45,25 @@ bool show = false;
 typedef struct result_t {
     long elapsed;
     int detected;
+    int frames;
 } result_t;
 
+void outputResults(result_t result) {
+    cout << "Frames processed: " << result.frames << endl;
+    cout << "Milliseconds elapsed: " << result.elapsed << endl;
+    cout << "Markers detected: " << result.detected << endl;
+    cout << "Average frames per second: " << (result.frames * 1000.0 / result.elapsed) << endl;
+    cout << "Average markers detected per frame: " << (result.detected * 1.0 / result.frames) << endl;
+}
+
+string getFilename(string filename) {
+    for (int i = filename.length(); i >= 0; i--) {
+        if (filename[i] == '/') {
+            return filename.substr(i + 1);
+        }
+    }
+    return filename;
+}
 
 int getFileType(char const * filename) {
     char* buf;
@@ -100,53 +117,48 @@ result_t processImage(Mat input, Mat * output) {
     result_t result;
     result.elapsed = elapsed;
     result.detected = markerIds.size();
+    result.frames = 1;
     return result;
 }
 
-double processVideo() {
-    // VideoCapture cap("testmovie.mov");
-    VideoCapture cap(0);
-    if (!cap.isOpened()) {
-        cout << "Cannot open camera" << endl;
-        return -1;
+result_t processVideo(VideoCapture cap, VideoWriter * outputVideo) {
+    int frames = 0;
+    int detected  = 0;
+    long elapsed = 0;
+    result_t result;
+
+    if (show) {
+        cout << "Press the ESCAPE key to end video processing..." << endl;
     }
+    Mat outputImage; 
+    Mat frame;
+    while (cap.grab()) {
+        cap.retrieve(frame);
 
-    int frameCount = 0;
-    int detectCount = 0;
-    long start = time(0);
-    bool bSuccess = true;
-    char droppedString[3] = { 0 };
-    while (bSuccess) {
-        Mat frame;
-        bSuccess = cap.read(frame); 
-        if (!bSuccess) {
-            break;
+        if (show || bOutputAll) {
+            result = processImage(frame, &outputImage);
+        } else {
+            result = processImage(frame, NULL);
         }
-        detectMarkers(frame, dictionary, markerCorners, markerIds, parameters, rejectedCandidates);
-        drawDetectedMarkers(frame, markerCorners, markerIds);
-        sprintf(droppedString, "%d", (int)markerIds.size());
-        putText(frame, droppedString, Point2f(10, 500), FONT_HERSHEY_SIMPLEX, 4, Scalar(0, 0, 255, 0), 2, LINE_AA);
-        
-        frameCount++;
-        detectCount += (int)markerIds.size();
-        
-        
-        imshow("Cam", frame);
+        if (show) {
+            imshow(WINDOW_NAME, outputImage);
+        }
+        if (bOutputAll && outputVideo) {
+            (*outputVideo) << outputImage; 
+        }
+        frames++;
+        detected += result.detected;
+        elapsed += result.elapsed;
+        cout << "waitkey begin " << endl;
+        waitKey(1);
+        cout << "waitkey end " << endl;
 
-        if (waitKey(20) == 27) {
-            cout << "Escape!" << endl;
-            break;
-        }
-        
-        
-        bool bSuccess = cap.read(frame);
     }
-    long finish = time(0);
-
-    cout << "Average detections per frame: " << ((double)detectCount / frameCount) << endl;
-    cout << "Frames per second: " << ((double)frameCount / (finish - start)) << endl;
-
-    return (double)detectCount / frameCount;
+    cout << "Capture terminated " << endl;
+    result.frames = frames;
+    result.detected = detected;
+    result.elapsed = elapsed;
+    return result;
 }
 
 
@@ -261,7 +273,7 @@ int main(int argc, char** argv) {
             namedWindow(WINDOW_NAME);
         }
 
-        if (inputfileArg.isSet() > 0) {
+        if (inputfileArg.isSet()) {
             string inputfile = inputfileArg.getValue();
             if (verbose) {
                 cout << "Input file: " << inputfile << endl; 
@@ -280,19 +292,9 @@ int main(int argc, char** argv) {
                 } else {
                     result = processImage(image, NULL);
                 }
-                cout << "milliseconds per frame: " << result.elapsed << endl;
-                cout << "detected markers: " << result.detected << endl;
+                outputResults(result);
                 if (bOutputAll) {
-                    string outputName = outputPrefix;
-                    for (int i = inputfile.length(); i >= 0; i--) {
-                        if (inputfile[i] == '/') {
-                            outputName += inputfile.substr(i + 1);
-                            break;
-                        }
-                        if (i == 0) {
-                            outputName += inputfile;
-                        }
-                    }
+                    string outputName = outputPrefix + getFilename(inputfile);
                     if (verbose) {
                         cout << "Writing image file: " << outputName << endl;
                     }
@@ -304,6 +306,32 @@ int main(int argc, char** argv) {
                     waitKey(0);
                 }
             }
+            if (filetype == FILETYPE_VIDEO) {
+                VideoCapture cap(inputfile);                    
+                if (!cap.isOpened()) {
+                    cout << "Unable to open video file input: " << inputfile << endl;
+                    return 1;
+                }
+                result_t result;
+                if (bOutputAll) {
+                    VideoWriter outputVideo;
+                    string outputname = outputPrefix + getFilename(inputfile);
+                    int ex = static_cast<int>(cap.get(CV_CAP_PROP_FOURCC));
+                    Size S = Size((int) cap.get(CV_CAP_PROP_FRAME_WIDTH), (int) cap.get(CV_CAP_PROP_FRAME_HEIGHT));
+                    outputVideo.open(outputname, ex, cap.get(CV_CAP_PROP_FPS), S, true);
+                    if (!outputVideo.isOpened()) {
+                        cout << "Unable to open video file for output: " << outputname << endl;
+                        return 1;
+                    }
+                    result = processVideo(cap, &outputVideo); 
+                } else {
+                    result = processVideo(cap, NULL);
+                }
+                outputResults(result);
+            }
+        } else {
+            VideoCapture cap(0);
+            outputResults(processVideo(cap, NULL));
         }
 
 

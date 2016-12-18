@@ -10,6 +10,7 @@
 #include <streambuf>
 #include <string>
 #include <sstream>
+#include <rapidxml/rapidxml.hpp>
 
 using namespace std;
 using namespace cv;
@@ -18,7 +19,79 @@ using namespace rapidxml;
 
 namespace mrtable {
     namespace settings {
-       
+
+        bool readCameraParameters(string filename, Mat &camMatrix, Mat &distCoeffs) {
+            FileStorage fs(filename, FileStorage::READ);
+            if(!fs.isOpened())
+                return false;
+            fs["camera_matrix"] >> camMatrix;
+            fs["distortion_coefficients"] >> distCoeffs;
+            return true;
+        }
+
+        bool writeCameraParameters(string filename, Mat camMatrix, Mat distCoeffs) {
+            FileStorage fs(filename, FileStorage::WRITE);
+            if (!fs.isOpened())
+                return false;
+            fs << "camera_matrix" << camMatrix;
+            fs << "distortion_coefficients" << distCoeffs;
+            return true;
+        }
+
+        bool readDetectorParameters(string filename, aruco::DetectorParameters *params) {
+            FileStorage fs(filename, FileStorage::READ);
+            if(!fs.isOpened())
+                return false;
+            fs["adaptiveThreshWinSizeMin"] >> params->adaptiveThreshWinSizeMin;
+            fs["adaptiveThreshWinSizeMax"] >> params->adaptiveThreshWinSizeMax;
+            fs["adaptiveThreshWinSizeStep"] >> params->adaptiveThreshWinSizeStep;
+            fs["adaptiveThreshConstant"] >> params->adaptiveThreshConstant;
+            fs["minMarkerPerimeterRate"] >> params->minMarkerPerimeterRate;
+            fs["maxMarkerPerimeterRate"] >> params->maxMarkerPerimeterRate;
+            fs["polygonalApproxAccuracyRate"] >> params->polygonalApproxAccuracyRate;
+            fs["minCornerDistanceRate"] >> params->minCornerDistanceRate;
+            fs["minDistanceToBorder"] >> params->minDistanceToBorder;
+            fs["minMarkerDistanceRate"] >> params->minMarkerDistanceRate;
+            fs["doCornerRefinement"] >> params->doCornerRefinement;
+            fs["cornerRefinementWinSize"] >> params->cornerRefinementWinSize;
+            fs["cornerRefinementMaxIterations"] >> params->cornerRefinementMaxIterations;
+            fs["cornerRefinementMinAccuracy"] >> params->cornerRefinementMinAccuracy;
+            fs["markerBorderBits"] >> params->markerBorderBits;
+            fs["perspectiveRemovePixelPerCell"] >> params->perspectiveRemovePixelPerCell;
+            fs["perspectiveRemoveIgnoredMarginPerCell"] >> params->perspectiveRemoveIgnoredMarginPerCell;
+            fs["maxErroneousBitsInBorderRate"] >> params->maxErroneousBitsInBorderRate;
+            fs["minOtsuStdDev"] >> params->minOtsuStdDev;
+            fs["errorCorrectionRate"] >> params->errorCorrectionRate;
+            return true;
+        }
+
+        bool writeDetectorParameters(string filename, aruco::DetectorParameters params) {
+            FileStorage fs(filename, FileStorage::WRITE);
+            if(!fs.isOpened())
+                return false;
+            fs << "adaptiveThreshWinSizeMin" << params.adaptiveThreshWinSizeMin;
+            fs << "adaptiveThreshWinSizeMax" << params.adaptiveThreshWinSizeMax;
+            fs << "adaptiveThreshWinSizeStep" << params.adaptiveThreshWinSizeStep;
+            fs << "adaptiveThreshConstant" << params.adaptiveThreshConstant;
+            fs << "minMarkerPerimeterRate" << params.minMarkerPerimeterRate;
+            fs << "maxMarkerPerimeterRate" << params.maxMarkerPerimeterRate;
+            fs << "polygonalApproxAccuracyRate" << params.polygonalApproxAccuracyRate;
+            fs << "minCornerDistanceRate" << params.minCornerDistanceRate;
+            fs << "minDistanceToBorder" << params.minDistanceToBorder;
+            fs << "minMarkerDistanceRate" << params.minMarkerDistanceRate;
+            fs << "doCornerRefinement" << params.doCornerRefinement;
+            fs << "cornerRefinementWinSize" << params.cornerRefinementWinSize;
+            fs << "cornerRefinementMaxIterations" << params.cornerRefinementMaxIterations;
+            fs << "cornerRefinementMinAccuracy" << params.cornerRefinementMinAccuracy;
+            fs << "markerBorderBits" << params.markerBorderBits;
+            fs << "perspectiveRemovePixelPerCell" << params.perspectiveRemovePixelPerCell;
+            fs << "perspectiveRemoveIgnoredMarginPerCell" << params.perspectiveRemoveIgnoredMarginPerCell;
+            fs << "maxErroneousBitsInBorderRate" << params.maxErroneousBitsInBorderRate;
+            fs << "minOtsuStdDev" << params.minOtsuStdDev;
+            fs << "errorCorrectionRate" << params.errorCorrectionRate;
+            return true;
+        }
+    
         void writeCameraSettings(const char * filename, Mat cameraMatrix, Mat distCoeffs) throw() {
             FileStorage fs(filename, FileStorage::WRITE);
             fs << "cameraMatrix" << cameraMatrix << "distCoeffs" << distCoeffs;
