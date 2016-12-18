@@ -10,12 +10,10 @@
 #include <streambuf>
 #include <string>
 #include <sstream>
-#include <rapidxml/rapidxml.hpp>
 
 using namespace std;
 using namespace cv;
 using namespace cv::aruco;
-using namespace rapidxml;
 
 namespace mrtable {
     namespace settings {
@@ -94,34 +92,7 @@ namespace mrtable {
             return true;
         }
     
-        void writeCameraSettings(const char * filename, Mat cameraMatrix, Mat distCoeffs) throw() {
-            FileStorage fs(filename, FileStorage::WRITE);
-            fs << "cameraMatrix" << cameraMatrix << "distCoeffs" << distCoeffs;
-            fs.release();
-        }
-
-        void parseCameraSettings(const char * filename, Mat *cameraMatrix, Mat *distCoeffs) throw() {
-            FileStorage fs(filename, FileStorage::READ);
-            Mat cameraMatrix2, distCoeffs2;
-            fs["cameraMatrix"] >> cameraMatrix2;
-            fs["distCoeffs"] >> distCoeffs2;
-            cameraMatrix2.copyTo(*cameraMatrix);
-            distCoeffs2.copyTo(*distCoeffs);
-            fs.release();
-        }
-
-        double getVal(xml_node<char> * node, const char * child) throw(std::runtime_error) {
-            xml_node<char> *child_node = node->first_node(child);
-            if (!child_node) {
-                string mesg = "Node not found: ";
-                mesg += child;
-                throw (std::runtime_error(mesg.c_str()));
-            }
-            string contents = string(child_node->value());
-            return stod(contents);
-        }
-
-        void printDetectorParameters(DetectorParameters params) {
+       void printDetectorParameters(DetectorParameters params) {
             cout << "adaptiveThreshConstant: " << params.adaptiveThreshConstant << endl;
             cout << "adaptiveThreshWinSizeMax: " << params.adaptiveThreshWinSizeMax << endl;
             cout << "adaptiveThreshWinSizeMin: " << params.adaptiveThreshWinSizeMin << endl;
