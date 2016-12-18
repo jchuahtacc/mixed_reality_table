@@ -13,6 +13,11 @@
 #include <streambuf>
 #include <mrtable/settings.hpp>
 
+#define FILETYPE_NONE 0
+#define FILETYPE_IMAGE 1
+#define FILETYPE_VIDEO 2
+#define WINDOW_NAME "Test Markers"
+
 using namespace cv;
 using namespace std;
 using namespace cv::aruco;
@@ -34,24 +39,68 @@ bool bEstimatePose = false;
 bool bOutputAll = false;
 string outputPrefix;
 
-Mat processImage(Mat input) {
-    // Mat image;
-    Mat output;
-    // image = imread("IMAG1277-contrast.jpg");
+bool verbose = false;
+bool show = false;
+
+typedef struct result_t {
+    long elapsed;
+    int detected;
+} result_t;
+
+
+int getFileType(char const * filename) {
+    char* buf;
+    int len = strlen(filename);
+    for (int i = len; i >= 0; i--) {
+        if (i == 0) {
+            return FILETYPE_NONE;
+        }
+        if (filename[i] == '.') {
+            buf = new char[len - i + 2];
+            strcpy(buf, &filename[i]);
+            break;
+        }
+    }
+    if (strstr(".jpg.bmp.dib.jpeg.jpe.jp2.png.pbm.pgm.ppm.sr.ras.tif.tiff", buf)) {
+        return FILETYPE_IMAGE;
+    }
+    if (strstr(".avi.mpg.mov", buf)) {
+        return FILETYPE_VIDEO;
+    }
+    return FILETYPE_NONE;
+}
+
+result_t processImage(Mat input, Mat * output) {
+    long elapsed = 0;
+    steady_clock::time_point detectBegin = steady_clock::now();
     detectMarkers(input, dictionary, markerCorners, markerIds, parameters, rejectedCandidates);
-    input.copyTo(output);
+    steady_clock::time_point detectEnd = steady_clock::now();
+    elapsed = duration_cast<milliseconds>(detectEnd - detectBegin).count();
+    if (output) {
+        input.copyTo(*output);
+    }
     if (bEstimatePose) {
         Mat cameraMatrix, distCoeffs;
         vector< Vec3d > rvecs, tvecs;
+        steady_clock::time_point estimateBegin = steady_clock::now();
         estimatePoseSingleMarkers(markerCorners, 0.05, cameraMatrix, distCoeffs, rvecs, tvecs);
+        steady_clock::time_point estimateEnd = steady_clock::now();
+        elapsed += duration_cast<milliseconds>(estimateEnd - estimateBegin).count();
         vector< Vec3d >::iterator rvec = rvecs.begin();
         vector< Vec3d >::iterator tvec = tvecs.begin(); 
-        for (;rvec != rvecs.end() && tvec != tvecs.end(); ++rvec, ++tvec) {
-            drawAxis(output, cameraMatrix, distCoeffs, *rvec, *tvec, 0.05);
+        if (output) {
+            for (;rvec != rvecs.end() && tvec != tvecs.end(); ++rvec, ++tvec) {
+                drawAxis(*output, cameraMatrix, distCoeffs, *rvec, *tvec, 0.05);
+            }
         }
     }
-    drawDetectedMarkers(output, markerCorners, markerIds);
-    return output;
+    if (output) {
+        drawDetectedMarkers(*output, markerCorners, markerIds);
+    }
+    result_t result;
+    result.elapsed = elapsed;
+    result.detected = markerIds.size();
+    return result;
 }
 
 double processVideo() {
@@ -149,19 +198,17 @@ int main(int argc, char** argv) {
         // Parse switches and parameters 
         cmd.parse(argc, argv);
 
-        string inputfile = inputfileArg.getValue();
-        if (inputfile.length() > 0) {
-            cout << "Input file: " << inputfile << endl; 
-        }
+        verbose = verboseSwitch.isSet();
 
         string cameraxml = cameraxmlArg.getValue();
         if (cameraxml.length() > 0) {
-            cout << "Parsing camera XML file: " << cameraxml << endl;
+            if (verbose) {
+                cout << "Parsing camera XML file: " << cameraxml << endl;
+            }
             try {
                 parseCameraSettings(cameraxml.c_str(), &cameraMatrix, &distCoeffs);
                 bCameraSettings = true;
-                cout << "cameraMatrix: " << endl << cameraMatrix << endl;
-                cout << "distCoeffs: " << endl << distCoeffs << endl;
+                bEstimatePose = true;
             } catch (const std::exception& e) {
                 cout << "Exception reading Camera Settings XML file" << endl;
                 return 1;
@@ -170,7 +217,9 @@ int main(int argc, char** argv) {
 
         string parameterxml = detectorxmlArg.getValue();
         if (parameterxml.length() > 0) {
-            cout << "Parsing detector parameter XML file: " << parameterxml << endl;
+            if (verbose) {
+                cout << "Parsing detector parameter XML file: " << parameterxml << endl;
+            }
             try {
                 readDetectorParameters(parameterxml.c_str(), &parameters);
             } catch (const std::exception& e) {
@@ -184,7 +233,7 @@ int main(int argc, char** argv) {
             parseDetectorParameters(params.c_str(), &parameters);
         }
 
-        if (verboseSwitch.getValue()) {
+        if (verbose) {
             cout << "Camera matrix: " << endl << cameraMatrix << endl;
             cout << "Distortion coefficients: " << endl << distCoeffs << endl;
             cout << "Marker detection parameters: " << endl;
@@ -195,16 +244,69 @@ int main(int argc, char** argv) {
         outputPrefix = outputArg.getValue();
         if (outputArg.isSet()) {
             bOutputAll = true;
-            cout << "Output camera settings, detector parameters, preview with prefix: " << outputPrefix << endl;
+            if (verbose) {
+                cout << "Output camera settings, detector parameters, preview with prefix: " << outputPrefix << endl;
+            }
             string camFile = outputPrefix + "cameraSettings.xml";
             string paramFile = outputPrefix + "detectorParameters.xml"; 
             writeCameraSettings(camFile.c_str(), cameraMatrix, distCoeffs);
             writeDetectorParameters(paramFile.c_str(), parameters);
         }
 
-        if (showSwitch.getValue()) {
-            cout << "Display Aruco marker detection in UI window" << endl;
+        show = showSwitch.isSet();
+        if (show) {
+            if (verbose) {
+                cout << "Display Aruco marker detection in UI window" << endl;
+            }
+            namedWindow(WINDOW_NAME);
         }
+
+        if (inputfileArg.isSet() > 0) {
+            string inputfile = inputfileArg.getValue();
+            if (verbose) {
+                cout << "Input file: " << inputfile << endl; 
+            }
+            int filetype = getFileType(inputfile.c_str());
+            if (filetype == FILETYPE_NONE) {
+                cout << "Unrecognized input file extension" << endl;
+                return 1;
+            }
+            if (filetype == FILETYPE_IMAGE) {
+                Mat image = imread(inputfile);
+                Mat output;
+                result_t result;
+                if (show || bOutputAll) {
+                    result = processImage(image, &output);
+                } else {
+                    result = processImage(image, NULL);
+                }
+                cout << "milliseconds per frame: " << result.elapsed << endl;
+                cout << "detected markers: " << result.detected << endl;
+                if (bOutputAll) {
+                    string outputName = outputPrefix;
+                    for (int i = inputfile.length(); i >= 0; i--) {
+                        if (inputfile[i] == '/') {
+                            outputName += inputfile.substr(i + 1);
+                            break;
+                        }
+                        if (i == 0) {
+                            outputName += inputfile;
+                        }
+                    }
+                    if (verbose) {
+                        cout << "Writing image file: " << outputName << endl;
+                    }
+                    imwrite(outputName, output);
+                }
+                if (show) {
+                    cout << "Press any key to continue..." << endl;
+                    imshow(WINDOW_NAME, output);
+                    waitKey(0);
+                }
+            }
+        }
+
+
     } catch (TCLAP::ArgException &e) {
         cerr << "error: " << e.error() << " for argument " << e.argId() << endl;
         return 1;
