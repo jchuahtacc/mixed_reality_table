@@ -173,7 +173,6 @@ int main(int argc, char** argv) {
             cout << "Parsing detector parameter XML file: " << parameterxml << endl;
             try {
                 readDetectorParameters(parameterxml.c_str(), &parameters);
-                printDetectorParameters(parameters);
             } catch (const std::exception& e) {
                 cout << "Exception reading Detector Parameter XML file" << endl;
                 return 1;

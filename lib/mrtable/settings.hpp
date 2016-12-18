@@ -35,10 +35,12 @@ namespace mrtable {
             fs.release();
         }
 
-        double getVal(xml_node<char> * node, const char * child) throw() {
+        double getVal(xml_node<char> * node, const char * child) throw(std::runtime_error) {
             xml_node<char> *child_node = node->first_node(child);
             if (!child_node) {
-                throw (std::runtime_error("Node not found"));
+                string mesg = "Node not found: ";
+                mesg += child;
+                throw (std::runtime_error(mesg.c_str()));
             }
             string contents = string(child_node->value());
             return stod(contents);
