@@ -74,8 +74,8 @@ bool output;
 bool verbose;
 float markerLength;
 
-aruco::DetectorParameters detectorParams;
-aruco::Dictionary dictionary;
+Ptr<aruco::DetectorParameters> detectorParams = aruco::DetectorParameters::create();
+Ptr<aruco::Dictionary> dictionary;
 Mat camMatrix, distCoeffs;
 vector< int > ids;
 vector< vector< Point2f > > corners, rejected;
@@ -155,13 +155,13 @@ int main(int argc, char *argv[]) {
     String overrideParameters = parser.get<String>("op");
 
     if(parser.has("dp")) {
-        bool readOk = readDetectorParameters(parser.get<string>("dp"), &detectorParams);
+        bool readOk = readDetectorParameters(parser.get<string>("dp"), detectorParams);
         if(!readOk) {
             cerr << "Invalid detector parameters file" << endl;
             return 0;
         }
     }
-    detectorParams.doCornerRefinement = true; // do corner refinement in markers
+    detectorParams->doCornerRefinement = true; // do corner refinement in markers
 
     int camId = parser.get<int>("ci");
 
@@ -181,7 +181,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (!overrideParameters.empty()) {
-        parseDetectorParameters(overrideParameters.c_str(), &detectorParams);
+        parseDetectorParameters(overrideParameters.c_str(), detectorParams);
     }
 
     if (verbose) {

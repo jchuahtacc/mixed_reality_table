@@ -37,7 +37,7 @@ namespace mrtable {
             return true;
         }
 
-        bool readDetectorParameters(string filename, aruco::DetectorParameters *params) {
+        bool readDetectorParameters(string filename, Ptr<aruco::DetectorParameters> &params) {
             FileStorage fs(filename, FileStorage::READ);
             if(!fs.isOpened())
                 return false;
@@ -64,58 +64,58 @@ namespace mrtable {
             return true;
         }
 
-        bool writeDetectorParameters(string filename, aruco::DetectorParameters params) {
+        bool writeDetectorParameters(string filename, Ptr<aruco::DetectorParameters> params) {
             FileStorage fs(filename, FileStorage::WRITE);
             if(!fs.isOpened())
                 return false;
-            fs << "adaptiveThreshWinSizeMin" << params.adaptiveThreshWinSizeMin;
-            fs << "adaptiveThreshWinSizeMax" << params.adaptiveThreshWinSizeMax;
-            fs << "adaptiveThreshWinSizeStep" << params.adaptiveThreshWinSizeStep;
-            fs << "adaptiveThreshConstant" << params.adaptiveThreshConstant;
-            fs << "minMarkerPerimeterRate" << params.minMarkerPerimeterRate;
-            fs << "maxMarkerPerimeterRate" << params.maxMarkerPerimeterRate;
-            fs << "polygonalApproxAccuracyRate" << params.polygonalApproxAccuracyRate;
-            fs << "minCornerDistanceRate" << params.minCornerDistanceRate;
-            fs << "minDistanceToBorder" << params.minDistanceToBorder;
-            fs << "minMarkerDistanceRate" << params.minMarkerDistanceRate;
-            fs << "doCornerRefinement" << params.doCornerRefinement;
-            fs << "cornerRefinementWinSize" << params.cornerRefinementWinSize;
-            fs << "cornerRefinementMaxIterations" << params.cornerRefinementMaxIterations;
-            fs << "cornerRefinementMinAccuracy" << params.cornerRefinementMinAccuracy;
-            fs << "markerBorderBits" << params.markerBorderBits;
-            fs << "perspectiveRemovePixelPerCell" << params.perspectiveRemovePixelPerCell;
-            fs << "perspectiveRemoveIgnoredMarginPerCell" << params.perspectiveRemoveIgnoredMarginPerCell;
-            fs << "maxErroneousBitsInBorderRate" << params.maxErroneousBitsInBorderRate;
-            fs << "minOtsuStdDev" << params.minOtsuStdDev;
-            fs << "errorCorrectionRate" << params.errorCorrectionRate;
+            fs << "adaptiveThreshWinSizeMin" << params->adaptiveThreshWinSizeMin;
+            fs << "adaptiveThreshWinSizeMax" << params->adaptiveThreshWinSizeMax;
+            fs << "adaptiveThreshWinSizeStep" << params->adaptiveThreshWinSizeStep;
+            fs << "adaptiveThreshConstant" << params->adaptiveThreshConstant;
+            fs << "minMarkerPerimeterRate" << params->minMarkerPerimeterRate;
+            fs << "maxMarkerPerimeterRate" << params->maxMarkerPerimeterRate;
+            fs << "polygonalApproxAccuracyRate" << params->polygonalApproxAccuracyRate;
+            fs << "minCornerDistanceRate" << params->minCornerDistanceRate;
+            fs << "minDistanceToBorder" << params->minDistanceToBorder;
+            fs << "minMarkerDistanceRate" << params->minMarkerDistanceRate;
+            fs << "doCornerRefinement" << params->doCornerRefinement;
+            fs << "cornerRefinementWinSize" << params->cornerRefinementWinSize;
+            fs << "cornerRefinementMaxIterations" << params->cornerRefinementMaxIterations;
+            fs << "cornerRefinementMinAccuracy" << params->cornerRefinementMinAccuracy;
+            fs << "markerBorderBits" << params->markerBorderBits;
+            fs << "perspectiveRemovePixelPerCell" << params->perspectiveRemovePixelPerCell;
+            fs << "perspectiveRemoveIgnoredMarginPerCell" << params->perspectiveRemoveIgnoredMarginPerCell;
+            fs << "maxErroneousBitsInBorderRate" << params->maxErroneousBitsInBorderRate;
+            fs << "minOtsuStdDev" << params->minOtsuStdDev;
+            fs << "errorCorrectionRate" << params->errorCorrectionRate;
             fs.release();
             return true;
         }
     
-       void printDetectorParameters(DetectorParameters params) {
-            cout << "adaptiveThreshConstant: " << params.adaptiveThreshConstant << endl;
-            cout << "adaptiveThreshWinSizeMax: " << params.adaptiveThreshWinSizeMax << endl;
-            cout << "adaptiveThreshWinSizeMin: " << params.adaptiveThreshWinSizeMin << endl;
-            cout << "adaptiveThreshWinSizeStep: " << params.adaptiveThreshWinSizeStep << endl;
-            cout << "cornerRefinementMaxIterations: " << params.cornerRefinementMaxIterations << endl;
-            cout << "cornerRefinementMinAccuracy: " << params.cornerRefinementMinAccuracy << endl;
-            cout << "cornerRefinementWinSize: " << params.cornerRefinementWinSize << endl;
-            cout << "errorCorrectionRate: " << params.errorCorrectionRate << endl;
-            cout << "markerBorderBits: " << params.markerBorderBits << endl;
-            cout << "maxErroneousBitsInBorderRate: " << params.maxErroneousBitsInBorderRate << endl;
-            cout << "maxMarkerPerimeterRate: " << params.maxMarkerPerimeterRate << endl;
-            cout << "minCornerDistanceRate: " << params.minCornerDistanceRate << endl;
-            cout << "minDistanceToBorder: " << params.minDistanceToBorder << endl;
-            cout << "minMarkerDistanceRate: " << params.minMarkerDistanceRate << endl;
-            cout << "minMarkerPerimeterRate: " << params.minMarkerPerimeterRate << endl;
-            cout << "minOtsuStdDev: " << params.minOtsuStdDev << endl;
-            cout << "perspectiveRemoveIgnoredMarginPerCell: " << params.perspectiveRemoveIgnoredMarginPerCell << endl;
-            cout << "perspectiveRemovePixelPerCell: " << params.perspectiveRemovePixelPerCell << endl;
-            cout << "polygonalApproxAccuracyRate: " << params.polygonalApproxAccuracyRate << endl;
-            cout << "doCornerRefinement: " << (params.doCornerRefinement ? "true" : "false") << endl;
+       void printDetectorParameters(Ptr<DetectorParameters> params) {
+            cout << "adaptiveThreshConstant: " << params->adaptiveThreshConstant << endl;
+            cout << "adaptiveThreshWinSizeMax: " << params->adaptiveThreshWinSizeMax << endl;
+            cout << "adaptiveThreshWinSizeMin: " << params->adaptiveThreshWinSizeMin << endl;
+            cout << "adaptiveThreshWinSizeStep: " << params->adaptiveThreshWinSizeStep << endl;
+            cout << "cornerRefinementMaxIterations: " << params->cornerRefinementMaxIterations << endl;
+            cout << "cornerRefinementMinAccuracy: " << params->cornerRefinementMinAccuracy << endl;
+            cout << "cornerRefinementWinSize: " << params->cornerRefinementWinSize << endl;
+            cout << "errorCorrectionRate: " << params->errorCorrectionRate << endl;
+            cout << "markerBorderBits: " << params->markerBorderBits << endl;
+            cout << "maxErroneousBitsInBorderRate: " << params->maxErroneousBitsInBorderRate << endl;
+            cout << "maxMarkerPerimeterRate: " << params->maxMarkerPerimeterRate << endl;
+            cout << "minCornerDistanceRate: " << params->minCornerDistanceRate << endl;
+            cout << "minDistanceToBorder: " << params->minDistanceToBorder << endl;
+            cout << "minMarkerDistanceRate: " << params->minMarkerDistanceRate << endl;
+            cout << "minMarkerPerimeterRate: " << params->minMarkerPerimeterRate << endl;
+            cout << "minOtsuStdDev: " << params->minOtsuStdDev << endl;
+            cout << "perspectiveRemoveIgnoredMarginPerCell: " << params->perspectiveRemoveIgnoredMarginPerCell << endl;
+            cout << "perspectiveRemovePixelPerCell: " << params->perspectiveRemovePixelPerCell << endl;
+            cout << "polygonalApproxAccuracyRate: " << params->polygonalApproxAccuracyRate << endl;
+            cout << "doCornerRefinement: " << (params->doCornerRefinement ? "true" : "false") << endl;
         }
 
-        void parseDetectorParameters(const char * paramString, DetectorParameters *params) {
+        void parseDetectorParameters(const char * paramString, Ptr<DetectorParameters> &params) {
             string input = paramString;
             istringstream ss(input);
             string token;

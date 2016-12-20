@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
     compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);
     compression_params.push_back(9);
     cv::Mat1b markerImage;
-    cv::aruco::Dictionary dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_100);
+    Ptr<cv::aruco::Dictionary> dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_100);
     char filename[20] = { 0 };
     try {
         for (int i = 0; i < 100; i++) {

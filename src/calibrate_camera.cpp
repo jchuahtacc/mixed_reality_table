@@ -140,9 +140,9 @@ int main(int argc, char *argv[]) {
     if(parser.get<bool>("zt")) calibrationFlags |= CALIB_ZERO_TANGENT_DIST;
     if(parser.get<bool>("pc")) calibrationFlags |= CALIB_FIX_PRINCIPAL_POINT;
 
-    aruco::DetectorParameters detectorParams;
+    Ptr<aruco::DetectorParameters> detectorParams = aruco::DetectorParameters::create();
     if(parser.has("dp")) {
-        bool readOk = readDetectorParameters(parser.get<string>("dp"), &detectorParams);
+        bool readOk = readDetectorParameters(parser.get<string>("dp"), detectorParams);
         if(!readOk) {
             cerr << "Invalid detector parameters file" << endl;
             return 0;
@@ -172,13 +172,13 @@ int main(int argc, char *argv[]) {
         waitTime = 10;
     }
 
-    aruco::Dictionary dictionary =
+    Ptr<aruco::Dictionary> dictionary =
         aruco::getPredefinedDictionary(aruco::PREDEFINED_DICTIONARY_NAME(dictionaryId));
 
     // create charuco board object
-    aruco::CharucoBoard charucoboard =
+    Ptr<aruco::CharucoBoard> charucoboard =
             aruco::CharucoBoard::create(squaresX, squaresY, squareLength, markerLength, dictionary);
-    aruco::Board board = charucoboard; 
+    Ptr<aruco::Board> board = charucoboard.staticCast<aruco::Board>(); 
 
     // collect data from each frame
     vector< vector< vector< Point2f > > > allCorners;
