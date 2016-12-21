@@ -19,11 +19,68 @@ using namespace cv::aruco;
 namespace mrtable {
     namespace settings {
         class ContourParams {
-            float minPointRatio = 0.2;
-            float maxPointRatio = 0.4;
-            float minRadiusRatio = 0.05;
-            float maxRadiusRatio = 0.1;
+            public:
+                float minPointRatio = 0.2;
+                float maxPointRatio = 0.4;
+                float minRadiusRatio = 0.05;
+                float maxRadiusRatio = 0.1;
         };
+
+        bool readContourParameters(string filename, ContourParams *params) {
+            FileStorage fs(filename, FileStorage::READ);
+            if (!fs.isOpened())
+                return false;
+            fs["minPointRatio"] >> params->minPointRatio;
+            fs["maxPointRatio"] >> params->maxPointRatio;
+            fs["minRadiusRatio"] >> params->minRadiusRatio;
+            fs["maxRadiusRatio"] >> params->maxRadiusRatio;
+            return true;
+        }
+
+        bool writeContourParameters(string filename, ContourParams params) {
+            FileStorage fs(filename, FileStorage::WRITE);
+            if (!fs.isOpened())
+                return false;
+            fs << "minPointRatio" << params.minPointRatio;
+            fs << "maxPointRatio" << params.maxPointRatio;
+            fs << "minRadiusRatio" << params.minRadiusRatio;
+            fs << "maxRadiusRatio" << params.maxRadiusRatio;
+            fs.release();
+            return true;
+        }
+
+        void printContourParameters(ContourParams params) {
+            cout << "minPointRatio: " << params.minPointRatio;
+            cout << "maxPointRatio: " << params.maxPointRatio;
+            cout << "minRadiusRatio: " << params.minRadiusRatio;
+            cout << "maxRadiusRatio: " << params.maxRadiusRatio;
+        }
+
+        void parseContourParameters(const char * paramString, ContourParams *params) {
+            string input = paramString;
+            istringstream ss(input);
+            string token;
+            while (std::getline(ss, token, ',')) {
+                istringstream pair(token);
+                string key, value;
+                if (std::getline(pair, key, '=') && std::getline(pair, value)) {
+                    transform(key.begin(), key.end(), key.begin(), ::tolower);
+                    transform(value.begin(), value.end(), value.begin(), ::tolower);
+                    if (key.compare("minpointratio") == 0) {
+                        params->minPointRatio = stof(value);
+                    }
+                    if (key.compare("maxpointratio") == 0) {
+                        params->maxPointRatio = stof(value);
+                    }
+                    if (key.compare("minradiusratio") == 0) {
+                        params->minRadiusRatio = stof(value);
+                    }
+                    if (key.compare("maxradiusratio") == 0) {
+                        params->maxRadiusRatio = stof(value);
+                    }
+                }                
+            }
+        }
 
         bool readCameraParameters(string filename, Mat &camMatrix, Mat &distCoeffs) {
             FileStorage fs(filename, FileStorage::READ);

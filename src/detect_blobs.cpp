@@ -140,7 +140,7 @@ int main(int argc, char *argv[]) {
     String overrideParameters = parser.get<String>("op");
 
     if(parser.has("bp")) {
-        bool readOk = readBlobParameters(parser.get<string>("dp"), &params);
+        bool readOk = readBlobParameters(parser.get<string>("bp"), &params);
         if(!readOk) {
             cerr << "Invalid blob detector parameters file" << endl;
             return 0;

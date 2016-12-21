@@ -49,8 +49,8 @@ const char* keys  =
         "{v        |       | Input from video file, if ommited, input comes from camera }"
         "{i        |       | Input from a single image file }"
         "{ci       | 0     | Camera id if input doesnt come from video (-v) }"
-        "{bp       |       | File of blob detector parameters }"
-        "{op       |       | List of overridden blob detector parameters, i.e. blobColor=255,filterByArea=true}"
+        "{cp       |       | File of blob detector parameters }"
+        "{op       |       | List of overridden blob detector parameters, i.e. minPointRatios=0.3,minRadiusRatio=0.1}"
         "{o        |       | Output camera and detector parameters and preview renderings. File prefix is output_}"
         "{p        |       | Show preview in GUI window }"
         "{n        |       | Do not create a negative before detection}"
@@ -68,8 +68,7 @@ bool output;
 bool verbose;
 bool nonnegative;
 
-SimpleBlobDetector::Params params;
-Ptr< SimpleBlobDetector > detector;
+ContourParams params;
 vector< KeyPoint > keypoints;
 long imgSize = 1;
 Mat temp;
@@ -107,14 +106,23 @@ result_t processImage(Mat image, Mat* imageCopy) {
     vector< float > radii;
     for (int i = 0; i < contours.size(); i++) {
         double ratio = (double)contours[i].size() / imgSize; 
-        if (contours[i].size() > 500 && contours[i].size() < 1000 ) {
+        if (ratio > params.minPointRatio && ratio < params.maxPointRatio ) {
+            if (verbose) {
+                cout << "Detected contour with point to size ratio: " << ratio << endl; 
+            }
             Point2f center;
             float radius;
             minEnclosingCircle(contours[i], center, radius);
-            centers.push_back(center);
-            radii.push_back(radius);
-            if (verbose) {
-                cout << "Detected contour with point to size ratio: " << ratio << endl; 
+            if (radius > params.minRadiusRatio && radius < params.maxRadiusRatio) {
+                centers.push_back(center);
+                radii.push_back(radius);
+                if (verbose) {
+                    cout << "Contour radius within parameters: " << radius << endl;
+                }
+            } else {
+                if (verbose) {
+                    cout << "Discarded contour with radius: " << radius << endl;
+                }
             }
         } else {
             if (verbose) {
@@ -166,10 +174,10 @@ int main(int argc, char *argv[]) {
     nonnegative = parser.has("n");
     String overrideParameters = parser.get<String>("op");
 
-    if(parser.has("bp")) {
-        bool readOk = readBlobParameters(parser.get<string>("dp"), &params);
+    if(parser.has("cp")) {
+        bool readOk = readContourParameters(parser.get<string>("cp"), &params);
         if(!readOk) {
-            cerr << "Invalid blob detector parameters file" << endl;
+            cerr << "Invalid contour detector parameters file" << endl;
             return 0;
         }
     }
@@ -180,18 +188,16 @@ int main(int argc, char *argv[]) {
     }
 
     if (!overrideParameters.empty()) {
-        parseBlobParameters(overrideParameters.c_str(), &params);
+        parseContourParameters(overrideParameters.c_str(), &params);
     }
 
     if (verbose) {
-        printBlobParameters(&params);
+        printContourParameters(params);
     }
 
     if(output) {
-        writeBlobParameters("output_blobParams.xml", &params);
+        writeContourParameters("output_contourParams.xml", params);
     }
-
-    detector = SimpleBlobDetector::create(params);
 
     if (parser.has("i")) {
         string filename = parser.get<String>("i");
