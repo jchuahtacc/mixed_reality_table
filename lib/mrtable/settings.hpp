@@ -18,6 +18,12 @@ using namespace cv::aruco;
 
 namespace mrtable {
     namespace settings {
+        class ContourParams {
+            float minPointRatio = 0.2;
+            float maxPointRatio = 0.4;
+            float minRadiusRatio = 0.05;
+            float maxRadiusRatio = 0.1;
+        };
 
         bool readCameraParameters(string filename, Mat &camMatrix, Mat &distCoeffs) {
             FileStorage fs(filename, FileStorage::READ);
