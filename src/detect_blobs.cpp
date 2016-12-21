@@ -32,6 +32,7 @@ the use of this software, even if advised of the possibility of such damage.
 
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/features2d.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
 #include <mrtable/settings.hpp>
 
@@ -51,6 +52,7 @@ const char* keys  =
         "{op       |       | List of overridden blob detector parameters, i.e. blobColor=255,filterByArea=true}"
         "{o        |       | Output camera and detector parameters and preview renderings. File prefix is output_}"
         "{p        |       | Show preview in GUI window }"
+        "{n        |       | Do not create a negative before detection}"
         "{verbose  |       | Verbose output of settings }";
 }
 
@@ -63,6 +65,7 @@ typedef struct result_t {
 bool preview;
 bool output;
 bool verbose;
+bool nonnegative;
 
 SimpleBlobDetector::Params params =  SimpleBlobDetector::Params::Params() ;
 Ptr< SimpleBlobDetector > detector;
@@ -89,6 +92,11 @@ result_t processImage(Mat image, Mat* imageCopy) {
     steady_clock::time_point detectBegin = steady_clock::now();
 
     // detect markers and estimate pose
+    cvtColor(image, image, CV_BGR2GRAY);
+    if (!nonnegative) {
+        bitwise_not(image, image);
+    }
+    threshold(image, image, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
     detector->detect( image, keypoints );
     steady_clock::time_point detectEnd = steady_clock::now();
     long elapsed = duration_cast<milliseconds>(detectEnd - detectBegin).count();
@@ -127,6 +135,7 @@ int main(int argc, char *argv[]) {
     preview = parser.has("p");
     output = parser.has("o");
     verbose = parser.has("verbose");
+    nonnegative = parser.has("n");
     String overrideParameters = parser.get<String>("op");
 
     if(parser.has("bp")) {
