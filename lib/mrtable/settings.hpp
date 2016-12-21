@@ -38,10 +38,12 @@ namespace mrtable {
             return true;
         }
 
-        bool readBlobParameters(string filename, Ptr<SimpleBlobDetector::Params> &params) {
+        bool readBlobParameters(string filename, SimpleBlobDetector::Params *params) {
             FileStorage fs(filename, FileStorage::READ);
             if (!fs.isOpened()) 
                 return false;
+            params->read(fs.getFirstTopLevelNode());
+            /*
             fs["blobColor"] >> params->blobColor;
             fs["filterByArea"] >> params->filterByArea;
             fs["filterByCircularity"] >> params->filterByCircularity;
@@ -61,13 +63,16 @@ namespace mrtable {
             fs["minRepeatability"] >> temp;
             params->minRepeatability = temp;
             fs["thresholdStep"] >> params->thresholdStep;
+            */
             return true;
         }
 
-        bool writeBlobParameters(string filename, Ptr<SimpleBlobDetector::Params> params) {
+        bool writeBlobParameters(string filename, SimpleBlobDetector::Params *params) {
             FileStorage fs(filename, FileStorage::WRITE);
             if(!fs.isOpened())
                 return false;
+            params->write(fs);
+            /*
             fs << "blobColor" << params->blobColor;
             fs << "filterByArea" << params->filterByArea;
             fs << "filterByCircularity" << params->filterByCircularity;
@@ -86,6 +91,7 @@ namespace mrtable {
             int temp = params->minRepeatability;
             fs << "minRepeatability" << temp; 
             fs << "thresholdStep" << params->thresholdStep;
+            */
             fs.release();
             return true;
         }
@@ -145,7 +151,7 @@ namespace mrtable {
             return true;
         }
 
-        void printBlobParameters(Ptr<SimpleBlobDetector::Params> params) {
+        void printBlobParameters(SimpleBlobDetector::Params *params) {
             cout << "blobColor: " << (unsigned int)params->blobColor << endl;
             cout << "filterByArea: " << (params->filterByArea ? "true" : "false") << endl;
             cout << "filterByCircularity: " << (params->filterByCircularity ? "true" : "false") << endl;
@@ -190,7 +196,7 @@ namespace mrtable {
             cout << "doCornerRefinement: " << (params->doCornerRefinement ? "true" : "false") << endl;
         }
 
-        void parseBlobParameters(const char * paramString, Ptr<SimpleBlobDetector::Params> &params) {
+        void parseBlobParameters(const char * paramString, SimpleBlobDetector::Params *params) {
             string input = paramString;
             istringstream ss(input);
             string token;
