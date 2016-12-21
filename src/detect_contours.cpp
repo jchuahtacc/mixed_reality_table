@@ -35,6 +35,7 @@ the use of this software, even if advised of the possibility of such damage.
 #include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
 #include <mrtable/settings.hpp>
+#include <chrono>
 
 using namespace std;
 using namespace cv;
@@ -67,7 +68,7 @@ bool output;
 bool verbose;
 bool nonnegative;
 
-SimpleBlobDetector::Params params =  SimpleBlobDetector::Params::Params() ;
+SimpleBlobDetector::Params params;
 Ptr< SimpleBlobDetector > detector;
 vector< KeyPoint > keypoints;
 long imgSize = 1;

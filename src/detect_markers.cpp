@@ -237,7 +237,7 @@ int main(int argc, char *argv[]) {
 
     // Disable camera capture -- can't get it working
     if (!videoFile && output) {
-        output = false;
+//        output = false;
     }
     if (output) {
         int ex;
@@ -245,7 +245,7 @@ int main(int argc, char *argv[]) {
  
         string outputFilename;
         if (!videoFile) {
-            ex = CV_FOURCC('H','2','6','3');
+            ex = CV_FOURCC('M','J','P','G');
             std::ostringstream oss;
             oss << "camera_" << camId << ".avi";
             outputFilename = "output_" + oss.str(); 
