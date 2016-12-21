@@ -35,6 +35,7 @@ the use of this software, even if advised of the possibility of such damage.
 #include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
 #include <mrtable/settings.hpp>
+#include <chrono>
 
 using namespace std;
 using namespace cv;
@@ -57,9 +58,9 @@ const char* keys  =
 }
 
 typedef struct result_t {
-    int frames;
-    int detected;
-    int elapsed;
+    long int frames;
+    long int detected;
+    long int elapsed;
 } result_t;
 
 bool preview;
@@ -67,7 +68,7 @@ bool output;
 bool verbose;
 bool nonnegative;
 
-SimpleBlobDetector::Params params =  SimpleBlobDetector::Params::Params() ;
+SimpleBlobDetector::Params params; // =  SimpleBlobDetector::Params::Params() ;
 Ptr< SimpleBlobDetector > detector;
 vector< KeyPoint > keypoints;
 
@@ -227,6 +228,9 @@ int main(int argc, char *argv[]) {
     }
 
     result_t aggregate;
+    aggregate.frames = 0;
+    aggregate.detected = 0;
+    aggregate.elapsed = 0;
 
     if (preview) {
         cout << "Press the Escape key to continue..." << endl;

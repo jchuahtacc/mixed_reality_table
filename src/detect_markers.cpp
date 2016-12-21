@@ -34,6 +34,7 @@ the use of this software, even if advised of the possibility of such damage.
 #include <opencv2/aruco.hpp>
 #include <iostream>
 #include <mrtable/settings.hpp>
+#include <chrono>
 
 using namespace std;
 using namespace cv;
@@ -62,9 +63,9 @@ const char* keys  =
 }
 
 typedef struct result_t {
-    int frames;
-    int detected;
-    int elapsed;
+    long int frames;
+    long int detected;
+    long int elapsed;
 } result_t;
 
 int dictionaryId;
@@ -164,7 +165,9 @@ int main(int argc, char *argv[]) {
     }
     detectorParams->doCornerRefinement = true; // do corner refinement in markers
 
-    int camId = parser.get<int>("ci");
+
+    int camId = 0;
+    camId = parser.get<int>("ci");
 
     if(!parser.check()) {
         parser.printErrors();
@@ -258,6 +261,9 @@ int main(int argc, char *argv[]) {
     }
 
     result_t aggregate;
+    aggregate.frames = 0;
+    aggregate.detected = 0;
+    aggregate.elapsed = 0;
 
     if (preview) {
         cout << "Press the Escape key to continue..." << endl;

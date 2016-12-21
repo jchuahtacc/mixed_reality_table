@@ -2,6 +2,7 @@
 #include <opencv2/aruco.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <vector>
+#include <stdexcept>
 
 using namespace cv;
 using namespace std;
