@@ -95,11 +95,7 @@ result_t processImage(Mat image, Mat* imageCopy) {
  
     // draw results
     if (imageCopy) {
-        if (keypoints.size() > 0) {
-            drawKeypoints( image, keypoints, *imageCopy, Scalar(0, 0, 255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
-        } else {
-            image.copyTo(*imageCopy);
-        }
+        drawKeypoints( image, keypoints, *imageCopy, Scalar(0, 0, 255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
     }
 
     result_t result;
