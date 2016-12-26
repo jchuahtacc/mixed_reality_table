@@ -136,7 +136,7 @@ result_t processImage(Mat image, Mat* imageCopy) {
  
     // draw results
     if (imageCopy) {
-        image.copyTo(*imageCopy);
+        temp.copyTo(*imageCopy);
         for (int i = 0; i < centers.size(); i++) {
             circle(*imageCopy, centers[i], (int)radii[i], Scalar(0, 0, 255), 5);
         }
