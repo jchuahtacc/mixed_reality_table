@@ -157,7 +157,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (verbose) {
-        printBlobParameters(&params);
+        cout << params;
     }
 
     if(output) {

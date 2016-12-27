@@ -191,7 +191,7 @@ int main(int argc, char *argv[]) {
     if (verbose) {
         cout << "Camera Matrix: " << endl << camMatrix << endl;
         cout << "Distortion Coefficients: " << endl << distCoeffs << endl;
-        printDetectorParameters(detectorParams);
+        cout << detectorParams;
     }
 
     if(output) {

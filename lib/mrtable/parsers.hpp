@@ -150,51 +150,54 @@ namespace mrtable {
             return true;
         }
 
-        void printBlobParameters(SimpleBlobDetector::Params *params) {
-            cout << "blobColor: " << (unsigned int)params->blobColor << endl;
-            cout << "filterByArea: " << (params->filterByArea ? "true" : "false") << endl;
-            cout << "filterByCircularity: " << (params->filterByCircularity ? "true" : "false") << endl;
-            cout << "filterByColor: " << (params->filterByColor ? "true" : "false") << endl;
-            cout << "filterByConvexity: " << (params->filterByConvexity ? "true" : "false") << endl;
-            cout << "filterByInertia: " << (params->filterByInertia ? "true" : "false") << endl;
-            cout << "maxArea: " << params->maxArea << endl;
-            cout << "maxCircularity: " << params->maxCircularity << endl;
-            cout << "maxConvexity: " << params->maxConvexity << endl;
-            cout << "maxInertiaRatio: " << params->maxInertiaRatio << endl;
-            cout << "maxThreshold: " << params->maxThreshold << endl;
-            cout << "minArea: " << params->minArea << endl;
-            cout << "minCircularity: " << params->minCircularity << endl;
-            cout << "minConvexity: " << params->minConvexity << endl;
-            cout << "minDistBetweenBlobs: " << params->minDistBetweenBlobs << endl;
-            cout << "minInertiaRatio: " << params->minInertiaRatio << endl;
-            cout << "minRepeatability: " << params->minRepeatability << endl;
-            cout << "minThreshold: " << params->minThreshold << endl;
-            cout << "thresholdStep: " << params->thresholdStep << endl;
-        }
-   
-       void printDetectorParameters(Ptr<DetectorParameters> params) {
-            cout << "adaptiveThreshConstant: " << params->adaptiveThreshConstant << endl;
-            cout << "adaptiveThreshWinSizeMax: " << params->adaptiveThreshWinSizeMax << endl;
-            cout << "adaptiveThreshWinSizeMin: " << params->adaptiveThreshWinSizeMin << endl;
-            cout << "adaptiveThreshWinSizeStep: " << params->adaptiveThreshWinSizeStep << endl;
-            cout << "cornerRefinementMaxIterations: " << params->cornerRefinementMaxIterations << endl;
-            cout << "cornerRefinementMinAccuracy: " << params->cornerRefinementMinAccuracy << endl;
-            cout << "cornerRefinementWinSize: " << params->cornerRefinementWinSize << endl;
-            cout << "errorCorrectionRate: " << params->errorCorrectionRate << endl;
-            cout << "markerBorderBits: " << params->markerBorderBits << endl;
-            cout << "maxErroneousBitsInBorderRate: " << params->maxErroneousBitsInBorderRate << endl;
-            cout << "maxMarkerPerimeterRate: " << params->maxMarkerPerimeterRate << endl;
-            cout << "minCornerDistanceRate: " << params->minCornerDistanceRate << endl;
-            cout << "minDistanceToBorder: " << params->minDistanceToBorder << endl;
-            cout << "minMarkerDistanceRate: " << params->minMarkerDistanceRate << endl;
-            cout << "minMarkerPerimeterRate: " << params->minMarkerPerimeterRate << endl;
-            cout << "minOtsuStdDev: " << params->minOtsuStdDev << endl;
-            cout << "perspectiveRemoveIgnoredMarginPerCell: " << params->perspectiveRemoveIgnoredMarginPerCell << endl;
-            cout << "perspectiveRemovePixelPerCell: " << params->perspectiveRemovePixelPerCell << endl;
-            cout << "polygonalApproxAccuracyRate: " << params->polygonalApproxAccuracyRate << endl;
-            cout << "doCornerRefinement: " << (params->doCornerRefinement ? "true" : "false") << endl;
+        basic_ostream<char>& operator<<(basic_ostream<char>& outs, Ptr<DetectorParameters> params) {
+            outs << "adaptiveThreshConstant: " << params->adaptiveThreshConstant << endl;
+            outs << "adaptiveThreshWinSizeMax: " << params->adaptiveThreshWinSizeMax << endl;
+            outs << "adaptiveThreshWinSizeMin: " << params->adaptiveThreshWinSizeMin << endl;
+            outs << "adaptiveThreshWinSizeStep: " << params->adaptiveThreshWinSizeStep << endl;
+            outs << "cornerRefinementMaxIterations: " << params->cornerRefinementMaxIterations << endl;
+            outs << "cornerRefinementMinAccuracy: " << params->cornerRefinementMinAccuracy << endl;
+            outs << "cornerRefinementWinSize: " << params->cornerRefinementWinSize << endl;
+            outs << "errorCorrectionRate: " << params->errorCorrectionRate << endl;
+            outs << "markerBorderBits: " << params->markerBorderBits << endl;
+            outs << "maxErroneousBitsInBorderRate: " << params->maxErroneousBitsInBorderRate << endl;
+            outs << "maxMarkerPerimeterRate: " << params->maxMarkerPerimeterRate << endl;
+            outs << "minCornerDistanceRate: " << params->minCornerDistanceRate << endl;
+            outs << "minDistanceToBorder: " << params->minDistanceToBorder << endl;
+            outs << "minMarkerDistanceRate: " << params->minMarkerDistanceRate << endl;
+            outs << "minMarkerPerimeterRate: " << params->minMarkerPerimeterRate << endl;
+            outs << "minOtsuStdDev: " << params->minOtsuStdDev << endl;
+            outs << "perspectiveRemoveIgnoredMarginPerCell: " << params->perspectiveRemoveIgnoredMarginPerCell << endl;
+            outs << "perspectiveRemovePixelPerCell: " << params->perspectiveRemovePixelPerCell << endl;
+            outs << "polygonalApproxAccuracyRate: " << params->polygonalApproxAccuracyRate << endl;
+            outs << "doCornerRefinement: " << (params->doCornerRefinement ? "true" : "false") << endl;
+
+            return outs;
         }
 
+        basic_ostream<char>& operator<<(basic_ostream<char>& outs, SimpleBlobDetector::Params params) {
+            outs << "blobColor: " << (unsigned int)params.blobColor << endl;
+            outs << "filterByArea: " << (params.filterByArea ? "true" : "false") << endl;
+            outs << "filterByCircularity: " << (params.filterByCircularity ? "true" : "false") << endl;
+            outs << "filterByColor: " << (params.filterByColor ? "true" : "false") << endl;
+            outs << "filterByConvexity: " << (params.filterByConvexity ? "true" : "false") << endl;
+            outs << "filterByInertia: " << (params.filterByInertia ? "true" : "false") << endl;
+            outs << "maxArea: " << params.maxArea << endl;
+            outs << "maxCircularity: " << params.maxCircularity << endl;
+            outs << "maxConvexity: " << params.maxConvexity << endl;
+            outs << "maxInertiaRatio: " << params.maxInertiaRatio << endl;
+            outs << "maxThreshold: " << params.maxThreshold << endl;
+            outs << "minArea: " << params.minArea << endl;
+            outs << "minCircularity: " << params.minCircularity << endl;
+            outs << "minConvexity: " << params.minConvexity << endl;
+            outs << "minDistBetweenBlobs: " << params.minDistBetweenBlobs << endl;
+            outs << "minInertiaRatio: " << params.minInertiaRatio << endl;
+            outs << "minRepeatability: " << params.minRepeatability << endl;
+            outs << "minThreshold: " << params.minThreshold << endl;
+            outs << "thresholdStep: " << params.thresholdStep << endl;
+            return outs;
+        }
+  
         void parseBlobParameters(const char * paramString, SimpleBlobDetector::Params *params) {
             string input = paramString;
             istringstream ss(input);
