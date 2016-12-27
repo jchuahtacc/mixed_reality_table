@@ -2,7 +2,7 @@
 #include <opencv2/features2d.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
-#include <mrtable/MRTable.hpp>
+#include <mrtable/mrtable.hpp>
 #include <chrono>
 
 using namespace std;
@@ -24,12 +24,6 @@ const char* keys  =
         "{n        |       | Do not create a negative before detection}"
         "{verbose  |       | Verbose output of settings }";
 }
-
-typedef struct result_t {
-    long int frames;
-    long int detected;
-    long int elapsed;
-} result_t;
 
 bool preview;
 bool output;

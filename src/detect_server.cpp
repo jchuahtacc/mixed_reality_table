@@ -1,5 +1,5 @@
 #include <tuio/TuioServer.h>
-#include <mrtable/MRTable.hpp>
+#include <mrtable/mrtable.hpp>
 #include <iostream>
 #include <chrono>
 #include <string>
@@ -7,6 +7,7 @@
 #include <opencv2/aruco.hpp>
 
 using namespace mrtable::config;
+using namespace mrtable::process;
 
 namespace {
 const char* about = "Basic marker detection";
@@ -24,6 +25,8 @@ const char* keys  =
 cv::Ptr<ServerConfig> config;
 string configFile = "serverConfig.xml";
 bool verbose = false;
+
+cv::Ptr<FrameProcessor> process;
 
 int main(int argc, char** argv) {
     CommandLineParser parser(argc, argv, keys);

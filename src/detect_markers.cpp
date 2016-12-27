@@ -33,7 +33,7 @@ the use of this software, even if advised of the possibility of such damage.
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/aruco.hpp>
 #include <iostream>
-#include <mrtable/MRTable.hpp>
+#include <mrtable/mrtable.hpp>
 #include <chrono>
 
 using namespace std;
@@ -61,12 +61,6 @@ const char* keys  =
         "{verbose  |       | Verbose output of settings }"
         "{r        |       | show rejected candidates too }";
 }
-
-typedef struct result_t {
-    long int frames;
-    long int detected;
-    long int elapsed;
-} result_t;
 
 int dictionaryId;
 bool showRejected;
