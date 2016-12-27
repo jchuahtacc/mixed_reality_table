@@ -12,7 +12,7 @@ namespace mrtable {
     namespace process {
         class FrameProcessor {
             public:
-                virtual bool process(Mat input, Mat output, result_t& result);
+                virtual bool process(Mat input, Mat output, result_t& result) { return false; }
                 
                 string err = "Default error";
                 string processor = "Virtual processor";

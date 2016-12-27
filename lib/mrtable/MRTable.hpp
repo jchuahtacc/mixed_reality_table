@@ -7,6 +7,8 @@
 #include "ServerConfig.hpp"
 #include "ContourParams.hpp"
 #include "FrameProcessor.hpp"
+#include "TestProcessor.hpp"
+#include "ProcessQueue.hpp"
 #include "result_t.hpp"
 #include "Otsu.hpp"
 

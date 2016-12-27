@@ -49,6 +49,13 @@ int main(int argc, char** argv) {
         config->write("serverConfig.xml");
     }
     
+    cv::Ptr< FrameProcessor > proc1 = cv::makePtr< TestProcessor >(1).staticCast< FrameProcessor >();
+    cv::Ptr< FrameProcessor > proc2 = cv::makePtr< TestProcessor >(2).staticCast< FrameProcessor >();
 
-
+    ProcessQueue* proc = new ProcessQueue(config);
+    proc->addProcessor(proc1);
+    proc->addProcessor(proc2);
+    Mat empty, empty2;
+    result_t result = proc->process(empty, empty2);
+    cout << "output 1: " << *(static_cast<int*>(result.outputs[1])) << endl;
 }
