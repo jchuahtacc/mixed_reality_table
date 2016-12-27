@@ -4,6 +4,7 @@
 #include <opencv2/core/mat.hpp>
 #include "result_t.hpp"
 #include <chrono>
+#include "ServerConfig.hpp"
 
 using namespace std::chrono;
 using namespace cv;
@@ -28,6 +29,9 @@ namespace mrtable {
                     result.elapsed += (int)elapsed;
                     return result;
                 }
+
+                Ptr<ServerConfig> config;
+
         };
     }
 }

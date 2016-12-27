@@ -23,6 +23,7 @@ namespace mrtable {
                 }
 
                 void addProcessor(Ptr<FrameProcessor> processor) {
+                    processor->config = config;
                     processors.push_back(processor);
                 }
 
