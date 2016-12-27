@@ -41,22 +41,21 @@ namespace mrtable {
                     if (temp.compare("default") != 0) {
                         detectorParametersFile = temp; 
                     }
+                    detectorParameters.release();
                     if (!readDetectorParameters(detectorParametersFile, detectorParameters)) {
                         std::cerr << "Could not open " << detectorParametersFile << " - using default Aruco Detector Parameters" << std::endl;
-                        delete detectorParameters;
-                        detectorParameters = cv::aruco::DetectorParameters::create();
                     }
 
                     fs["dictionaryId"] >> temp;
                     dictionaryId = stoi(temp);
-                    delete dictionary;
+                    dictionary.release();
                     dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::PREDEFINED_DICTIONARY_NAME(dictionaryId));
 
                     fs["contourParameters"] >> temp;
                     if (temp.compare("default") != 0) {
                         contourParametersFile = temp;
                     }
-                    delete contourParameters;
+                    contourParameters.release();
                     contourParameters = mrtable::config::ContourParams::create(contourParametersFile);
 
                     fs["cameraParameters"] >> temp;
@@ -106,11 +105,13 @@ namespace mrtable {
                     FileStorage fs(filename, FileStorage::WRITE);
                     if (!fs.isOpened())
                         return false;
+
                     fs << "detectorParameters" << detectorParametersFile;
                     fs << "contourParameters" << contourParametersFile;
                     fs << "cameraParameters" << cameraParametersFile;
                     fs << "dictionaryId" << dictionaryId;
-                    fs << "host" << host;
+                    fs << "host" << host.c_str();
+
                     if (enable_udp) {
                         fs << "udpPort" << (udp_port_default ? to_string(udp_port) : "default");
                     }
@@ -180,27 +181,28 @@ namespace mrtable {
                     return outs;
                 }
 
-                ServerConfig() {
+                ServerConfig(string filename = "") {
                     contourParameters = ContourParams::create();
                     detectorParameters = cv::aruco::DetectorParameters::create();
                     dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_100);
+                    
+                    if (!filename.empty() && !read(filename)) {
+                        std::cerr << "Unable to read server configuration from " << filename << std::endl;
+                    }
                 }
 
-                ServerConfig(string filename="") {
-                    read(filename);
-                }
 
                 ~ServerConfig() {
-                    delete contourParameters;
-                    delete detectorParameters;
-                    delete dictionary;
+                    contourParameters.release();
+                    detectorParameters.release();
+                    dictionary.release();
                 }
 
             private:
                 string cameraParametersFile = "cameraParameters.xml";
                 string contourParametersFile = "contourParameters.xml";
                 string detectorParametersFile = "detectorParameters.xml";
-                int dictionaryId;
+                int dictionaryId = 1;
                 bool udp_port_default = true;
                 bool tcp_port_default = true;
                 bool web_port_default = true; 
