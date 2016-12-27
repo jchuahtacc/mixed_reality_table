@@ -14,7 +14,7 @@ namespace mrtable {
     namespace process {
         class FrameProcessor {
             public:
-                virtual bool process(Mat& input, Mat& output, result_t& result) { 
+                virtual bool process(Mat& image, result_t& result) { 
                     return false; 
                 }
 
@@ -26,9 +26,9 @@ namespace mrtable {
 
 
 
-                result_t run(Mat& input, Mat& output, result_t& result) {
+                result_t run(Mat& image, result_t& result) {
                     steady_clock::time_point detectBegin = steady_clock::now();
-                    bool ok = process(input, output, result);
+                    bool ok = process(image, result);
                     steady_clock::time_point detectEnd = steady_clock::now();
                     long int elapsed = duration_cast<milliseconds>(detectEnd - detectBegin).count();
                     if (!ok) {

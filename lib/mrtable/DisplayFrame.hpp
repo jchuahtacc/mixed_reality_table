@@ -36,9 +36,9 @@ namespace mrtable {
                     namedWindow("DisplayFrame", 1);
                 }
 
-                bool process(Mat& input, Mat& output, result_t& result) {
+                bool process(Mat& image, result_t& result) {
                     // std::cout << "DisplayFrame: " << input.rows << "x" << input.cols << std::endl;
-                    imshow("DisplayFrame", input);
+                    imshow("DisplayFrame", image);
                     *keypress = waitKey(waitTime);
                     result.outputs[RESULT_KEY_DISPLAYFRAME_KEYPRESS] = keypress;
                     return true;

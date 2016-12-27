@@ -1,5 +1,5 @@
-#ifndef __OTSU_HPP__
-#define __OTSU_HPP__
+#ifndef __OTSUCALC_HPP__
+#define __OTSUCALC_HPP__
 
 #include "keydefs.hpp"
 #include "FrameProcessor.hpp"
@@ -11,26 +11,27 @@ using namespace cv;
 
 namespace mrtable {
     namespace process {
-        class Otsu : public FrameProcessor {
+        class OtsuCalc : public FrameProcessor {
             public: 
-                Otsu() {
+                Mat discard;
+                OtsuCalc() {
                     err = "No errors";
                     processor = "Otsu";
                 }
 
-                ~Otsu() {
+                ~OtsuCalc() {
                 }
 
                 bool process(Mat& image, result_t& result) {
                     double* stddev = new double;
-                    *stddev = threshold(image, image, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+                    *stddev = threshold(image, discard, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
                     *stddev = 1.0;
                     result.outputs[RESULT_KEY_OTSU_STD_DEV] = stddev;
                     return true;
                 }
 
                 static Ptr<FrameProcessor> create() {
-                    return makePtr<Otsu>().staticCast<FrameProcessor>();
+                    return makePtr<OtsuCalc>().staticCast<FrameProcessor>();
                 }
         };
     }

@@ -43,7 +43,7 @@ int processVideo() {
     aggregate.elapsed = 0;
     while (vidSource->getFrame(image)) {
         // std::cout << "processVideo(): " << image.cols << "x" << image.rows << std::endl;
-        result_t result = proc->process(image, image);
+        result_t result = proc->process(image);
         if (*(static_cast<int*>(result.outputs[RESULT_KEY_DISPLAYFRAME_KEYPRESS])) == 27) {
             return 27;
         }
@@ -88,7 +88,14 @@ int main(int argc, char** argv) {
 
     std::cout << *vidSource << std::endl;
 
+    // Prepare frame processors
     proc = new ProcessQueue(config);
+
+    proc->addProcessor(mrtable::process::Grayscale::create());
+    proc->addProcessor(mrtable::process::Otsu::create());
+    //proc->addProcessor(mrtable::process::OtsuCalc::create());
+    //proc->addProcessor(mrtable::process::Canny::create());
+    
     if (parser.has("p")) { 
         int waitTime = parser.has("ff") ? 1 :  vidSource->waitTime;
         proc->addProcessor(mrtable::process::DisplayFrame::create(waitTime));
@@ -111,7 +118,7 @@ int main(int argc, char** argv) {
     aggregate.elapsed = 0;
 
     while (vidSource->getFrame(image)) {
-        result_t result = proc->process(image, image);
+        result_t result = proc->process(image);
         aggregate.frames++;
         aggregate.elapsed += result.elapsed;
     }

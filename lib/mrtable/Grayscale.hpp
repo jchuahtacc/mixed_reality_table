@@ -1,5 +1,5 @@
-#ifndef __OTSU_HPP__
-#define __OTSU_HPP__
+#ifndef __GRAYSCALE_HPP__
+#define __GRAYSCALE_HPP__
 
 #include "keydefs.hpp"
 #include "FrameProcessor.hpp"
@@ -11,26 +11,23 @@ using namespace cv;
 
 namespace mrtable {
     namespace process {
-        class Otsu : public FrameProcessor {
+        class Grayscale : public FrameProcessor {
             public: 
-                Otsu() {
+                Grayscale() {
                     err = "No errors";
-                    processor = "Otsu";
+                    processor = "Grayscale";
                 }
 
-                ~Otsu() {
+                ~Grayscale() {
                 }
 
                 bool process(Mat& image, result_t& result) {
-                    double* stddev = new double;
-                    *stddev = threshold(image, image, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
-                    *stddev = 1.0;
-                    result.outputs[RESULT_KEY_OTSU_STD_DEV] = stddev;
+                    cvtColor(image, image, CV_BGR2GRAY);
                     return true;
                 }
 
                 static Ptr<FrameProcessor> create() {
-                    return makePtr<Otsu>().staticCast<FrameProcessor>();
+                    return makePtr<Grayscale>().staticCast<FrameProcessor>();
                 }
         };
     }
