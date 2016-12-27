@@ -13,12 +13,19 @@ namespace mrtable {
     namespace process {
         class FrameProcessor {
             public:
-                virtual bool process(Mat input, Mat output, result_t& result) { return false; }
+                virtual bool process(Mat& input, Mat& output, result_t& result) { 
+                    return false; 
+                }
+
+                virtual void init(Ptr<ServerConfig> config) {
+                }
                 
                 string err = "Default error";
                 string processor = "Virtual processor";
 
-                result_t run(Mat input, Mat output, result_t& result) {
+
+
+                result_t run(Mat& input, Mat& output, result_t& result) {
                     steady_clock::time_point detectBegin = steady_clock::now();
                     bool ok = process(input, output, result);
                     steady_clock::time_point detectEnd = steady_clock::now();
@@ -29,9 +36,6 @@ namespace mrtable {
                     result.elapsed += (int)elapsed;
                     return result;
                 }
-
-                Ptr<ServerConfig> config;
-
         };
     }
 }

@@ -24,7 +24,7 @@ namespace mrtable {
                 ~TestProcessor() {
                 }
 
-                bool process(Mat input, Mat output, result_t& result) {
+                bool process(Mat& input, Mat& output, result_t& result) {
                     result.outputs[*procId] = procId;
                     return false;
                 }
