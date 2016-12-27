@@ -33,12 +33,12 @@ the use of this software, even if advised of the possibility of such damage.
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/aruco.hpp>
 #include <iostream>
-#include <mrtable/settings.hpp>
+#include <mrtable/MRTable.hpp>
 #include <chrono>
 
 using namespace std;
 using namespace cv;
-using namespace mrtable::settings;
+using namespace mrtable::config;
 using namespace std::chrono;
 
 namespace {

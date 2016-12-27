@@ -1,45 +1,13 @@
-/*
-By downloading, copying, installing or using the software you agree to this
-license. If you do not agree to this license, do not download, install,
-copy or use the software.
-                          License Agreement
-               For Open Source Computer Vision Library
-                       (3-clause BSD License)
-Copyright (C) 2013, OpenCV Foundation, all rights reserved.
-Third party copyrights are property of their respective owners.
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-  * Redistributions of source code must retain the above copyright notice,
-    this list of conditions and the following disclaimer.
-  * Redistributions in binary form must reproduce the above copyright notice,
-    this list of conditions and the following disclaimer in the documentation
-    and/or other materials provided with the distribution.
-  * Neither the names of the copyright holders nor the names of the contributors
-    may be used to endorse or promote products derived from this software
-    without specific prior written permission.
-This software is provided by the copyright holders and contributors "as is" and
-any express or implied warranties, including, but not limited to, the implied
-warranties of merchantability and fitness for a particular purpose are
-disclaimed. In no event shall copyright holders or contributors be liable for
-any direct, indirect, incidental, special, exemplary, or consequential damages
-(including, but not limited to, procurement of substitute goods or services;
-loss of use, data, or profits; or business interruption) however caused
-and on any theory of liability, whether in contract, strict liability,
-or tort (including negligence or otherwise) arising in any way out of
-the use of this software, even if advised of the possibility of such damage.
-*/
-
-
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/features2d.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
-#include <mrtable/settings.hpp>
+#include <mrtable/MRTable.hpp>
 #include <chrono>
 
 using namespace std;
 using namespace cv;
-using namespace mrtable::settings;
+using namespace mrtable::config;
 using namespace std::chrono;
 
 namespace {
@@ -68,7 +36,7 @@ bool output;
 bool verbose;
 bool nonnegative;
 
-ContourParams params;
+cv::Ptr<ContourParams> params;
 vector< KeyPoint > keypoints;
 long imgSize = 1;
 Mat temp;
@@ -106,14 +74,14 @@ result_t processImage(Mat image, Mat* imageCopy) {
     vector< float > radii;
     for (int i = 0; i < contours.size(); i++) {
         double ratio = (double)contours[i].size() / imgSize; 
-        if (ratio > params.minPointRatio && ratio < params.maxPointRatio ) {
+        if (ratio > params->minPointRatio && ratio < params->maxPointRatio ) {
             if (verbose) {
                 cout << "Detected contour with point to size ratio: " << ratio << endl; 
             }
             Point2f center;
             float radius;
             minEnclosingCircle(contours[i], center, radius);
-            if (radius > params.minRadiusRatio && radius < params.maxRadiusRatio) {
+            if (radius > params->minRadiusRatio && radius < params->maxRadiusRatio) {
                 centers.push_back(center);
                 radii.push_back(radius);
                 if (verbose) {
@@ -174,13 +142,19 @@ int main(int argc, char *argv[]) {
     nonnegative = parser.has("n");
     String overrideParameters = parser.get<String>("op");
 
+    params = ContourParams::create(parser.get<String>("cp"));
+    
+    /*
     if(parser.has("cp")) {
+
         bool readOk = readContourParameters(parser.get<string>("cp"), &params);
         if(!readOk) {
             cerr << "Invalid contour detector parameters file" << endl;
             return 0;
         }
+    } else {
     }
+    */
 
     if(!parser.check()) {
         parser.printErrors();
@@ -188,15 +162,18 @@ int main(int argc, char *argv[]) {
     }
 
     if (!overrideParameters.empty()) {
-        parseContourParameters(overrideParameters.c_str(), &params);
+        params->parse(overrideParameters);
+        //parseContourParameters(overrideParameters.c_str(), &params);
     }
 
     if (verbose) {
-        printContourParameters(params);
+        cout << params;
+        //printContourParameters(params);
     }
 
     if(output) {
-        writeContourParameters("output_contourParams.xml", params);
+        params->write("output_contourParams.xml");
+        //writeContourParameters("output_contourParams.xml", params);
     }
 
     if (parser.has("i")) {

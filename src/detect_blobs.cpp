@@ -34,12 +34,12 @@ the use of this software, even if advised of the possibility of such damage.
 #include <opencv2/features2d.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
-#include <mrtable/settings.hpp>
+#include <mrtable/parsers.hpp>
 #include <chrono>
 
 using namespace std;
 using namespace cv;
-using namespace mrtable::settings;
+using namespace mrtable::config;
 using namespace std::chrono;
 
 namespace {

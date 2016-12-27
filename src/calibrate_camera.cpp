@@ -37,11 +37,11 @@ the use of this software, even if advised of the possibility of such damage.
 #include <vector>
 #include <iostream>
 #include <ctime>
-#include <mrtable/settings.hpp>
+#include <mrtable/parsers.hpp>
 
 using namespace std;
 using namespace cv;
-using namespace mrtable::settings;
+using namespace mrtable::config;
 
 namespace {
 const char* about =
