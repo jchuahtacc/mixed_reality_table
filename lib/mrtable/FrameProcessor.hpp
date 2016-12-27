@@ -5,6 +5,7 @@
 #include "result_t.hpp"
 #include <chrono>
 #include "ServerConfig.hpp"
+#include <string>
 
 using namespace std::chrono;
 using namespace cv;

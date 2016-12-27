@@ -3,6 +3,8 @@
 
 #include <opencv2/core/core.hpp>
 #include "Source.hpp"
+#include <iostream>
+#include <string>
 
 namespace mrtable {
     namespace sources {

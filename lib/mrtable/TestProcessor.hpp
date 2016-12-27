@@ -4,6 +4,7 @@
 #include "mrtable.hpp"
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <string>
 
 using namespace mrtable::process;
 using namespace cv;

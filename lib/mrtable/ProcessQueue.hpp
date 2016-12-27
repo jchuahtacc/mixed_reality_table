@@ -6,6 +6,8 @@
 #include "result_t.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/core.hpp>
+#include <string>
+#include <vector>
 
 using namespace mrtable::process;
 using namespace cv;

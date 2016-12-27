@@ -2,6 +2,9 @@
 #define __CONTOURPARAMS_HPP__
 
 #include <opencv2/core/core.hpp>
+#include <iostream>
+#include <string>
+
 using namespace std;
 namespace mrtable {
     namespace config {

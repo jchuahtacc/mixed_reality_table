@@ -50,6 +50,7 @@ int processVideo() {
         aggregate.frames++;
         aggregate.elapsed += result.elapsed;
     }
+    std::cout << aggregate << std::endl;
     return waitKey(0);
 }
 
