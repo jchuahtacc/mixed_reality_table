@@ -14,6 +14,7 @@
 #include "Grayscale.hpp"
 #include "OtsuCalc.hpp"
 #include "Canny.hpp"
+#include "Aruco.hpp"
 #include "Source.hpp"
 #include "VideoSource.hpp"
 #include "ImageSource.hpp"
