@@ -14,19 +14,23 @@ namespace mrtable {
         class OtsuCalc : public FrameProcessor {
             public: 
                 Mat discard;
+                double stddev = 200;
+
                 OtsuCalc() {
                     err = "No errors";
                     processor = "Otsu";
                 }
 
                 ~OtsuCalc() {
+                    outputs->erase(RESULT_KEY_OTSU_STD_DEV);
+                }
+
+                void init(Ptr<ServerConfig> config) {
+                    outputs->put(RESULT_KEY_OTSU_STD_DEV, &stddev);
                 }
 
                 bool process(Mat& image, result_t& result) {
-                    double* stddev = new double;
-                    *stddev = threshold(image, discard, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
-                    *stddev = 1.0;
-                    result.outputs[RESULT_KEY_OTSU_STD_DEV] = stddev;
+                    stddev = threshold(image, discard, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
                     return true;
                 }
 

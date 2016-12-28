@@ -10,7 +10,6 @@ namespace mrtable {
             int frames;
             int detected;
             int elapsed;
-            std::map<int, void* > outputs;
         } result_t;
 
         basic_ostream<char>& operator<<(basic_ostream<char>& outs, result_t& result) {

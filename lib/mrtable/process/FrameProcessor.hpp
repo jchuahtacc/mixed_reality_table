@@ -15,11 +15,16 @@ namespace mrtable {
     namespace process {
         class FrameProcessor {
             public:
+                Ptr<ProcessorOutput> outputs;
+
+                ~FrameProcessor() {
+                    outputs.release();
+                }
                 virtual bool process(Mat& image, result_t& result) { 
                     return false; 
                 }
 
-                virtual void init(Ptr<ServerConfig> config, Ptr<ProcessorOutput> outputs) {
+                virtual void init(Ptr<ServerConfig> config) {
                 }
                 
                 string err = "Default error";

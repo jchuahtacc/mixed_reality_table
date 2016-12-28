@@ -22,9 +22,10 @@ namespace mrtable {
                 }
 
                 ~TestProcessor() {
+                    outputs->erase(procId);
                 }
 
-                void init(Ptr<ServerConfig> config, Ptr<ProcessorOutput> outputs) {
+                void init(Ptr<ServerConfig> config) {
                     outputs->put(procId, &procId);
                 }
 

@@ -27,7 +27,8 @@ namespace mrtable {
                 }
 
                 void addProcessor(Ptr<FrameProcessor> processor) {
-                    processor->init(config, outputs);
+                    processor->outputs = outputs;
+                    processor->init(config);
                     processors.push_back(processor);
                 }
 

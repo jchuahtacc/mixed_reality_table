@@ -23,12 +23,26 @@ namespace mrtable {
 
                 template<typename T> T get(int key) {
                     void* val = outputs[key];
+                    if (val == NULL) {
+                        throw std::invalid_argument("ProcessorOutput is missing key");
+                    }
                     T* tPtr = static_cast<T*>(val);
                     return *tPtr;
                 }
 
                 void put(int key, void* value) {
                     outputs[key] = value;
+                }
+
+                bool has(int key) {
+                    return outputs.count(key) > 0;
+                }
+
+                void erase(int key) {
+                    std::map<int, void*>::iterator it = outputs.find(key);
+                    if (it != outputs.end()) {
+                        outputs.erase(outputs.find(key));
+                    }
                 }
 
 

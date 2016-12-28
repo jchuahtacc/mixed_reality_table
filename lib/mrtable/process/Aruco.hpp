@@ -24,24 +24,44 @@ namespace mrtable {
                 }
 
                 ~Aruco() {
+                    outputs->erase(RESULT_KEY_ARUCO_IDS);
+                    outputs->erase(RESULT_KEY_ARUCO_CORNERS);
+                    outputs->erase(RESULT_KEY_ARUCO_REJECTED);
+                    outputs->erase(RESULT_KEY_ARUCO_RVECS);
+                    outputs->erase(RESULT_KEY_ARUCO_TVECS);
+                    detectorParams.release();
+                    dictionary.release();
+                }
+
+                void init(Ptr<ServerConfig> config) {
+                    dictionary = config->dictionary;
+                    detectorParams = config->detectorParameters;
+                    camMatrix = config->cameraMatrix;
+                    distCoeffs = config->distortionCoefficients;
+                    markerLength = config->markerLength;
+                    outputs->put(RESULT_KEY_ARUCO_IDS, &ids);
+                    outputs->put(RESULT_KEY_ARUCO_CORNERS, &corners);
+                    outputs->put(RESULT_KEY_ARUCO_REJECTED, &rejected);
+                    outputs->put(RESULT_KEY_ARUCO_RVECS, &rvecs);
+                    outputs->put(RESULT_KEY_ARUCO_TVECS, &tvecs);
                 }
 
                 bool process(Mat& image, result_t& result) {
-                    ids.clear();
-                    corners.clear();
-                    rejected.clear();
-                    rvecs.clear();
-                    tvecs.clear();
-                    double* stddev = new double;
-                    *stddev = threshold(image, image, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
-                    *stddev = 1.0;
-                    result.outputs[RESULT_KEY_OTSU_STD_DEV] = stddev;
+                    aruco::detectMarkers(image, dictionary, corners, ids, detectorParams, rejected);
+                    aruco::estimatePoseSingleMarkers(corners, markerLength, camMatrix, distCoeffs, rvecs,tvecs);
+                    result.detected += ids.size();
                     return true;
                 }
 
                 static Ptr<FrameProcessor> create() {
                     return makePtr<Otsu>().staticCast<FrameProcessor>();
                 }
+
+            private:
+                Ptr<aruco::DetectorParameters> detectorParams;
+                Ptr<aruco::Dictionary> dictionary;
+                Mat camMatrix, distCoeffs;
+                double markerLength = 0.1;
         };
     }
 }

@@ -19,6 +19,7 @@ namespace mrtable {
                 cv::Ptr<aruco::DetectorParameters> detectorParameters;
                 cv::Ptr<aruco::Dictionary> dictionary;
                 Mat cameraMatrix, distortionCoefficients;
+                double markerLength = 0.1;
                 string host = "127.0.0.1";
                 int udp_port = 3333;
                 int tcp_port = 3333;
@@ -36,6 +37,7 @@ namespace mrtable {
                     FileStorage fs(filename, FileStorage::READ);
                     if (!fs.isOpened())
                         return false;
+
                     string temp;
 
                     fs["detectorParameters"] >> temp; 
@@ -47,8 +49,15 @@ namespace mrtable {
                         std::cerr << "Could not open " << detectorParametersFile << " - using default Aruco Detector Parameters" << std::endl;
                     }
 
+                    fs["markerLength"] >> temp;
+                    if (!temp.empty() && temp.compare("default") != 0) {
+                        markerLength = stof(temp);
+                    }
+
                     fs["dictionaryId"] >> temp;
-                    dictionaryId = stoi(temp);
+                    if (!temp.empty() && temp.compare("default") != 0) {
+                        dictionaryId = stoi(temp);
+                    }
                     dictionary.release();
                     dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::PREDEFINED_DICTIONARY_NAME(dictionaryId));
 

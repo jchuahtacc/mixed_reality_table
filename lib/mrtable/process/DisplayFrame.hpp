@@ -15,35 +15,35 @@ namespace mrtable {
         class DisplayFrame : public FrameProcessor {
             public: 
 
-                int* keypress;
+                int keypress = 0;
 
                 DisplayFrame(int waitTime) {
                     err = "No errors";
                     processor = "DisplayFrame";
                     this->waitTime = waitTime;
-                    keypress = new int;
-                    *keypress = 0;
                 }
 
                 ~DisplayFrame() {
+                    outputs->erase(RESULT_KEY_DISPLAYFRAME_KEYPRESS);
+                }
+
+                void init(Ptr<ServerConfig> config) {
+                    outputs->put(RESULT_KEY_DISPLAYFRAME_KEYPRESS, &keypress);
+                    namedWindow("DisplayFrame", 1);
                 }
 
                 static Ptr<FrameProcessor> create(int waitTime) {
                     return makePtr<DisplayFrame>(waitTime).staticCast<FrameProcessor>();
                 }
 
-                void init(Ptr<ServerConfig> config) {
-                    namedWindow("DisplayFrame", 1);
-                }
-
                 bool process(Mat& image, result_t& result) {
                     // std::cout << "DisplayFrame: " << input.rows << "x" << input.cols << std::endl;
                     imshow("DisplayFrame", image);
-                    *keypress = waitKey(waitTime);
-                    result.outputs[RESULT_KEY_DISPLAYFRAME_KEYPRESS] = keypress;
+                    keypress = waitKey(waitTime);
                     return true;
                 }
                 int waitTime = 5;
+
         };
     }
 }

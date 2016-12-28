@@ -45,7 +45,7 @@ int processVideo() {
     while (vidSource->getFrame(image)) {
         // std::cout << "processVideo(): " << image.cols << "x" << image.rows << std::endl;
         result_t result = proc->process(image);
-        if (*(static_cast<int*>(result.outputs[RESULT_KEY_DISPLAYFRAME_KEYPRESS])) == 27) {
+        if (outputs->get<int>(RESULT_KEY_DISPLAYFRAME_KEYPRESS) == 27) {
             return 27;
         }
         aggregate.frames++;

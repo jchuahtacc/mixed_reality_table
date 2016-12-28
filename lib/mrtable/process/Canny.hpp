@@ -20,22 +20,24 @@ namespace mrtable {
 
                 ~Canny() {
                 }
+                
+                void init(Ptr<ServerConfig> config) {
+                }
 
                 bool process(Mat& image, result_t& result) {
-                    double* ptr = static_cast<double*>(result.outputs[RESULT_KEY_OTSU_STD_DEV]);
-                    if (ptr != NULL) {
-                        double stddev = *ptr;
+                    if (outputs->has(RESULT_KEY_OTSU_STD_DEV)) {
+                        double stddev = outputs->get<double>(RESULT_KEY_OTSU_STD_DEV);
                         cv::Canny(image, image, stddev * 0.5, stddev);
                         return true;
-                    } else {
-                        cv::Canny(image, image, 100, 300);
-                        return true;
                     }
+                    cv::Canny(image, image, 100, 300);
+                    return false;
                 }
 
                 static Ptr<FrameProcessor> create() {
                     return makePtr<Canny>().staticCast<FrameProcessor>();
                 }
+
         };
     }
 }
