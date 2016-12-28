@@ -14,8 +14,8 @@ namespace mrtable {
             public:
                 float minPointRatio = 0.2;
                 float maxPointRatio = 0.4;
-                float minRadiusRatio = 0.05;
-                float maxRadiusRatio = 0.1;
+                float minWidthRatio = 0.05;
+                float maxWidthRatio = 0.1;
 
                 static cv::Ptr<ContourParams> create(string filename = "") {
                     return cv::makePtr<ContourParams>(filename);
@@ -28,8 +28,8 @@ namespace mrtable {
                         return false;
                     fs["minPointRatio"] >> params->minPointRatio;
                     fs["maxPointRatio"] >> params->maxPointRatio;
-                    fs["minRadiusRatio"] >> params->minRadiusRatio;
-                    fs["maxRadiusRatio"] >> params->maxRadiusRatio;
+                    fs["minWidthRatio"] >> params->minWidthRatio;
+                    fs["maxWidthRatio"] >> params->maxWidthRatio;
                     return true;
                 }
 
@@ -40,8 +40,8 @@ namespace mrtable {
                         return false;
                     fs << "minPointRatio" << params->minPointRatio;
                     fs << "maxPointRatio" << params->maxPointRatio;
-                    fs << "minRadiusRatio" << params->minRadiusRatio;
-                    fs << "maxRadiusRatio" << params->maxRadiusRatio;
+                    fs << "minWidthRatio" << params->minWidthRatio;
+                    fs << "maxWidthRatio" << params->maxWidthRatio;
                     fs.release();
                     return true;
                 }
@@ -63,10 +63,10 @@ namespace mrtable {
                                 params->maxPointRatio = stof(value);
                             }
                             if (key.compare("minradiusratio") == 0) {
-                                params->minRadiusRatio = stof(value);
+                                params->minWidthRatio = stof(value);
                             }
                             if (key.compare("maxradiusratio") == 0) {
-                                params->maxRadiusRatio = stof(value);
+                                params->maxWidthRatio = stof(value);
                             }
                         }                
                     }
@@ -76,8 +76,8 @@ namespace mrtable {
                 friend basic_ostream<char>& operator<<(basic_ostream<char>& outs, ContourParams params) {
                     outs << "minPointRatio" << params.minPointRatio << endl;
                     outs << "maxPointRatio" << params.maxPointRatio << endl;
-                    outs << "minRadiusRatio" << params.minRadiusRatio << endl;
-                    outs << "maxRadiusRatio" << params.maxRadiusRatio << endl;
+                    outs << "minWidthRatio" << params.minWidthRatio << endl;
+                    outs << "maxWidthRatio" << params.maxWidthRatio << endl;
                     return outs; 
                 }
 

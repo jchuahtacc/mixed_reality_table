@@ -3,6 +3,7 @@
 
 #include <map>
 #include <opencv2/core/core.hpp>
+#include <sstream>
 
 using namespace std;
 
@@ -24,7 +25,9 @@ namespace mrtable {
                 template<typename T> T* getPtr(int key) {
                     void* val = outputs[key];
                     if (val == NULL) {
-                        throw std::invalid_argument("ProcessorOutput is missing key");
+                        stringstream ss;
+                        ss << "Exception in ProcessorOutput - invalid key: " << key;
+                        throw std::invalid_argument(ss.str());
                     }
                     return static_cast<T*>(val);
                 }

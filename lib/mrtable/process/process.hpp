@@ -3,6 +3,7 @@
 
 #include "result_t.hpp"
 #include "Marker.hpp"
+#include "Touch.hpp"
 #include "keydefs.hpp"
 #include "ProcessorOutput.hpp"
 #include "FrameProcessor.hpp"
@@ -15,5 +16,6 @@
 #include "Aruco.hpp"
 #include "ArucoCompute.hpp"
 #include "Grayscale.hpp"
+#include "Contour.hpp"
 
 #endif

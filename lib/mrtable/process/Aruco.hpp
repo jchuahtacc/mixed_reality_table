@@ -48,7 +48,7 @@ namespace mrtable {
                 }
 
                 static Ptr<FrameProcessor> create() {
-                    return makePtr<Otsu>().staticCast<FrameProcessor>();
+                    return makePtr<Aruco>().staticCast<FrameProcessor>();
                 }
 
             private:

@@ -73,6 +73,8 @@ result_t processImage(Mat image, Mat* imageCopy) {
                 cout << "Detected contour with point to size ratio: " << ratio << endl; 
             }
             Point2f center;
+
+            /*
             float radius;
             minEnclosingCircle(contours[i], center, radius);
             if (radius > params->minRadiusRatio && radius < params->maxRadiusRatio) {
@@ -86,6 +88,7 @@ result_t processImage(Mat image, Mat* imageCopy) {
                     cout << "Discarded contour with radius: " << radius << endl;
                 }
             }
+            */
         } else {
             if (verbose) {
                 cout << "Discarding contour with point to size ratio: " << ratio << endl; 

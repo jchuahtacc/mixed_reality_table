@@ -32,7 +32,12 @@ namespace mrtable {
 
                 result_t run(Mat& image, result_t& result) {
                     steady_clock::time_point detectBegin = steady_clock::now();
-                    bool ok = process(image, result);
+                    bool ok = false;
+                    try {
+                        ok = process(image, result);
+                    } catch (const std::exception& e) {
+                        std::cerr << e.what() << std::endl;
+                    }
                     steady_clock::time_point detectEnd = steady_clock::now();
                     long int elapsed = duration_cast<milliseconds>(detectEnd - detectBegin).count();
                     if (!ok) {

@@ -10,5 +10,8 @@
 #define     RESULT_KEY_ARUCO_TVECS              304
 #define     RESULT_KEY_ARUCO_MARKERS            400
 #define     RESULT_KEY_ARUCO_NUM_MARKERS        401
+#define     RESULT_KEY_CONTOUR_CONTOURS         500
+#define     RESULT_KEY_CONTOUR_HIERARCHY        501
+#define     RESULT_KEY_CONTOUR_TOUCHES          600
 
 #endif

@@ -1,14 +1,16 @@
-#include <tuio/TuioServer.h>
 #include <mrtable/mrtable.hpp>
 #include <iostream>
 #include <chrono>
 #include <string>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/aruco.hpp>
+#include <thread>
+#include <tuio/TuioServer.h>
 
 using namespace mrtable::config;
 using namespace mrtable::process;
 using namespace mrtable::sources;
+using namespace TUIO;
 
 namespace {
 const char* about = "Basic marker detection";
@@ -31,10 +33,12 @@ bool verbose = false;
 cv::Ptr<FrameProcessor> process;
 cv::Ptr<ProcessorOutput> outputs;
 VideoSource* vidSource = NULL;
-ProcessQueue* proc;
+ProcessQueue* proc = NULL;
+TuioServer* server = NULL;
+
 Mat image;
 
-int processVideo() {
+int processVideo(bool headless) {
     if (vidSource == NULL) {
         std::cerr << "No video source specified!" << std::endl;
         return 27;
@@ -45,13 +49,16 @@ int processVideo() {
     while (vidSource->getFrame(image)) {
         // std::cout << "processVideo(): " << image.cols << "x" << image.rows << std::endl;
         result_t result = proc->process(image);
-        if (outputs->get<int>(RESULT_KEY_DISPLAYFRAME_KEYPRESS) == 27) {
-            return 27;
+        if (!headless) {
+            if (outputs->get<int>(RESULT_KEY_DISPLAYFRAME_KEYPRESS) == 27) {
+                return 27;
+            }
         }
         aggregate.frames++;
         aggregate.elapsed += result.elapsed;
     }
     std::cout << aggregate << std::endl;
+    if (headless) return 27;
     return waitKey(0);
 }
 
@@ -87,28 +94,35 @@ int main(int argc, char** argv) {
         vidSource = new VideoSource(parser.get<int>("ci")); 
     }
 
+
+    server = new TuioServer(config->host.c_str(), config->udp_port);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
     std::cout << *vidSource << std::endl;
 
     // Prepare frame processors
     outputs = mrtable::process::ProcessorOutput::create();
     proc = new ProcessQueue(config, outputs);
 
-    //proc->addProcessor(mrtable::process::Grayscale::create());
-    //proc->addProcessor(mrtable::process::Otsu::create());
+    proc->addProcessor(mrtable::process::Grayscale::create());
+    proc->addProcessor(mrtable::process::Otsu::create());
     //proc->addProcessor(mrtable::process::OtsuCalc::create());
     //proc->addProcessor(mrtable::process::Canny::create());
+    proc->addProcessor(mrtable::process::Aruco::create());
+    proc->addProcessor(mrtable::process::ArucoCompute::create());
+    proc->addProcessor(mrtable::process::Contour::create());
     
     if (parser.has("p")) { 
         int waitTime = parser.has("ff") ? 1 :  vidSource->waitTime;
         proc->addProcessor(mrtable::process::DisplayFrame::create(waitTime));
     }
 
-    if(parser.has("v")) {
-        std::cout << "Playing video file " << vidSource->getSource() << std::endl;
+    if (parser.has("v")) {
+        std::cout << "Processing video file " << vidSource->getSource() << std::endl;
         int result = 0;
         while (result != 27) {
             std::cout << "Press ESC to exit, or any other key to replay video..." << std::endl;
-            result = processVideo();
+            result = processVideo(!parser.has("p"));
             vidSource->reset();
         }
         return 0;
