@@ -29,8 +29,9 @@ string configFile = "serverConfig.xml";
 bool verbose = false;
 
 cv::Ptr<FrameProcessor> process;
+cv::Ptr<ProcessorOutput> outputs;
 VideoSource* vidSource = NULL;
-ProcessQueue* proc = new ProcessQueue(config);
+ProcessQueue* proc;
 Mat image;
 
 int processVideo() {
@@ -89,10 +90,11 @@ int main(int argc, char** argv) {
     std::cout << *vidSource << std::endl;
 
     // Prepare frame processors
-    proc = new ProcessQueue(config);
+    outputs = mrtable::process::ProcessorOutput::create();
+    proc = new ProcessQueue(config, outputs);
 
-    proc->addProcessor(mrtable::process::Grayscale::create());
-    proc->addProcessor(mrtable::process::Otsu::create());
+    //proc->addProcessor(mrtable::process::Grayscale::create());
+    //proc->addProcessor(mrtable::process::Otsu::create());
     //proc->addProcessor(mrtable::process::OtsuCalc::create());
     //proc->addProcessor(mrtable::process::Canny::create());
     

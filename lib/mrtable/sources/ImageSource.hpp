@@ -2,6 +2,7 @@
 #define __IMAGESOURCE_HPP__
 
 #include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
 #include "Source.hpp"
 #include <string>
 
@@ -14,7 +15,7 @@ namespace mrtable {
                 Mat img;
 
                 ImageSource(string filename) {
-                    img = imread(filename);    
+                    img = cv::imread(filename);    
                     getProps();
                 }
 

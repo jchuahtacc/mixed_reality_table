@@ -6,6 +6,8 @@
 #include <string>
 
 using namespace std;
+using namespace cv;
+
 namespace mrtable {
     namespace config {
         class ContourParams {

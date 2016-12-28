@@ -4,7 +4,8 @@
 #include <opencv2/core/mat.hpp>
 #include "result_t.hpp"
 #include <chrono>
-#include "ServerConfig.hpp"
+#include "../config/ServerConfig.hpp"
+#include "ProcessorOutput.hpp"
 #include <string>
 
 using namespace std::chrono;
@@ -18,13 +19,11 @@ namespace mrtable {
                     return false; 
                 }
 
-                virtual void init(Ptr<ServerConfig> config) {
+                virtual void init(Ptr<ServerConfig> config, Ptr<ProcessorOutput> outputs) {
                 }
                 
                 string err = "Default error";
                 string processor = "Virtual processor";
-
-
 
                 result_t run(Mat& image, result_t& result) {
                     steady_clock::time_point detectBegin = steady_clock::now();

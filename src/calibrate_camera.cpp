@@ -37,7 +37,7 @@ the use of this software, even if advised of the possibility of such damage.
 #include <vector>
 #include <iostream>
 #include <ctime>
-#include <mrtable/parsers.hpp>
+#include <mrtable/config/parsers.hpp>
 
 using namespace std;
 using namespace cv;

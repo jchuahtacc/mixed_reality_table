@@ -1,8 +1,9 @@
 #ifndef __PROCESSQUEUE_HPP__
 #define __PROCESSQUEUE_HPP__
 
-#include "ServerConfig.hpp"
+#include "../config/ServerConfig.hpp"
 #include "FrameProcessor.hpp"
+#include "ProcessorOutput.hpp"
 #include "result_t.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/core.hpp>
@@ -16,8 +17,9 @@ namespace mrtable {
     namespace process {
         class ProcessQueue {
             public:
-                ProcessQueue(Ptr<ServerConfig> conf) {
+                ProcessQueue(Ptr<ServerConfig> conf, Ptr<ProcessorOutput> output) {
                     config = conf;
+                    outputs = output;
                 }
 
                 ~ProcessQueue() {
@@ -25,7 +27,7 @@ namespace mrtable {
                 }
 
                 void addProcessor(Ptr<FrameProcessor> processor) {
-                    processor->init(config);
+                    processor->init(config, outputs);
                     processors.push_back(processor);
                 }
 
@@ -42,6 +44,7 @@ namespace mrtable {
 
             private:
                 Ptr<ServerConfig> config;
+                Ptr<ProcessorOutput> outputs;
                 std::vector< Ptr<FrameProcessor> > processors;
         };
     }

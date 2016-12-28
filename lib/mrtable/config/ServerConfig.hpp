@@ -4,8 +4,9 @@
 #include <iostream>
 #include <opencv2/core/core.hpp>
 #include <opencv2/aruco.hpp>
-#include <mrtable/ContourParams.hpp> 
 #include <string>
+#include "ContourParams.hpp"
+#include "parsers.hpp"
 
 using namespace mrtable::config;
 using namespace std;
