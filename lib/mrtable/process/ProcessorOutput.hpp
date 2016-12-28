@@ -21,12 +21,17 @@ namespace mrtable {
                     return makePtr<ProcessorOutput>();
                 }
 
-                template<typename T> T get(int key) {
+                template<typename T> T* getPtr(int key) {
                     void* val = outputs[key];
                     if (val == NULL) {
                         throw std::invalid_argument("ProcessorOutput is missing key");
                     }
-                    T* tPtr = static_cast<T*>(val);
+                    return static_cast<T*>(val);
+                }
+
+
+                template<typename T> T get(int key) {
+                    T* tPtr = getPtr<T>(key);
                     return *tPtr;
                 }
 

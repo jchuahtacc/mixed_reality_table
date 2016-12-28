@@ -8,5 +8,7 @@
 #define     RESULT_KEY_ARUCO_REJECTED           302
 #define     RESULT_KEY_ARUCO_RVECS              303
 #define     RESULT_KEY_ARUCO_TVECS              304
+#define     RESULT_KEY_ARUCO_MARKERS            400
+#define     RESULT_KEY_ARUCO_NUM_MARKERS        401
 
 #endif

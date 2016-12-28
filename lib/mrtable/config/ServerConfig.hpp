@@ -19,7 +19,11 @@ namespace mrtable {
                 cv::Ptr<aruco::DetectorParameters> detectorParameters;
                 cv::Ptr<aruco::Dictionary> dictionary;
                 Mat cameraMatrix, distortionCoefficients;
+                int dictionaryId = 1;
                 double markerLength = 0.1;
+                int skippableFrames = 3;
+                int movementThreshold = 5;
+                float angleThreshold = 0.17;
                 string host = "127.0.0.1";
                 int udp_port = 3333;
                 int tcp_port = 3333;
@@ -52,6 +56,21 @@ namespace mrtable {
                     fs["markerLength"] >> temp;
                     if (!temp.empty() && temp.compare("default") != 0) {
                         markerLength = stof(temp);
+                    }
+
+                    fs["skippableFrames"] >> temp;
+                    if (!temp.empty() && temp.compare("default") != 0) {
+                        skippableFrames = stoi(temp);
+                    }
+
+                    fs["movementThreshold"] >> temp;
+                    if (!temp.empty() && temp.compare("default") != 0) {
+                        movementThreshold = stoi(temp);
+                    }
+
+                    fs["angleThreshold"] >> temp;
+                    if (!temp.empty() && temp.compare("default") != 0) {
+                        angleThreshold = stof(temp);
                     }
 
                     fs["dictionaryId"] >> temp;
@@ -120,6 +139,10 @@ namespace mrtable {
                     fs << "contourParameters" << contourParametersFile;
                     fs << "cameraParameters" << cameraParametersFile;
                     fs << "dictionaryId" << dictionaryId;
+                    fs << "markerLength" << markerLength;
+                    fs << "skippableFrames" << skippableFrames;
+                    fs << "movementThreshold" << movementThreshold;
+                    fs << "angleThreshold" << angleThreshold;
                     fs << "host" << host.c_str();
 
                     if (enable_udp) {
@@ -168,6 +191,10 @@ namespace mrtable {
                         case 16: outs << "DICT_ARUCO_ORIGINAL" << std::endl; break;
                         default: outs << "Unknown Dictionary" << std::endl; break;
                     }
+                    outs << "*** Aruco Marker Thresholds ***" << std::endl;
+                    outs << "skippableFrames: " << params.skippableFrames << std::endl;
+                    outs << "movementThreshold: " << params.movementThreshold << std::endl;
+                    outs << "angleThreshold: " << params.angleThreshold << std::endl;
                     outs << "*** Camera Matrix ***" << std::endl << params.cameraMatrix << std::endl;
                     outs << "*** Distortion Coefficients ***" << std::endl << params.distortionCoefficients << std::endl;
                     outs << "*** Server Parameters ***" << std::endl;
@@ -212,7 +239,6 @@ namespace mrtable {
                 string cameraParametersFile = "cameraParameters.xml";
                 string contourParametersFile = "contourParameters.xml";
                 string detectorParametersFile = "detectorParameters.xml";
-                int dictionaryId = 1;
                 bool udp_port_default = true;
                 bool tcp_port_default = true;
                 bool web_port_default = true; 

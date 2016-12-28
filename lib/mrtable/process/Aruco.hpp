@@ -16,7 +16,6 @@ namespace mrtable {
             public: 
                 vector< int > ids;
                 vector< vector< Point2f > > corners, rejected;
-                vector< Vec3d > rvecs, tvecs;
                 
                 Aruco() {
                     err = "No errors";
@@ -27,8 +26,6 @@ namespace mrtable {
                     outputs->erase(RESULT_KEY_ARUCO_IDS);
                     outputs->erase(RESULT_KEY_ARUCO_CORNERS);
                     outputs->erase(RESULT_KEY_ARUCO_REJECTED);
-                    outputs->erase(RESULT_KEY_ARUCO_RVECS);
-                    outputs->erase(RESULT_KEY_ARUCO_TVECS);
                     detectorParams.release();
                     dictionary.release();
                 }
@@ -42,13 +39,10 @@ namespace mrtable {
                     outputs->put(RESULT_KEY_ARUCO_IDS, &ids);
                     outputs->put(RESULT_KEY_ARUCO_CORNERS, &corners);
                     outputs->put(RESULT_KEY_ARUCO_REJECTED, &rejected);
-                    outputs->put(RESULT_KEY_ARUCO_RVECS, &rvecs);
-                    outputs->put(RESULT_KEY_ARUCO_TVECS, &tvecs);
                 }
 
                 bool process(Mat& image, result_t& result) {
                     aruco::detectMarkers(image, dictionary, corners, ids, detectorParams, rejected);
-                    aruco::estimatePoseSingleMarkers(corners, markerLength, camMatrix, distCoeffs, rvecs,tvecs);
                     result.detected += ids.size();
                     return true;
                 }
