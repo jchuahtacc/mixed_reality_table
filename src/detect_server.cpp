@@ -55,6 +55,7 @@ int processVideo(bool headless) {
         }
         aggregate.frames++;
         aggregate.elapsed += result.elapsed;
+        aggregate.detected += result.detected;
     }
     std::cout << aggregate << std::endl;
     if (headless) return 27;

@@ -15,6 +15,7 @@
 #include "Canny.hpp"
 #include "Aruco.hpp"
 #include "ArucoCompute.hpp"
+#include "ArucoDraw.hpp"
 #include "Grayscale.hpp"
 #include "Contour.hpp"
 
