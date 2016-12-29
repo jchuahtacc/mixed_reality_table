@@ -4,6 +4,7 @@
 #include "keydefs.hpp"
 #include "Marker.hpp"
 #include "FrameProcessor.hpp"
+#include <tuio/TuioServer.h>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <vector>
@@ -32,6 +33,11 @@ namespace mrtable {
                 }
 
                 void init(Ptr<ServerConfig> config) {
+                    server = outputs->getPtr<TUIO::TuioServer>(KEY_TUIO_SERVER);
+                    if (server == NULL) {
+                        throw new std::runtime_error("ArucoCompute.hpp: No TUIO Server!");
+                    }
+                    
                     skippableFrames = config->skippableFrames + 1;
                     movementThreshold = config->movementThreshold;
                     angleThreshold = config->angleThreshold;
@@ -51,34 +57,39 @@ namespace mrtable {
 
                     outputs->put(RESULT_KEY_ARUCO_MARKERS, &markers);
                     outputs->put(RESULT_KEY_ARUCO_NUM_MARKERS, &numMarkers);
+                    corners = outputs->getPtr< vector< vector< Point2f > > >(RESULT_KEY_ARUCO_CORNERS);
+                    ids = outputs->getPtr< vector< int > >(RESULT_KEY_ARUCO_IDS);
                 }
 
                 bool process(Mat& image, result_t& result) {
-                    int dt = 3; // temporary value
-
-                    vector< vector< Point2f > > *corners = outputs->getPtr< vector< vector< Point2f > > >(RESULT_KEY_ARUCO_CORNERS);
-                    vector< int > *ids = outputs->getPtr< vector< int > >(RESULT_KEY_ARUCO_IDS);
-
                     unsigned long idx = 0;
 
                     for (int i = 0; i < numMarkers; i++) {
                         idx = i;
                         Marker m = markers[idx];
-                        if (m.visible) {
+                        if (m.tObj != NULL) {
                             m.deathCounter++;
                         }
                         if (m.deathCounter > skippableFrames) {
+                            server->removeTuioObject(m.tObj);
                             m.reset();
                         }
                     }
 
                     vector< int >::iterator id = ids->begin();
                     vector< vector< Point2f > >::iterator cornerVec = corners->begin();
+                    result.detected += ids->size();
                     for (; id < ids->end(); id++, cornerVec++) {
                         idx = *id;
                         Marker m = markers[idx];
-                        m.visible = true;
-                        m.calculate(*cornerVec, movementThreshold, angleThreshold, dt);
+                        bool changed = m.calculate(*cornerVec, movementThreshold, angleThreshold);
+                        if (m.tObj == NULL) {
+                            // Need to update so that position is percentage of screen
+                            m.tObj = server->addTuioObject(idx, m.pos.x, m.pos.y, m.rot);
+                        } else if (changed) {
+                            server->updateTuioObject(m.tObj, m.pos.x, m.pos.y, m.rot);
+                        }
+
                     }
                     
                     return true;
@@ -89,9 +100,13 @@ namespace mrtable {
                 }
 
             private:
+                vector< vector< Point2f > > *corners;
+                vector< int > *ids;
+
                 int skippableFrames = 4;
                 int movementThreshold = 5;
                 float angleThreshold = 0.17;
+                TUIO::TuioServer* server;
         };
     }
 }

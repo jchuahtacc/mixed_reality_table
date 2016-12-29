@@ -47,7 +47,6 @@ int processVideo(bool headless) {
     aggregate.frames = 0;
     aggregate.elapsed = 0;
     while (vidSource->getFrame(image)) {
-        // std::cout << "processVideo(): " << image.cols << "x" << image.rows << std::endl;
         result_t result = proc->process(image);
         if (!headless) {
             if (outputs->get<int>(RESULT_KEY_DISPLAYFRAME_KEYPRESS) == 27) {
@@ -94,14 +93,44 @@ int main(int argc, char** argv) {
         vidSource = new VideoSource(parser.get<int>("ci")); 
     }
 
-
-    server = new TuioServer(config->host.c_str(), config->udp_port);
+    OscSender* sender;
+    //server = new TuioServer(config->host.c_str(), config->udp_port);
+    if (config->enable_udp) {
+        sender = new UdpSender(config->host.c_str(), config->udp_port);
+        server = new TuioServer(sender);
+    }
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    if (config->enable_tcp) {
+        sender = new TcpSender(config->tcp_port);
+        if (server == NULL) {
+            server = new TuioServer(sender);
+        } else {
+            server->addOscSender(sender);
+        }
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    if (config->enable_web) {
+        sender = new WebSockSender(config->web_port);
+        if (server == NULL) {
+            server = new TuioServer(sender);
+        } else {
+            server->addOscSender(sender);
+        }
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+    if (server == NULL) {
+        std::cerr << "Warning: No TUIO server was specified in configuration! Attempting to start default server." << std::endl;
+        sender = new UdpSender("127.0.0.1", 3333);
+        server = new TuioServer(sender);
+    }
 
     std::cout << *vidSource << std::endl;
 
     // Prepare frame processors
     outputs = mrtable::process::ProcessorOutput::create();
+    outputs->put(KEY_TUIO_SERVER, server);
+
     proc = new ProcessQueue(config, outputs);
 
     proc->addProcessor(mrtable::process::Grayscale::create());
