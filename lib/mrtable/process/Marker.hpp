@@ -11,6 +11,7 @@ namespace mrtable {
             public:
                 int deathCounter = 0;
                 Point2f pos;
+                float radius;
                 double rot = -1;
                 TUIO::TuioObject* tObj = NULL;
 
@@ -38,6 +39,9 @@ namespace mrtable {
                     float midY = (corners[1].y + corners[2].y) / 2 - pos.y;
                     float newRot = atan2(midY, midX);
                     if (abs(pos.x - newX) > movementThreshold || abs(pos.y - newY) > movementThreshold || abs(newRot - rot) > angleThreshold) { 
+                        float a = corners[0].x - newX;
+                        float b = corners[0].y - newY;
+                        radius = sqrt(a * a + b * b);
                         pos.x = newX;
                         pos.y = newY;       
                         rot = newRot;

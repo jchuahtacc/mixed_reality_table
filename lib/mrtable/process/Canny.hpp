@@ -1,11 +1,11 @@
 #ifndef __CANNY_HPP__
 #define __CANNY_HPP__
 
-#include "keydefs.hpp"
 #include "FrameProcessor.hpp"
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
+using namespace mrtable::data;
 using namespace mrtable::process;
 using namespace cv;
 
@@ -14,6 +14,9 @@ namespace mrtable {
         class Canny : public FrameProcessor {
             public: 
                 Canny() {
+                    if (SharedData::has(RESULT_KEY_OTSU_STD_DEV)) {
+                        stddev = SharedData::get<double>(RESULT_KEY_OTSU_STD_DEV);
+                    }
                     err = "No RESULT_KEY_OTSU_STD_DEV value";
                     processor = "Canny";
                 }
@@ -25,8 +28,7 @@ namespace mrtable {
                 }
 
                 bool process(Mat& image, result_t& result) {
-                    if (outputs->has(RESULT_KEY_OTSU_STD_DEV)) {
-                        double stddev = outputs->get<double>(RESULT_KEY_OTSU_STD_DEV);
+                    if (stddev > 0) {
                         cv::Canny(image, image, stddev * 0.5, stddev);
                         return true;
                     }
@@ -37,6 +39,8 @@ namespace mrtable {
                 static Ptr<FrameProcessor> create() {
                     return makePtr<Canny>().staticCast<FrameProcessor>();
                 }
+
+                double stddev = -1;
 
         };
     }

@@ -1,7 +1,6 @@
 #ifndef __ARUCOCOMPUTE_HPP__
 #define __ARUCOCOMPUTE_HPP__
 
-#include "keydefs.hpp"
 #include "Marker.hpp"
 #include "FrameProcessor.hpp"
 #include <tuio/TuioServer.h>
@@ -10,6 +9,7 @@
 #include <vector>
 #include <bitset>
 
+using namespace mrtable::data;
 using namespace mrtable::process;
 using namespace cv;
 using namespace cv::aruco;
@@ -23,17 +23,8 @@ namespace mrtable {
                 int numMarkers = 100;
 
                 ArucoCompute() {
-                    err = "No errors";
-                    processor = "Aruco Compute";
-                }
-
-                ~ArucoCompute() {
-                    outputs->erase(RESULT_KEY_ARUCO_MARKERS);
-                    outputs->erase(RESULT_KEY_ARUCO_NUM_MARKERS);
-                }
-
-                void init(Ptr<ServerConfig> config) {
-                    server = outputs->getPtr<TUIO::TuioServer>(KEY_TUIO_SERVER);
+                    ServerConfig* config = SharedData::getPtr<ServerConfig>(KEY_CONFIG);
+                    server = SharedData::getPtr<TUIO::TuioServer>(KEY_TUIO_SERVER);
                     if (server == NULL) {
                         throw new std::runtime_error("ArucoCompute.hpp: No TUIO Server!");
                     }
@@ -55,10 +46,17 @@ namespace mrtable {
 
                     markers.resize(numMarkers);
 
-                    outputs->put(RESULT_KEY_ARUCO_MARKERS, &markers);
-                    outputs->put(RESULT_KEY_ARUCO_NUM_MARKERS, &numMarkers);
-                    corners = outputs->getPtr< vector< vector< Point2f > > >(RESULT_KEY_ARUCO_CORNERS);
-                    ids = outputs->getPtr< vector< int > >(RESULT_KEY_ARUCO_IDS);
+                    SharedData::put(RESULT_KEY_ARUCO_MARKERS, &markers);
+                    SharedData::put(RESULT_KEY_ARUCO_NUM_MARKERS, &numMarkers);
+                    corners = SharedData::getPtr< vector< vector< Point2f > > >(RESULT_KEY_ARUCO_CORNERS);
+                    ids = SharedData::getPtr< vector< int > >(RESULT_KEY_ARUCO_IDS);
+                    err = "No errors";
+                    processor = "Aruco Compute";
+                }
+
+                ~ArucoCompute() {
+                    SharedData::erase(RESULT_KEY_ARUCO_MARKERS);
+                    SharedData::erase(RESULT_KEY_ARUCO_NUM_MARKERS);
                 }
 
                 bool process(Mat& image, result_t& result) {

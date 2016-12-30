@@ -1,7 +1,6 @@
-#ifndef __ARUCOCOMPUTE_HPP__
-#define __ARUCOCOMPUTE_HPP__
+#ifndef __ARUCOCENSOR_HPP__
+#define __ARUCOCENSOR_HPP__
 
-#include "keydefs.hpp"
 #include "Marker.hpp"
 #include "FrameProcessor.hpp"
 #include <tuio/TuioServer.h>
@@ -21,27 +20,29 @@ namespace mrtable {
         class ArucoCompute : public FrameProcessor {
             public: 
                 ArucoCompute() {
-                    corners = SharedData::getPtr< vector< vector< Point2f > > >(RESULT_KEY_ARUCO_CORNERS);
-                    ids = SharedData::getPtr< vector< int > >(RESULT_KEY_ARUCO_IDS);
+                    markers = SharedData::getPtr< vector< Marker > >(RESULT_KEY_ARUCO_MARKERS);
                     err = "No errors";
-                    processor = "Aruco Draw";
+                    processor = "Aruco Censor";
                 }
 
                 ~ArucoCompute() {
                 }
 
                 bool process(Mat& image, result_t& result) {
-                    cv::aruco::drawDetectedMarkers(image, *corners, *ids);
+                    vector< Marker >::iterator  marker = markers->begin();
+                    for (; marker < markers->end(); marker++) {
+                        cv::circle(image, marker->center, marker->radius, black, -1);
+                    }
                     return true;
                 }
 
                 static Ptr<FrameProcessor> create() {
-                    return makePtr<ArucoDraw>().staticCast<FrameProcessor>();
+                    return makePtr<ArucoCensor>().staticCast<FrameProcessor>();
                 }
 
             private:
-                vector< vector< Point2f > > *corners;
-                vector< int > *ids;
+                vector< Marker > *markers;
+                Scalar black = Scalar(0, 0, 0);
         };
     }
 }

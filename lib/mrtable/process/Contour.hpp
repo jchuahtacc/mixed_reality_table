@@ -1,7 +1,6 @@
 #ifndef __CONTOUR_HPP__
 #define __CONTOUR_HPP__
 
-#include "keydefs.hpp"
 #include "Marker.hpp"
 #include "FrameProcessor.hpp"
 #include <opencv2/core/core.hpp>
@@ -9,6 +8,7 @@
 #include <vector>
 #include <bitset>
 
+using namespace mrtable::data;
 using namespace mrtable::process;
 using namespace cv;
 using namespace cv::aruco;
@@ -22,19 +22,17 @@ namespace mrtable {
                 vector<Vec4i> hierarchy;
 
                 Contour() {
+                    SharedData::put(RESULT_KEY_CONTOUR_CONTOURS, &contours);
+                    SharedData::put(RESULT_KEY_CONTOUR_HIERARCHY, &hierarchy);
                     err = "No errors";
                     processor = "Contour";
                 }
 
                 ~Contour() {
-                    outputs->erase(RESULT_KEY_CONTOUR_CONTOURS);
-                    outputs->erase(RESULT_KEY_CONTOUR_HIERARCHY);
+                    SharedData::erase(RESULT_KEY_CONTOUR_CONTOURS);
+                    SharedData::erase(RESULT_KEY_CONTOUR_HIERARCHY);
                 }
 
-                void init(Ptr<ServerConfig> config) {
-                    outputs->put(RESULT_KEY_CONTOUR_CONTOURS, &contours);
-                    outputs->put(RESULT_KEY_CONTOUR_HIERARCHY, &hierarchy);
-                }
 
                 bool process(Mat& image, result_t& result) {
                     findContours(image, contours, hierarchy, RETR_LIST, CHAIN_APPROX_SIMPLE);

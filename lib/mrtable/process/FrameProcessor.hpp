@@ -4,8 +4,6 @@
 #include <opencv2/core/mat.hpp>
 #include "result_t.hpp"
 #include <chrono>
-#include "../config/ServerConfig.hpp"
-#include "ProcessorOutput.hpp"
 #include <string>
 
 using namespace std::chrono;
@@ -15,10 +13,7 @@ namespace mrtable {
     namespace process {
         class FrameProcessor {
             public:
-                Ptr<ProcessorOutput> outputs;
-
                 ~FrameProcessor() {
-                    outputs.release();
                 }
                 virtual bool process(Mat& image, result_t& result) { 
                     return false; 

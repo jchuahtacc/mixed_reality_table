@@ -2,10 +2,12 @@
 #define __TESTPROCESSOR_HPP__
 
 #include "FrameProcessor.hpp"
+#include <mrtable/data/data.hpp>
 #include <opencv2/core/core.hpp>
 #include <string>
 
 using namespace mrtable::process;
+using namespace mrtable::data;
 using namespace cv;
 using namespace std;
 
@@ -22,11 +24,12 @@ namespace mrtable {
                 }
 
                 ~TestProcessor() {
-                    outputs->erase(procId);
+                    SharedData::erase(procId);
                 }
 
                 void init(Ptr<ServerConfig> config) {
-                    outputs->put(procId, &procId);
+                    //outputs->put(procId, &procId);
+                    SharedData::put(procId, &procId);
                 }
 
                 bool process(Mat& image, result_t& result) {

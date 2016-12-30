@@ -1,11 +1,11 @@
 #ifndef __GRAYSCALE_HPP__
 #define __GRAYSCALE_HPP__
 
-#include "keydefs.hpp"
 #include "FrameProcessor.hpp"
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
+using namespace mrtable::data;
 using namespace mrtable::process;
 using namespace cv;
 

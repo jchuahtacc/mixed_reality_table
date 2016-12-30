@@ -1,7 +1,6 @@
 #ifndef __ARUCO_HPP__
 #define __ARUCO_HPP__
 
-#include "keydefs.hpp"
 #include "FrameProcessor.hpp"
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -9,6 +8,7 @@
 using namespace mrtable::process;
 using namespace cv;
 using namespace cv::aruco;
+using namespace mrtable::data;
 
 namespace mrtable {
     namespace process {
@@ -18,27 +18,26 @@ namespace mrtable {
                 vector< vector< Point2f > > corners, rejected;
                 
                 Aruco() {
-                    err = "No errors";
-                    processor = "Aruco";
-                }
-
-                ~Aruco() {
-                    outputs->erase(RESULT_KEY_ARUCO_IDS);
-                    outputs->erase(RESULT_KEY_ARUCO_CORNERS);
-                    outputs->erase(RESULT_KEY_ARUCO_REJECTED);
-                    detectorParams.release();
-                    dictionary.release();
-                }
-
-                void init(Ptr<ServerConfig> config) {
+                    ServerConfig* config = SharedData::getPtr<ServerConfig>(KEY_CONFIG);
                     dictionary = config->dictionary;
                     detectorParams = config->detectorParameters;
                     camMatrix = config->cameraMatrix;
                     distCoeffs = config->distortionCoefficients;
                     markerLength = config->markerLength;
-                    outputs->put(RESULT_KEY_ARUCO_IDS, &ids);
-                    outputs->put(RESULT_KEY_ARUCO_CORNERS, &corners);
-                    outputs->put(RESULT_KEY_ARUCO_REJECTED, &rejected);
+                    SharedData::put(RESULT_KEY_ARUCO_IDS, &ids);
+                    SharedData::put(RESULT_KEY_ARUCO_CORNERS, &corners);
+                    SharedData::put(RESULT_KEY_ARUCO_REJECTED, &rejected);
+
+                    err = "No errors";
+                    processor = "Aruco";
+                }
+
+                ~Aruco() {
+                    SharedData::erase(RESULT_KEY_ARUCO_IDS);
+                    SharedData::erase(RESULT_KEY_ARUCO_CORNERS);
+                    SharedData::erase(RESULT_KEY_ARUCO_REJECTED);
+                    detectorParams.release();
+                    dictionary.release();
                 }
 
                 bool process(Mat& image, result_t& result) {

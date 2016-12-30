@@ -1,6 +1,7 @@
 #ifndef __TOUCH_HPP__
 #define __TOUCH_HPP__
 
+#include <tuio/TuioCursor.h>
 #include <opencv2/core/core.hpp>
 #include <cmath>
 
@@ -11,8 +12,7 @@ namespace mrtable {
                 Point2f pos;
                 Rect bounds;
                 int deathCounter = 0;
-                bool visible = false;
-                int id = 0;
+                TUIO::TuioCursor *tCur;
 
                 Touch() {
                 }
@@ -28,17 +28,22 @@ namespace mrtable {
                     bounds.height = 0;
                     pos.x = 0;
                     pos.y = 0;
-                    visible = false;
+                    if (tCur != NULL) {
+                        delete tCur;
+                        tCur = NULL;
+                    }
                 }
 
-                void calculate(Rect newRect, int movementThreshold) {
+                bool calculate(Rect newRect, int movementThreshold) {
                     float newX = newRect.x + newRect.width / 2;
                     float newY = newRect.y + newRect.width / 2;
                     if (abs(pos.x - newX) > movementThreshold || abs(pos.y - newY) > movementThreshold) { 
                         pos.x = newX;
                         pos.y = newY;       
                         bounds = newRect;
+                        return true;
                     }
+                    return false;
                 }
         };
     }

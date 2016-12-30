@@ -1,11 +1,11 @@
 #ifndef __OTSUCALC_HPP__
 #define __OTSUCALC_HPP__
 
-#include "keydefs.hpp"
 #include "FrameProcessor.hpp"
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
+using namespace mrtable::data;
 using namespace mrtable::process;
 using namespace cv;
 
@@ -17,16 +17,13 @@ namespace mrtable {
                 double stddev = 200;
 
                 OtsuCalc() {
+                    SharedData::put(RESULT_KEY_OTSU_STD_DEV, &stddev);
                     err = "No errors";
                     processor = "Otsu";
                 }
 
                 ~OtsuCalc() {
-                    outputs->erase(RESULT_KEY_OTSU_STD_DEV);
-                }
-
-                void init(Ptr<ServerConfig> config) {
-                    outputs->put(RESULT_KEY_OTSU_STD_DEV, &stddev);
+                    SharedData::erase(RESULT_KEY_OTSU_STD_DEV);
                 }
 
                 bool process(Mat& image, result_t& result) {

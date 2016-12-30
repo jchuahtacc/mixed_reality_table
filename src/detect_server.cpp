@@ -10,6 +10,7 @@
 using namespace mrtable::config;
 using namespace mrtable::process;
 using namespace mrtable::sources;
+using namespace mrtable::data;
 using namespace TUIO;
 
 namespace {
@@ -26,12 +27,11 @@ const char* keys  =
         "{r        |       | Show rejected candidates during preview }";
 }
 
-cv::Ptr<ServerConfig> config;
+ServerConfig* config = NULL;
 string configFile = "serverConfig.xml";
 bool verbose = false;
 
 cv::Ptr<FrameProcessor> process;
-cv::Ptr<ProcessorOutput> outputs;
 VideoSource* vidSource = NULL;
 ProcessQueue* proc = NULL;
 TuioServer* server = NULL;
@@ -49,7 +49,7 @@ int processVideo(bool headless) {
     while (vidSource->getFrame(image)) {
         result_t result = proc->process(image);
         if (!headless) {
-            if (outputs->get<int>(RESULT_KEY_DISPLAYFRAME_KEYPRESS) == 27) {
+            if (SharedData::get<int>(RESULT_KEY_DISPLAYFRAME_KEYPRESS) == 27) {
                 return 27;
             }
         }
@@ -71,7 +71,9 @@ int main(int argc, char** argv) {
         return 0;
     }
 
-    config = ServerConfig::create(parser.get<String>("c"));
+    config = new ServerConfig(parser.get<String>("c"));
+
+    SharedData::put(KEY_CONFIG, config);
 
     verbose = parser.has("verbose");
 
@@ -129,11 +131,9 @@ int main(int argc, char** argv) {
     std::cout << *vidSource << std::endl;
 
     // Prepare frame processors
-    outputs = mrtable::process::ProcessorOutput::create();
-    outputs->put(KEY_TUIO_SERVER, server);
+    SharedData::put(KEY_TUIO_SERVER, server);
 
-    proc = new ProcessQueue(config, outputs);
-
+    proc = new ProcessQueue();
     proc->addProcessor(mrtable::process::Grayscale::create());
     proc->addProcessor(mrtable::process::Otsu::create());
     //proc->addProcessor(mrtable::process::OtsuCalc::create());
@@ -155,6 +155,7 @@ int main(int argc, char** argv) {
             result = processVideo(!parser.has("p"));
             vidSource->reset();
         }
+        SharedData::destroy();
         return 0;
     }
 
@@ -168,4 +169,5 @@ int main(int argc, char** argv) {
         aggregate.frames++;
         aggregate.elapsed += result.elapsed;
     }
+    SharedData::destroy();
 }
