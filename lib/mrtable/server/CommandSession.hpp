@@ -9,6 +9,7 @@
 #include <boost/asio.hpp>
 #include <boost/lockfree/queue.hpp>
 #include <string>
+#include <opencv2/core/core.hpp>
 
 using boost::asio::ip::tcp;
 
@@ -16,7 +17,11 @@ namespace mrtable {
     namespace server {
         class CommandSession {
             public: 
-                CommandSession(boost::asio::io_service& io_service, MutexQueue<string>* msgQueue) : socket_(io_service), messages(msgQueue) {
+                CommandSession(boost::asio::io_service& io_service, Ptr< MutexQueue<string> >msgQueue) : socket_(io_service), messages(msgQueue) {
+                }
+
+                ~CommandSession() {
+                    messages.release();
                 }
 
                 tcp::socket& socket() {
@@ -44,7 +49,7 @@ namespace mrtable {
 
             private:
                 tcp::socket socket_;
-                MutexQueue<string>* messages; 
+                Ptr< MutexQueue<string> > messages; 
                 enum { max_length = 1024 };
                 char data_[max_length];
         };

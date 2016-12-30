@@ -18,37 +18,37 @@ namespace mrtable {
     namespace server {
         class DetectServer {
             public:
-                DetectServer(cv::Ptr< mrtable::config::ServerConfig > config);
+                DetectServer(cv::Ptr< mrtable::config::ServerConfig > config, cv::Ptr< mrtable::data::MutexQueue<string> > msgQueue);
                 ~DetectServer();
                 int start();
                 void setVideoSource(cv::Ptr< mrtable::sources::VideoSource > videoSource);
                 void setPreview(bool preview);
 
             private:
-                void initServer();
+                void initTuioServer();
                 void initProcessQueue();
                 Ptr< mrtable::config::ServerConfig > config_;
                 Ptr< mrtable::sources::VideoSource > vidSource;
                 ProcessQueue* proc = NULL;
                 TUIO::TuioServer* server = NULL;
-                Ptr< MutexQueue<string> > msgQueue;
+                Ptr< MutexQueue<string> > msgQueue_;
                 bool preview_ = false;
                 bool preview_added = false;
 
         };
 
-        DetectServer::DetectServer(Ptr< mrtable::config::ServerConfig > config) : config_(config) {
+        DetectServer::DetectServer(Ptr< mrtable::config::ServerConfig > config, cv::Ptr< mrtable::data::MutexQueue<string> > msgQueue) : config_(config), msgQueue_(msgQueue) {
             SharedData::put(KEY_CONFIG, config_);
             msgQueue = new MutexQueue<string>();
             SharedData::put(KEY_MSG_QUEUE, msgQueue);
-            initServer();
+            initTuioServer();
             initProcessQueue();
         }
 
         DetectServer::~DetectServer() {
             config_.release();
             vidSource.release();
-            msgQueue.release();
+            msgQueue_.release();
         }
 
         int DetectServer::start() {
@@ -57,7 +57,7 @@ namespace mrtable {
                 proc->addProcessor(mrtable::process::DisplayFrame::create(1));
             }
             Mat image;
-            if (vidSource == NULL) {
+            if (vidSource.empty()) {
                 std::cerr << "No video source specified!" << std::endl;
                 return 27;
             }
@@ -84,7 +84,7 @@ namespace mrtable {
             vidSource = source;
         }
 
-        void DetectServer::initServer() {
+        void DetectServer::initTuioServer() {
             TUIO::OscSender* sender;
             if (config_->enable_udp) {
                 sender = new TUIO::UdpSender(config_->host.c_str(), config_->udp_port);

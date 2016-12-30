@@ -6,7 +6,10 @@
 #include <opencv2/aruco.hpp>
 #include <thread>
 #include <tuio/TuioServer.h>
+#include <boost/asio.hpp>
+#include <thread>
 
+using namespace mrtable::server;
 using namespace mrtable::config;
 using namespace mrtable::process;
 using namespace mrtable::sources;
@@ -33,7 +36,7 @@ bool verbose = false;
 
 cv::Ptr<FrameProcessor> process;
 DetectServer* server = NULL;
-Mat image;
+Ptr< MutexQueue<string> > msgQueue;
 
 int main(int argc, char** argv) {
     CommandLineParser parser(argc, argv, keys);
@@ -44,8 +47,19 @@ int main(int argc, char** argv) {
         return 0;
     }
 
+    // Create msgQueue for communication between CommandServer and DetectServer
+    msgQueue = MutexQueue< string >::create();
+
+    // Load configuration file
     config = new ServerConfig(parser.get<String>("c"));
-    server = new DetectServer(config);
+
+    // Create CommandServer thread
+    boost::asio::io_service ioservice;
+    CommandServer cmdServer(ioservice, msgQueue, config->cmd_port);
+    std::thread thread1{[&ioservice]() { ioservice.run(); }};
+
+    // Create DetectServer (run in main thread)
+    server = new DetectServer(config, msgQueue);
 
     verbose = parser.has("verbose");
 
@@ -74,6 +88,7 @@ int main(int argc, char** argv) {
     server->setVideoSource(vidSource);
     server->setPreview(parser.has("p"));
 
+
     if (parser.has("v")) {
         std::cout << "Processing video file " << vidSource->getSource() << std::endl;
         int result = 0;
@@ -92,4 +107,6 @@ int main(int argc, char** argv) {
     aggregate.elapsed = 0;
 
     SharedData::destroy();
+    std::cerr << "Stopping servers." << std::endl;
+    thread1.join();
 }

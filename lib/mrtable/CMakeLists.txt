@@ -1,4 +1,5 @@
 find_package(Boost REQUIRED system)
+find_package(OpenCV REQUIRED)
 include_directories("${PROJECT_SOURCE_DIR}/lib")
 add_library(mrtable mrtable.cpp)
-target_link_libraries(mrtable tuio ${Boost_LIBRARIES})
+target_link_libraries(mrtable tuio ${Boost_LIBRARIES} ${OpenCV_LIBS})

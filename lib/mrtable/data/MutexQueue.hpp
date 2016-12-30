@@ -66,6 +66,10 @@ namespace mrtable {
                     }
                     return false;
                 }
+
+                static Ptr< MutexQueue<T> > create() {
+                    return makePtr< MutexQueue<T> >();
+                }
             private:
                 std::deque<T> data;
                 boost::mutex mutex;

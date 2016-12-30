@@ -25,8 +25,9 @@ namespace mrtable {
                 int movementThreshold = 5;
                 float angleThreshold = 0.17;
                 string host = "127.0.0.1";
+                int cmd_port = 3332;
                 int udp_port = 3333;
-                int tcp_port = 3333;
+                short int tcp_port = 3333;
                 int web_port = 8080;
                 bool enable_udp = true;
                 bool enable_tcp = false;
@@ -100,6 +101,11 @@ namespace mrtable {
                         if (temp.compare("default") != 0) {
                             host = temp;
                         }
+                    }
+
+                    fs["cmdPort"] >> temp;
+                    if (!temp.empty() && temp.compare("default") != 0) {
+                        cmd_port = (short int)stoi(temp);
                     }
 
                     fs["udpPort"] >> temp;
