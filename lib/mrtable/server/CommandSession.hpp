@@ -8,6 +8,7 @@
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #include <boost/lockfree/queue.hpp>
+#include <string>
 
 using boost::asio::ip::tcp;
 
@@ -15,7 +16,7 @@ namespace mrtable {
     namespace server {
         class CommandSession {
             public: 
-                CommandSession(boost::asio::io_service& io_service) : socket_(io_service) {
+                CommandSession(boost::asio::io_service& io_service, MutexQueue<string>* msgQueue) : socket_(io_service), messages(msgQueue) {
                 }
 
                 tcp::socket& socket() {
@@ -32,6 +33,8 @@ namespace mrtable {
 
                 void handle_read(const boost::system::error_code& error, size_t bytes_transferred) {
                     if (!error) {
+                        std::string str(data_);
+                        messages->push(str);
                         // do stuff with good command
                     } else {
                         std::cerr << "Command Session terminated: " << error.message() << std::endl;
@@ -41,6 +44,7 @@ namespace mrtable {
 
             private:
                 tcp::socket socket_;
+                MutexQueue<string>* messages; 
                 enum { max_length = 1024 };
                 char data_[max_length];
         };

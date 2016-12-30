@@ -2,6 +2,7 @@
 #define __MRTABLE_HPP__
 
 #include "keydefs.hpp"
+#include "cmddefs.hpp"
 // "data/data.hpp" must be included before classes that use it
 #include "data/data.hpp"
 #include "config/config.hpp"

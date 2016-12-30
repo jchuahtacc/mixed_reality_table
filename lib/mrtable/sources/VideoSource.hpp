@@ -23,6 +23,18 @@ namespace mrtable {
                     getProps();
                 }
 
+                static Ptr< VideoSource > create(string filename) {
+                    return makePtr< VideoSource >(filename);
+                }
+
+                static Ptr< VideoSource > create(int camId) {
+                    return makePtr< VideoSource >(camId);
+                }
+
+                static Ptr< VideoSource > create() {
+                    return makePtr< VideoSource >(0);
+                }
+
                 VideoSource(int camId) {
                     opened = vid.open(camId);
                     this->camId = camId;

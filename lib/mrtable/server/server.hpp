@@ -3,5 +3,6 @@
 
 #include "CommandServer.hpp"
 #include "CommandSession.hpp"
+#include "DetectServer.hpp"
 
 #endif
