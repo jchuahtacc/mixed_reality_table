@@ -58,7 +58,7 @@ namespace mrtable {
 
                 bool popAll(vector<T> *dest) {
                     if (mutex.try_lock()) {
-                        for (typename std::deque<T>::iterator it; it < data.end; it++) {
+                        for (typename std::deque<T>::iterator it; it < data.end(); it++) {
                             dest->push_back(*it);
                         }
                         mutex.unlock();

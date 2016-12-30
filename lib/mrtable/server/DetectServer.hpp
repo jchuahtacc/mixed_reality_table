@@ -20,9 +20,10 @@ namespace mrtable {
             public:
                 DetectServer(cv::Ptr< mrtable::config::ServerConfig > config, cv::Ptr< mrtable::data::MutexQueue<string> > msgQueue);
                 ~DetectServer();
-                int start();
+                bool start();
                 void setVideoSource(cv::Ptr< mrtable::sources::VideoSource > videoSource);
                 void setPreview(bool preview);
+                int processFrame(Mat image);
 
             private:
                 void initTuioServer();
@@ -34,6 +35,8 @@ namespace mrtable {
                 Ptr< MutexQueue<string> > msgQueue_;
                 bool preview_ = false;
                 bool preview_added = false;
+                int* keyPress = NULL;
+                vector< string > messages;
 
         };
 
@@ -51,33 +54,68 @@ namespace mrtable {
             msgQueue_.release();
         }
 
-        int DetectServer::start() {
+        bool DetectServer::start() {
             if (preview_ and !preview_added) {
                 preview_added = true;
                 proc->addProcessor(mrtable::process::DisplayFrame::create(1));
+                keyPress = SharedData::getPtr<int>(RESULT_KEY_DISPLAYFRAME_KEYPRESS);
             }
+            bool keepRunning = true;
             Mat image;
             if (vidSource.empty()) {
                 std::cerr << "No video source specified!" << std::endl;
-                return 27;
+                return false;
             }
             result_t aggregate;
             aggregate.frames = 0;
             aggregate.elapsed = 0;
-            while (vidSource->getFrame(image)) {
-                result_t result = proc->process(image);
-                if (preview_) {
-                    if (SharedData::get<int>(RESULT_KEY_DISPLAYFRAME_KEYPRESS) == 27) {
-                        return 27;
+            aggregate.detected = 0;
+
+            while (keepRunning) {
+                // Get messages from message Queue
+                if (msgQueue_->popAll(&messages)) {
+                    // got messages
+                }
+
+                bool gotFrame = vidSource->getFrame(image);
+                if (!gotFrame) {
+                    if (vidSource->isFile()) {
+                        if (preview_) {
+                            std::cout << "Video playback finished. Press any key to restart, or ESC key to exit..." << std::endl;
+                            int key = waitKey(0);
+                            if (key == CMD_ESCAPE_KEY) {
+                                keepRunning = false;
+                            }
+                        }
+
+                        // Loop video
+                        vidSource->reset();
+
+                    } else {
+                        keepRunning = false;
+                        std::cerr << "Unable to get video frame from " << vidSource->getSource() << std::endl;
+                    }
+                } else {
+                    result_t result = proc->process(image);
+                    aggregate.frames++;
+                    aggregate.elapsed += result.elapsed;
+                    aggregate.detected += result.detected;
+                    if (aggregate.frames % 30 == 0) {
+                        std::cerr << aggregate << std::endl;
+                    }
+
+                    if (keyPress != NULL) {
+                        // Check for escape key during preview playback
+                        if (*keyPress == CMD_ESCAPE_KEY) {
+                            keepRunning = false;
+                        }
                     }
                 }
-                aggregate.frames++;
-                aggregate.elapsed += result.elapsed;
-                aggregate.detected += result.detected;
             }
+
             std::cerr << aggregate << std::endl;
-            if (!preview_) return 27;
-            return waitKey(0);
+
+            return true;
         }
 
         void DetectServer::setVideoSource(cv::Ptr< mrtable::sources::VideoSource > source) {

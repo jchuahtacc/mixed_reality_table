@@ -87,26 +87,12 @@ int main(int argc, char** argv) {
     std::cout << "Processing video source: " << *vidSource << std::endl;
     server->setVideoSource(vidSource);
     server->setPreview(parser.has("p"));
-
-
-    if (parser.has("v")) {
-        std::cout << "Processing video file " << vidSource->getSource() << std::endl;
-        int result = 0;
-        while (result != 27) {
-            std::cout << "Press ESC to exit, or any other key to replay video..." << std::endl;
-            result = server->start();
-            vidSource->reset();
-        }
-        SharedData::destroy();
-        return 0;
-    }
-
+    server->start();
 
     result_t aggregate;
     aggregate.frames = 0;
     aggregate.elapsed = 0;
 
     SharedData::destroy();
-    std::cerr << "Stopping servers." << std::endl;
     thread1.join();
 }

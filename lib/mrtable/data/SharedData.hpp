@@ -34,16 +34,16 @@ namespace mrtable {
 
         template<typename T> T* mrtable::data::SharedData::getPtr(int key) {
             void* val = mrtable::data::SharedData::dataMap[key];
-            if (val == NULL) {
-                stringstream ss;
-                ss << "Exception in ProcessorOutput - invalid key: " << key;
-                throw std::invalid_argument(ss.str());
-            }
             return static_cast<T*>(val);
         }
 
 
         template<typename T> T mrtable::data::SharedData::get(int key) {
+            if (!has(key)) {
+                stringstream ss;
+                ss << "SharedData invalid_argument exception - invalid key: " << key;
+                throw std::invalid_argument(ss.str());
+            }
             T* tPtr = mrtable::data::SharedData::getPtr<T>(key);
             return *tPtr;
         }
