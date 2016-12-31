@@ -59,7 +59,6 @@ namespace mrtable {
                 bool popAll(vector<T> *dest) {
                     if (mutex.try_lock()) {
                         for (typename std::deque<T>::iterator it = data.begin(); it < data.end(); it++) {
-                            std::cout << "MutexQueue::popAll " << *it << std::endl;
                             dest->push_back(*it);
                         }
                         data.clear();
