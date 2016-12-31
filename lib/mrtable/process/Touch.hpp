@@ -12,12 +12,13 @@ namespace mrtable {
                 Point2f pos;
                 Rect bounds;
                 int deathCounter = 0;
-                TUIO::TuioCursor *tCur;
+                TUIO::TuioCursor *tCur = NULL;
 
                 Touch() {
                 }
 
                 ~Touch() {
+                    delete tCur;
                 }
 
                 void reset() {
@@ -35,6 +36,7 @@ namespace mrtable {
                 }
 
                 bool calculate(Rect newRect, int movementThreshold) {
+                    // TODO: Need to reconcile for screen size/rate
                     float newX = newRect.x + newRect.width / 2;
                     float newY = newRect.y + newRect.width / 2;
                     if (abs(pos.x - newX) > movementThreshold || abs(pos.y - newY) > movementThreshold) { 

@@ -23,14 +23,14 @@ namespace mrtable {
         class ContourCompute : public FrameProcessor {
             public: 
                 typedef vector< string > token_list;
-                vector< Touch >* allTouches;
-                std::map< string, vector< Touch >* > touches;
+                vector< Touch* >* globalTouches = NULL;
+                std::map< string, vector< Touch* >* > touches;
                 std::map< string, Rect_<float>* > regions;
                 Ptr< vector< Message > > msgVector;
 
                 ContourCompute() {
                     msgVector = makePtr< vector< Message > >();
-                    allTouches = new vector< Touch >();
+                    globalTouches = new vector< Touch* >();
                     MessageBroker::bind(CMD_PUT_REGION, msgVector);
                     MessageBroker::bind(CMD_UPDATE_REGION, msgVector);
                     MessageBroker::bind(CMD_DELETE_REGION, msgVector);
@@ -47,7 +47,9 @@ namespace mrtable {
                     contours = SharedData::getPtr< vector< vector<Point> > >(RESULT_KEY_CONTOUR_CONTOURS);
                     hierarchy = SharedData::getPtr< vector<Vec4i> >(RESULT_KEY_CONTOUR_HIERARCHY);
 
-                    SharedData::put(RESULT_KEY_CONTOUR_TOUCHES, &touches);
+
+                    server = SharedData::getPtr<TUIO::TuioServer>(KEY_TUIO_SERVER);
+
                     err = "No errors";
                     processor = "Contour Compute";
                 }
@@ -77,7 +79,7 @@ namespace mrtable {
                             r->width = stof(tokens[3]);
                             r->height = stof(tokens[4]);
                             regions[region] = r;
-                            touches[region] = new vector< Touch >();
+                            touches[region] = new vector< Touch* >();
                         } catch (...) {
                             std::cerr << "CMD_PUT_REGION error parsing rectangle dimensions " << msg.params << std::endl;
                         }
@@ -102,6 +104,56 @@ namespace mrtable {
                     }
                 }
 
+                vector< Rect > getPotentialTouches(Mat& image) {
+                    vector< vector<Point > > contours;
+                    vector< Vec4i > hierarchy;
+                    vector< Rect > potentials;
+                    findContours(image, contours, hierarchy, RETR_LIST, CHAIN_APPROX_SIMPLE);
+                    for (vector< vector<Point> >::iterator contour = contours.begin(); contour < contours.end(); contour++) {
+                        if (contour->size() > minPoints && contour->size() < maxPoints) {
+                            Rect r = boundingRect(*contour);
+                            if (r.width > minWidth && r.width < maxWidth) {
+                                potentials.push_back(r);
+                            }
+                        }
+                    }
+                    return potentials;
+                }
+
+                void processRegion(Mat& imgPortion, vector< Touch* >* existingTouches) {
+                    vector< Rect > potentials = getPotentialTouches(imgPortion);
+                    // Check pre-existing touches in region for overlap with detected contours
+                    for (vector< Touch* >::iterator touch = existingTouches->begin(); touch < existingTouches->end(); touch++) {
+                        for (vector< Rect >::iterator potential = potentials.begin(); potential < potentials.end(); potential++) {
+                            // If there is an overlap, update the existing touch and remove newly scanned contour from list of potential new touches
+                            if (((*touch)->bounds & *potential).area() > 0) {
+                                bool changed = (*touch)->calculate(*potential, movementThreshold);
+                                (*touch)->deathCounter = -1;
+                                if (changed) {
+                                    server->updateTuioCursor((*touch)->tCur, (*touch)->pos.x, (*touch)->pos.y);
+                                }
+                                potential = potentials.erase(potential);
+                                potential--;
+                            }
+                        }
+                        // Check to see if touch has expired 
+                        (*touch)->deathCounter++;
+                        if ((*touch)->deathCounter >= skippableFrames) {
+                            server->removeTuioCursor((*touch)->tCur);
+                            touch = existingTouches->erase(touch);
+                            touch--;
+                        }
+                    }
+
+                    // Add any leftover potential contours as new touches
+                    for (vector< Rect >::iterator potential = potentials.begin(); potential < potentials.end(); potential++) {
+                        Touch* t = new Touch();
+                        t->calculate(*potential, movementThreshold);
+                        t->tCur = server->addTuioCursor(t->pos.x, t->pos.y);
+                        existingTouches->push_back(t); 
+                    }
+                }
+
                 bool process(Mat& image, result_t& result) {
                     for ( vector< Message >::iterator msg = msgVector->begin(); msg < msgVector->end(); msg++) {
                         switch (msg->cmdCode) {
@@ -112,8 +164,25 @@ namespace mrtable {
                     }
                     msgVector->clear();
 
+                    if (regions.size() <= 0) {
+                        processRegion(image, globalTouches);
+                    }
+
+                    // Iterate through touch regions
                     for ( std::map<string, Rect_<float>* >::iterator it = regions.begin(); it != regions.end(); ++it) {
                         // std::cout << "Region " << it->first <<  " x: " << it->second->x << " y: " << it->second->y << " width: " << it->second->width << " height: " << it->second->height << std::endl;
+                        // Get touch region from image and scan for contours to create list of potential new touches
+                        Rect_<float> region = *(it->second);
+                        int x = region.x * ServerConfig::cameraWidth;
+                        int y = region.y * ServerConfig::cameraHeight;
+                        int width = region.width * ServerConfig::cameraWidth;
+                        int height = region.height * ServerConfig::cameraHeight;
+                        Rect r = Rect(x, y, width, height);
+                        Mat imgPortion = cv::Mat(image, r);
+                        vector< Touch* >* existingTouches = touches[it->first];
+
+                        processRegion(imgPortion, existingTouches);
+
                     }
                     return true;
                 }
@@ -132,6 +201,7 @@ namespace mrtable {
                 vector< vector<Point> > *contours;
                 vector<Vec4i> *hierarchy;
                 Ptr< mrtable::config::ContourParams > params;
+                TUIO::TuioServer* server;
         };
     }
 }

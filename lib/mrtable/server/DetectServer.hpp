@@ -190,7 +190,6 @@ namespace mrtable {
             //proc->addProcessor(mrtable::process::Canny::create());
             proc->addProcessor(mrtable::process::Aruco::create());
             proc->addProcessor(mrtable::process::ArucoCompute::create());
-            proc->addProcessor(mrtable::process::Contour::create());
             proc->addProcessor(mrtable::process::ContourCompute::create());
         }
 

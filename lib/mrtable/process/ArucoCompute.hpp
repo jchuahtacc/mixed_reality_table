@@ -85,8 +85,7 @@ namespace mrtable {
                             m.tObj = server->addTuioObject(idx, m.pos.x, m.pos.y, m.rot);
                         } else if (changed) {
                             server->updateTuioObject(m.tObj, m.pos.x, m.pos.y, m.rot);
-                        }
-
+                        } 
                     }
                     
                     return true;
