@@ -6,8 +6,7 @@
  *
  * Create touch region
  *
- * Params: x y width height
- * Response: Region ID
+ * Params: region_name x y width height
  */
 #define CMD_PUT_REGION      100
 
@@ -16,8 +15,7 @@
  *
  * Update region dimensions
  *
- * Params: id x y width height
- * Response: OK
+ * Params: region_name x y width height
  */
 #define CMD_UPDATE_REGION   101
 
@@ -26,8 +24,7 @@
  *
  * Delete existing touch region
  *
- * Params: id
- * Response: OK
+ * Params: region_name 
  */
 #define CMD_DELETE_REGION   102
 
