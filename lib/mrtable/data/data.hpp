@@ -3,5 +3,7 @@
 
 #include "SharedData.hpp"
 #include "MutexQueue.hpp"
+#include "Message.hpp"
+#include "MessageBroker.hpp"
 
 #endif

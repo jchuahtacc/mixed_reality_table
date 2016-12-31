@@ -36,11 +36,12 @@ namespace mrtable {
                 bool preview_ = false;
                 bool preview_added = false;
                 int* keyPress = NULL;
-                vector< string > messages;
+                vector< string >* messages;
 
         };
 
         DetectServer::DetectServer(Ptr< mrtable::config::ServerConfig > config, cv::Ptr< mrtable::data::MutexQueue<string> > msgQueue) : config_(config), msgQueue_(msgQueue) {
+            messages = new vector< string >;
             SharedData::put(KEY_CONFIG, config_);
             msgQueue = new MutexQueue<string>();
             SharedData::put(KEY_MSG_QUEUE, msgQueue);
@@ -73,7 +74,25 @@ namespace mrtable {
 
             while (keepRunning) {
                 // Get messages from message Queue
-                if (msgQueue_->popAll(&messages)) {
+                if (msgQueue_->popAll(messages)) {
+                    for (vector< string >::iterator msg = messages->begin(); msg < messages->end(); msg++) {
+                        stringstream iss(*msg);
+                        string token;
+                        if (getline(iss, token, ' ')) {
+                            int cmdCode = stoi(token);
+                            if (cmdCode > 0) {
+                                string params = "";
+                                if (iss.rdbuf()->in_avail()) {
+                                    getline(iss, params);
+                                }
+                                std::cerr < "DetectServer received cmd " << cmdCode << " with params " << params << std::endl;
+                                MessageBroker::put(cmdCode, params, TUIO::TuioTime::getSessionTime());
+                            } else {
+                                std::cerr << "Received invalid message: " << *msg << endl;
+                            }
+                        }
+                    }
+                    messages->clear();
                     // got messages
                 }
 
@@ -167,6 +186,7 @@ namespace mrtable {
             proc->addProcessor(mrtable::process::Aruco::create());
             proc->addProcessor(mrtable::process::ArucoCompute::create());
             proc->addProcessor(mrtable::process::Contour::create());
+            proc->addProcessor(mrtable::process::ContourCompute::create());
         }
 
         void DetectServer::setPreview(bool preview) {

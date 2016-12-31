@@ -7,6 +7,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <vector>
 #include <bitset>
+#include <iostream>
 
 using namespace mrtable::data;
 using namespace mrtable::process;
@@ -19,10 +20,13 @@ namespace mrtable {
         class ContourCompute : public FrameProcessor {
             public: 
                 vector< Touch > touches;
+                Ptr< vector< Message > > msgVector;
                 int numMarkers = 100;
 
                 ContourCompute() {
                     ServerConfig* config = SharedData::getPtr<ServerConfig>(KEY_CONFIG);
+                    msgVector = makePtr< vector< Message > >();
+                    MessageBroker::bind(CMD_PUT_REGION, msgVector);
                     skippableFrames = config->skippableFrames + 1;
                     movementThreshold = config->movementThreshold;
                     params = config->contourParameters;
@@ -44,16 +48,23 @@ namespace mrtable {
 
                 ~ContourCompute() {
                     SharedData::erase(RESULT_KEY_CONTOUR_TOUCHES);
+                    msgVector.release();
                     params.release();
                 }
 
                 bool process(Mat& image, result_t& result) {
+                    for ( vector< Message >::iterator msg = msgVector->begin(); msg < msgVector->end(); msg++) {
+                        std::cout << "ContourCompute received cmdCode " << msg->cmdCode << " with params " << msg->params << " at " << msg->time.getSeconds() << std::endl; 
+                    }
+                    msgVector->clear();
+                    /*
                     vector< vector<Point> >::iterator contour = contours->begin();
                     for (; contour  < contours->end(); contour++) {
                         if (contour->size() > minPoints && contour->size() < maxPoints) {
                             Rect r = cv::boundingRect(*contour);
                         }
                     }
+                    */
                     return true;
                 }
 
