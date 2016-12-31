@@ -23,20 +23,19 @@ namespace mrtable {
                 int numMarkers = 100;
 
                 ArucoCompute() {
-                    ServerConfig* config = SharedData::getPtr<ServerConfig>(KEY_CONFIG);
                     server = SharedData::getPtr<TUIO::TuioServer>(KEY_TUIO_SERVER);
                     if (server == NULL) {
                         throw new std::runtime_error("ArucoCompute.hpp: No TUIO Server!");
                     }
                     
-                    skippableFrames = config->skippableFrames + 1;
-                    movementThreshold = config->movementThreshold;
-                    angleThreshold = config->angleThreshold;
+                    skippableFrames = ServerConfig::skippableFrames + 1;
+                    movementThreshold = ServerConfig::movementThreshold;
+                    angleThreshold = ServerConfig::angleThreshold;
 
-                    if (config->dictionaryId == cv::aruco::DICT_ARUCO_ORIGINAL) {
+                    if (ServerConfig::dictionaryId == cv::aruco::DICT_ARUCO_ORIGINAL) {
                         numMarkers = 1024;
                     } else {
-                        switch (config->dictionaryId % 4) {
+                        switch (ServerConfig::dictionaryId % 4) {
                             case 0: numMarkers = 50; break;
                             case 1: numMarkers = 100; break;
                             case 2: numMarkers = 250; break;

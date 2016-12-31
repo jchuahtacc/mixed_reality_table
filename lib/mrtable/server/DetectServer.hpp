@@ -9,6 +9,7 @@
 #include <thread>
 
 using namespace cv;
+using namespace mrtable::config;
 using namespace mrtable::data;
 using namespace mrtable::process;
 using namespace mrtable::server;
@@ -18,7 +19,7 @@ namespace mrtable {
     namespace server {
         class DetectServer {
             public:
-                DetectServer(cv::Ptr< mrtable::config::ServerConfig > config, cv::Ptr< mrtable::data::MutexQueue<string> > msgQueue);
+                DetectServer(cv::Ptr< mrtable::data::MutexQueue<string> > msgQueue);
                 ~DetectServer();
                 bool start();
                 void setVideoSource(cv::Ptr< mrtable::sources::VideoSource > videoSource);
@@ -28,7 +29,6 @@ namespace mrtable {
             private:
                 void initTuioServer();
                 void initProcessQueue();
-                Ptr< mrtable::config::ServerConfig > config_;
                 Ptr< mrtable::sources::VideoSource > vidSource;
                 ProcessQueue* proc = NULL;
                 TUIO::TuioServer* server = NULL;
@@ -40,9 +40,8 @@ namespace mrtable {
 
         };
 
-        DetectServer::DetectServer(Ptr< mrtable::config::ServerConfig > config, cv::Ptr< mrtable::data::MutexQueue<string> > msgQueue) : config_(config), msgQueue_(msgQueue) {
+        DetectServer::DetectServer(cv::Ptr< mrtable::data::MutexQueue<string> > msgQueue) : msgQueue_(msgQueue) {
             messages = new vector< string >;
-            SharedData::put(KEY_CONFIG, config_);
             msgQueue = new MutexQueue<string>();
             SharedData::put(KEY_MSG_QUEUE, msgQueue);
             initTuioServer();
@@ -50,7 +49,6 @@ namespace mrtable {
         }
 
         DetectServer::~DetectServer() {
-            config_.release();
             vidSource.release();
             msgQueue_.release();
         }
@@ -79,16 +77,20 @@ namespace mrtable {
                         stringstream iss(*msg);
                         string token;
                         if (getline(iss, token, ' ')) {
-                            int cmdCode = stoi(token);
-                            if (cmdCode > 0) {
-                                string params = "";
-                                if (iss.rdbuf()->in_avail()) {
-                                    getline(iss, params);
+                            try {
+                                int cmdCode = stoi(token);
+                                if (cmdCode > 0) {
+                                    string params = "";
+                                    if (iss.rdbuf()->in_avail()) {
+                                        getline(iss, params);
+                                    }
+                                    std::cerr << "DetectServer received cmd " << cmdCode << " with params " << params << std::endl;
+                                    MessageBroker::put(cmdCode, params, TUIO::TuioTime::getSessionTime());
+                                } else {
+                                    std::cerr << "Received invalid message: " << *msg << std::endl;
                                 }
-                                std::cerr < "DetectServer received cmd " << cmdCode << " with params " << params << std::endl;
-                                MessageBroker::put(cmdCode, params, TUIO::TuioTime::getSessionTime());
-                            } else {
-                                std::cerr << "Received invalid message: " << *msg << endl;
+                            } catch (...) {
+                                std::cerr << "Received malformed message: " << *msg << std::endl;
                             }
                         }
                     }
@@ -121,6 +123,9 @@ namespace mrtable {
                     aggregate.detected += result.detected;
                     if (aggregate.frames % 30 == 0) {
                         std::cerr << aggregate << std::endl;
+                        aggregate.frames = 0;
+                        aggregate.elapsed = 0;
+                        aggregate.detected = 0;
                     }
 
                     if (keyPress != NULL) {
@@ -143,13 +148,13 @@ namespace mrtable {
 
         void DetectServer::initTuioServer() {
             TUIO::OscSender* sender;
-            if (config_->enable_udp) {
-                sender = new TUIO::UdpSender(config_->host.c_str(), config_->udp_port);
+            if (ServerConfig::enable_udp) {
+                sender = new TUIO::UdpSender(ServerConfig::host.c_str(), ServerConfig::udp_port);
                 server = new TUIO::TuioServer(sender);
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            if (config_->enable_tcp) {
-                sender = new TUIO::TcpSender(config_->tcp_port);
+            if (ServerConfig::enable_tcp) {
+                sender = new TUIO::TcpSender(ServerConfig::tcp_port);
                 if (server == NULL) {
                     server = new TUIO::TuioServer(sender);
                 } else {
@@ -157,8 +162,8 @@ namespace mrtable {
                 }
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            if (config_->enable_web) {
-                sender = new TUIO::WebSockSender(config_->web_port);
+            if (ServerConfig::enable_web) {
+                sender = new TUIO::WebSockSender(ServerConfig::web_port);
                 if (server == NULL) {
                     server = new TUIO::TuioServer(sender);
                 } else {

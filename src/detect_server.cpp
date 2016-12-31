@@ -30,7 +30,6 @@ const char* keys  =
         "{r        |       | Show rejected candidates during preview }";
 }
 
-ServerConfig* config = NULL;
 string configFile = "serverConfig.xml";
 bool verbose = false;
 
@@ -51,24 +50,24 @@ int main(int argc, char** argv) {
     msgQueue = MutexQueue< string >::create();
 
     // Load configuration file
-    config = new ServerConfig(parser.get<String>("c"));
+    ServerConfig::read(parser.get<String>("c"));
 
     // Create CommandServer thread
     boost::asio::io_service ioservice;
-    CommandServer cmdServer(ioservice, msgQueue, config->cmd_port);
+    CommandServer cmdServer(ioservice, msgQueue, ServerConfig::cmd_port);
     std::thread thread1{[&ioservice]() { ioservice.run(); }};
 
     // Create DetectServer (run in main thread)
-    server = new DetectServer(config, msgQueue);
+    server = new DetectServer(msgQueue);
 
     verbose = parser.has("verbose");
 
     if (verbose) {
-        cout << config;
+        ServerConfig::dump(std::cout);
     }
 
     if (parser.has("o")) {
-        config->write("serverConfig.xml");
+        ServerConfig::write("serverConfig.xml");
     }
 
     cv::Ptr< mrtable::sources::VideoSource > vidSource;

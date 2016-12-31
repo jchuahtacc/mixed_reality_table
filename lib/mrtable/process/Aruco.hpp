@@ -18,12 +18,11 @@ namespace mrtable {
                 vector< vector< Point2f > > corners, rejected;
                 
                 Aruco() {
-                    ServerConfig* config = SharedData::getPtr<ServerConfig>(KEY_CONFIG);
-                    dictionary = config->dictionary;
-                    detectorParams = config->detectorParameters;
-                    camMatrix = config->cameraMatrix;
-                    distCoeffs = config->distortionCoefficients;
-                    markerLength = config->markerLength;
+                    dictionary = ServerConfig::dictionary;
+                    detectorParams = ServerConfig::detectorParameters;
+                    camMatrix = ServerConfig::cameraMatrix;
+                    distCoeffs = ServerConfig::distortionCoefficients;
+                    markerLength = ServerConfig::markerLength;
                     SharedData::put(RESULT_KEY_ARUCO_IDS, &ids);
                     SharedData::put(RESULT_KEY_ARUCO_CORNERS, &corners);
                     SharedData::put(RESULT_KEY_ARUCO_REJECTED, &rejected);

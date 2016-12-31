@@ -24,12 +24,11 @@ namespace mrtable {
                 int numMarkers = 100;
 
                 ContourCompute() {
-                    ServerConfig* config = SharedData::getPtr<ServerConfig>(KEY_CONFIG);
                     msgVector = makePtr< vector< Message > >();
                     MessageBroker::bind(CMD_PUT_REGION, msgVector);
-                    skippableFrames = config->skippableFrames + 1;
-                    movementThreshold = config->movementThreshold;
-                    params = config->contourParameters;
+                    skippableFrames = ServerConfig::skippableFrames + 1;
+                    movementThreshold = ServerConfig::movementThreshold;
+                    params = ServerConfig::contourParameters;
 
                     // temporary values
                     minPoints = params->minPointRatio * 640;
