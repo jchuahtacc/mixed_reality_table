@@ -4,6 +4,6 @@
 #define     CMD_ESCAPE_KEY          27
 #include "CommandServer.hpp"
 #include "CommandSession.hpp"
-#include "DetectServer.hpp"
+#include "TableServer.hpp"
 
 #endif

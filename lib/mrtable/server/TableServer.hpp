@@ -1,5 +1,5 @@
-#ifndef __DETECTSERVER_HPP__
-#define __DETECTSERVER_HPP__
+#ifndef __TABLESERVER_HPP__ 
+#define __TABLESERVER_HPP__
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -17,10 +17,10 @@ using namespace mrtable::sources;
 
 namespace mrtable {
     namespace server {
-        class DetectServer {
+        class TableServer {
             public:
-                DetectServer(cv::Ptr< mrtable::data::MutexQueue<string> > msgQueue);
-                ~DetectServer();
+                TableServer(cv::Ptr< mrtable::data::MutexQueue<string> > msgQueue);
+                ~TableServer();
                 bool start();
                 void setVideoSource(cv::Ptr< mrtable::sources::VideoSource > videoSource);
                 void setPreview(bool preview);
@@ -40,7 +40,7 @@ namespace mrtable {
 
         };
 
-        DetectServer::DetectServer(cv::Ptr< mrtable::data::MutexQueue<string> > msgQueue) : msgQueue_(msgQueue) {
+        TableServer::TableServer(cv::Ptr< mrtable::data::MutexQueue<string> > msgQueue) : msgQueue_(msgQueue) {
             messages = new vector< string >;
             msgQueue = new MutexQueue<string>();
             SharedData::put(KEY_MSG_QUEUE, msgQueue);
@@ -48,12 +48,12 @@ namespace mrtable {
             initProcessQueue();
         }
 
-        DetectServer::~DetectServer() {
+        TableServer::~TableServer() {
             vidSource.release();
             msgQueue_.release();
         }
 
-        bool DetectServer::start() {
+        bool TableServer::start() {
             if (preview_ and !preview_added) {
                 preview_added = true;
                 proc->addProcessor(mrtable::process::DisplayFrame::create(1));
@@ -84,7 +84,7 @@ namespace mrtable {
                                     if (iss.rdbuf()->in_avail()) {
                                         getline(iss, params);
                                     }
-                                    std::cerr << "DetectServer received cmd " << cmdCode << " with params " << params << std::endl;
+                                    std::cerr << "TableServer received cmd " << cmdCode << " with params " << params << std::endl;
                                     MessageBroker::put(cmdCode, params, TUIO::TuioTime::getSessionTime());
                                 } else {
                                     std::cerr << "Received invalid message: " << *msg << std::endl;
@@ -142,11 +142,11 @@ namespace mrtable {
             return true;
         }
 
-        void DetectServer::setVideoSource(cv::Ptr< mrtable::sources::VideoSource > source) {
+        void TableServer::setVideoSource(cv::Ptr< mrtable::sources::VideoSource > source) {
             vidSource = source;
         }
 
-        void DetectServer::initTuioServer() {
+        void TableServer::initTuioServer() {
             TUIO::OscSender* sender;
             if (ServerConfig::enable_udp) {
                 sender = new TUIO::UdpSender(ServerConfig::host.c_str(), ServerConfig::udp_port);
@@ -179,7 +179,7 @@ namespace mrtable {
             }
         }
 
-        void DetectServer::initProcessQueue() {
+        void TableServer::initProcessQueue() {
             // Prepare frame processors
             SharedData::put(KEY_TUIO_SERVER, server);
 
@@ -193,7 +193,7 @@ namespace mrtable {
             proc->addProcessor(mrtable::process::ContourCompute::create());
         }
 
-        void DetectServer::setPreview(bool preview) {
+        void TableServer::setPreview(bool preview) {
             preview_ = preview;
         }
     }

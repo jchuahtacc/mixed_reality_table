@@ -34,7 +34,7 @@ string configFile = "serverConfig.xml";
 bool verbose = false;
 
 cv::Ptr<FrameProcessor> process;
-DetectServer* server = NULL;
+TableServer* server = NULL;
 Ptr< MutexQueue<string> > msgQueue;
 
 int main(int argc, char** argv) {
@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
         return 0;
     }
 
-    // Create msgQueue for communication between CommandServer and DetectServer
+    // Create msgQueue for communication between CommandServer and TableServer
     msgQueue = MutexQueue< string >::create();
 
     // Load configuration file
@@ -57,8 +57,8 @@ int main(int argc, char** argv) {
     CommandServer cmdServer(ioservice, msgQueue, ServerConfig::cmd_port);
     std::thread thread1{[&ioservice]() { ioservice.run(); }};
 
-    // Create DetectServer (run in main thread)
-    server = new DetectServer(msgQueue);
+    // Create TableServer (run in main thread)
+    server = new TableServer(msgQueue);
 
     verbose = parser.has("verbose");
 
