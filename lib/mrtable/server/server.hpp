@@ -5,5 +5,6 @@
 #include "CommandServer.hpp"
 #include "CommandSession.hpp"
 #include "TableServer.hpp"
+#include "DetectBounds.hpp"
 
 #endif
