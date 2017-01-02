@@ -1,6 +1,7 @@
 #ifndef __SERVERCONFIG_HPP__
 #define __SERVERCONFIG_HPP__
 
+#include "DetectBounds.hpp"
 #include <iostream>
 #include <opencv2/core/core.hpp>
 #include <opencv2/aruco.hpp>
@@ -53,6 +54,7 @@ namespace mrtable {
                 static string cameraParametersFile;
                 static string contourParametersFile;
                 static string detectorParametersFile;
+                static string boundsParametersFile;
                 static bool udp_port_default;
                 static bool tcp_port_default;
                 static bool web_port_default; 
@@ -81,6 +83,7 @@ namespace mrtable {
         string ServerConfig::cameraParametersFile = "cameraParams.xml";
         string ServerConfig::contourParametersFile = "contourParams.xml";
         string ServerConfig::detectorParametersFile = "detectorParams.xml";
+        string ServerConfig::boundsParametersFile = "boundsParams.xml";
         bool ServerConfig::udp_port_default = true;
         bool ServerConfig::tcp_port_default = true;
         bool ServerConfig::web_port_default = true; 
@@ -105,6 +108,7 @@ namespace mrtable {
                 std::cerr << "Could not open " << detectorParametersFile << " - using default Aruco Detector Parameters" << std::endl;
             }
 
+
             fs["cameraWidth"] >> temp;
             if (!temp.empty() && temp.compare("default") != 0) {
                 cameraWidth = stoi(temp);
@@ -113,6 +117,15 @@ namespace mrtable {
             fs["cameraHeight"] >> temp;
             if (!temp.empty() && temp.compare("default") != 0) {
                 cameraHeight = stoi(temp);
+            }
+
+            fs["boundsParameters"] >> temp;
+            if (temp.compare("default") != 0) {
+                boundsParametersFile = temp;
+            }
+            if (!DetectBounds::read(boundsParametersFile)) {
+                std::cerr << "Could not open " << boundsParametersFile << " - using default bounds parameters" << std::endl;
+                DetectBounds::setDefaults(cameraWidth, cameraHeight);
             }
 
             fs["markerLength"] >> temp;
@@ -154,7 +167,7 @@ namespace mrtable {
                 cameraParametersFile = temp;
             }
             if (!mrtable::config::readCameraParameters(cameraParametersFile, cameraMatrix, distortionCoefficients)) {
-                std::cerr << "Could not open " << cameraParametersFile << " - pose detection may be inaccurate!" << std::endl;
+                std::cerr << "Could not open " << cameraParametersFile << " - marker detection may be inaccurate!" << std::endl;
             }
 
             fs["host"] >> temp;
@@ -204,6 +217,7 @@ namespace mrtable {
             fs << "detectorParameters" << detectorParametersFile;
             fs << "contourParameters" << contourParametersFile;
             fs << "cameraParameters" << cameraParametersFile;
+            fs << "boundsParameters" << boundsParametersFile;
             fs << "dictionaryId" << dictionaryId;
             fs << "markerLength" << markerLength;
             fs << "skippableFrames" << skippableFrames;
@@ -229,6 +243,9 @@ namespace mrtable {
             }
             if (!contourParameters->write(contourParametersFile)) {
                 std::cerr << "Could not write contour parameters to " << contourParametersFile << std::endl;
+            }
+            if (!DetectBounds::write(boundsParametersFile)) {
+                std::cerr << "Could not write bounds parameters to " << boundsParametersFile << std::endl;
             }
             return true;
         }

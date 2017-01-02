@@ -150,7 +150,7 @@ int main(int argc, char *argv[]) {
         Mat image, imageCopy;
         image = imread(filename);
         cout << "Read image, detecting bounds" << endl;
-        if (DetectBounds::verifyMarkerPlacement(image)) {
+        if (DetectBounds::verifyMarkerPlacement(image, dictionary, detectorParams)) {
             cout << "Marker placement OK " << endl;
             DetectBounds::calculateRoi();
             DetectBounds::dump(std::cout);

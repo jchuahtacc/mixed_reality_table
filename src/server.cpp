@@ -25,6 +25,7 @@ const char* keys  =
         "{c        |       | Server configuration XML file (otherwise, defaults will be used)}"
         "{o        |       | Output configuration XML (serverConfig.xml, cameraParameters.xml, etc..)}"
         "{ci       | 0     | Camera id if input doesnt come from video (-v) }"
+
         "{p        |       | Show preview in GUI window }"
         "{verbose  |       | Verbose output of settings }"
         "{r        |       | Show rejected candidates during preview }";
@@ -36,6 +37,7 @@ bool verbose = false;
 cv::Ptr<FrameProcessor> process;
 TableServer* server = NULL;
 Ptr< MutexQueue<string> > msgQueue;
+Ptr< MutexQueue<string> > sendQueue;
 
 int main(int argc, char** argv) {
     CommandLineParser parser(argc, argv, keys);
@@ -48,17 +50,18 @@ int main(int argc, char** argv) {
 
     // Create msgQueue for communication between CommandServer and TableServer
     msgQueue = MutexQueue< string >::create();
+    sendQueue = MutexQueue< string >::create();
 
     // Load configuration file
     ServerConfig::read(parser.get<String>("c"));
 
     // Create CommandServer thread
     boost::asio::io_service ioservice;
-    CommandServer cmdServer(ioservice, msgQueue, ServerConfig::cmd_port);
+    CommandServer cmdServer(ioservice, msgQueue, sendQueue, ServerConfig::cmd_port);
     std::thread thread1{[&ioservice]() { ioservice.run(); }};
 
     // Create TableServer (run in main thread)
-    server = new TableServer(msgQueue);
+    server = new TableServer(msgQueue, sendQueue);
 
     verbose = parser.has("verbose");
 

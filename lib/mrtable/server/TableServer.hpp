@@ -19,7 +19,7 @@ namespace mrtable {
     namespace server {
         class TableServer {
             public:
-                TableServer(cv::Ptr< mrtable::data::MutexQueue<string> > msgQueue);
+                TableServer(cv::Ptr< mrtable::data::MutexQueue<string> > msgQueue, cv::Ptr< mrtable::data::MutexQueue<string> > sendQueue);
                 ~TableServer();
                 bool start();
                 void setVideoSource(cv::Ptr< mrtable::sources::VideoSource > videoSource);
@@ -33,16 +33,24 @@ namespace mrtable {
                 ProcessQueue* proc = NULL;
                 TUIO::TuioServer* server = NULL;
                 Ptr< MutexQueue<string> > msgQueue_;
+                Ptr< MutexQueue<string> > sendQueue_;
                 bool preview_ = false;
                 bool preview_added = false;
                 int* keyPress = NULL;
                 vector< string >* messages;
+                Ptr< vector< Message > > serverCommands;
+                void processServerMessages();
 
         };
 
-        TableServer::TableServer(cv::Ptr< mrtable::data::MutexQueue<string> > msgQueue) : msgQueue_(msgQueue) {
-            messages = new vector< string >;
-            msgQueue = new MutexQueue<string>();
+        TableServer::TableServer(cv::Ptr< mrtable::data::MutexQueue<string> > msgQueue, cv::Ptr< mrtable::data::MutexQueue<string> > sendQueue) : msgQueue_(msgQueue), sendQueue_(sendQueue) {
+            messages = new vector< string >();
+            serverCommands = makePtr< vector< Message > >(); 
+            MessageBroker::bind(CMD_ECHO, serverCommands);
+            MessageBroker::bind(CMD_VERIFY_MARKER_PLACEMENT, serverCommands);
+            MessageBroker::bind(CMD_CALCULATE_ROI, serverCommands);
+            MessageBroker::bind(CMD_WRITE_BOUNDS, serverCommands);
+            MessageBroker::bind(CMD_READ_BOUNDS, serverCommands);
             SharedData::put(KEY_MSG_QUEUE, msgQueue);
             initTuioServer();
             initProcessQueue();
@@ -51,6 +59,16 @@ namespace mrtable {
         TableServer::~TableServer() {
             vidSource.release();
             msgQueue_.release();
+        }
+
+        void TableServer::processServerMessages() {
+            for (vector< Message >::iterator cmd = serverCommands->begin(); cmd < serverCommands->end(); cmd++) {
+                std::cout << "Command: " << cmd->cmdCode << std::endl;
+                switch (cmd->cmdCode) {
+                    case CMD_ECHO : MessageBroker::respond(cmd->cmdCode, true, cmd->params); break;
+                }
+            }
+            serverCommands->clear();
         }
 
         bool TableServer::start() {
@@ -97,6 +115,8 @@ namespace mrtable {
                     messages->clear();
                     // got messages
                 }
+
+                processServerMessages();
 
                 bool gotFrame = vidSource->getFrame(image);
                 if (!gotFrame) {

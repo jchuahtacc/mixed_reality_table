@@ -6,13 +6,16 @@
 #include <cmath>
 
 using namespace std;
+using namespace cv;
 
 namespace mrtable {
-    namespace server {
+    namespace config {
         class DetectBounds {
             public:
-                static bool verifyMarkerPlacement(Mat&);
+                static bool verifyMarkerPlacement(Mat&, cv::Ptr<cv::aruco::Dictionary>, cv::Ptr<cv::aruco::DetectorParameters>);
                 static bool calculateRoi();
+                static bool read(string);
+                static bool write(string);
                 static int rot;
                 static int x;
                 static int y;
@@ -23,6 +26,7 @@ namespace mrtable {
                 static int leftOverflow;
                 static void dump(basic_ostream<char>&);
                 static Point2f getScreenPosition(Point2f pos);
+                static void setDefaults(int, int);
                 static int baseline;
                 static int baseheight;
             private:
@@ -52,6 +56,65 @@ namespace mrtable {
         int DetectBounds::leftOverflow = 0;
         int DetectBounds::baseline = 0;
         int DetectBounds::baseheight = 0;
+
+        bool DetectBounds::read(string filename) {
+            if (filename.empty()) {
+                return false;
+            }
+            FileStorage fs(filename, FileStorage::READ);
+            if (!fs.isOpened()) {
+                return false;
+            }
+
+            fs["x"] >> x;
+            fs["y"] >> y;
+            fs["width"] >> width;
+            fs["height"] >> height;
+            fs["rot"] >> rot;
+            fs["sections"] >> sections;
+            fs["sectionNum"] >> sectionNum;
+            fs["leftOverflow"] >> leftOverflow;
+            fs["baseline"] >> baseline;
+            fs["baseheight"] >> baseheight;
+            return true;
+        }
+
+        bool DetectBounds::write(string filename) {
+            if (filename.empty()) {
+                return false;
+            }
+
+            FileStorage fs(filename, FileStorage::WRITE);
+            if (!fs.isOpened()) {
+                return false;
+            }
+
+            fs << "x" << x;
+            fs << "y" << y;
+            fs << "width" << width;
+            fs << "height" << height;
+            fs << "rot" << rot;
+            fs << "sections" << sections;
+            fs << "sectionNum" << sectionNum;
+            fs << "leftOverflow" << leftOverflow;
+            fs << "baseline" << baseline;
+            fs << "baseheight" << baseheight;
+            return true;
+
+        }
+
+        void DetectBounds::setDefaults(int camWidth, int camHeight) {
+            x = 0;
+            y = 0;
+            width = camWidth;
+            height = camHeight;
+            rot = 0;
+            sections = 1;
+            sectionNum = 0;
+            leftOverflow = 0;
+            baseline = width;
+            baseheight = height;
+        }
 
         Point2f DetectBounds::getScreenPosition(Point2f pos) {
             Point2f result; 
@@ -152,9 +215,9 @@ namespace mrtable {
             return true;
         }
 
-        bool DetectBounds::verifyMarkerPlacement(Mat& image) {
+        bool DetectBounds::verifyMarkerPlacement(Mat& image, cv::Ptr<cv::aruco::Dictionary> dictionary, cv::Ptr<cv::aruco::DetectorParameters> detectorParameters) {
             vector< vector< Point2f > > rejected;
-            aruco::detectMarkers(image, mrtable::config::ServerConfig::dictionary, corners, ids, mrtable::config::ServerConfig::detectorParameters, rejected);
+            aruco::detectMarkers(image, dictionary, corners, ids, detectorParameters, rejected);
 
             // must have exactly 4 markers
             if (ids.size() != 4) {

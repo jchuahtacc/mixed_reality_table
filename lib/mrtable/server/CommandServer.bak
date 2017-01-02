@@ -1,6 +1,7 @@
 #ifndef __COMMANDSERVER_HPP__
 #define __COMMANDSERVER_HPP__
 
+#include "DisconnectNotifier.hpp"
 #include <cstdlib>
 #include <iostream>
 #include <opencv2/core/core.hpp>
@@ -15,8 +16,15 @@ namespace mrtable {
     namespace server {
         class CommandServer {
             public:
-                CommandServer(boost::asio::io_service& io_service, cv::Ptr< MutexQueue<string> > msgQueue, short port) : io_service_(io_service), acceptor_(io_service, tcp::endpoint(tcp::v4(), port)), msgQueue_(msgQueue) {
-                    CommandSession* new_session = new CommandSession(io_service_, msgQueue);
+                void disconnectHandler(tcp::socket* socketPtr){
+                    std::cout << "Socket disconnected: " << socketPtr << endl;
+                }
+
+                CommandServer(boost::asio::io_service& io_service, cv::Ptr< MutexQueue<string> > msgQueue, cv::Ptr< MutexQueue<string> > sendQueue, short port) : io_service_(io_service), acceptor_(io_service, tcp::endpoint(tcp::v4(), port)), msgQueue_(msgQueue), sendQueue_(sendQueue) {
+
+                    // DisconnectNotifier::listen( const &(this->disconnectHandler));
+
+                    CommandSession* new_session = new CommandSession(io_service_, msgQueue, sendQueue);
                     acceptor_.async_accept(new_session->socket(), boost::bind(&CommandServer::handle_accept, this, new_session, boost::asio::placeholders::error));
                 }
 
@@ -28,7 +36,7 @@ namespace mrtable {
                     if (!error) {
                         std::cerr << "Command Server accepted connection" << std::endl;
                         new_session->start();
-                        new_session = new CommandSession(io_service_, msgQueue_);
+                        new_session = new CommandSession(io_service_, msgQueue_, sendQueue_);
                         // Handle another connection request after starting this session
                         acceptor_.async_accept(new_session->socket(), boost::bind(&CommandServer::handle_accept, this, new_session, boost::asio::placeholders::error));
                     } else {
@@ -38,7 +46,7 @@ namespace mrtable {
                 }
 
             private:
-                cv::Ptr< MutexQueue<string> > msgQueue_;
+                cv::Ptr< MutexQueue<string> > msgQueue_, sendQueue_;
                 boost::asio::io_service& io_service_;
                 tcp::acceptor acceptor_;
         };
