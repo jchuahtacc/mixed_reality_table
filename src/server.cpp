@@ -53,7 +53,12 @@ int main(int argc, char** argv) {
     sendQueue = MutexQueue< string >::create();
 
     // Load configuration file
-    ServerConfig::read(parser.get<String>("c"));
+    if (parser.has("c")) {
+        ServerConfig::read(parser.get<String>("c"));
+    } else {
+        std::cout << "Loading default config file" << std::endl;
+        ServerConfig::read("serverConfig.xml");
+    }
 
     // Create CommandServer thread
     boost::asio::io_service ioservice;

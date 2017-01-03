@@ -19,6 +19,8 @@ using namespace cv::aruco;
 namespace mrtable {
     namespace config {
         bool readCameraParameters(string filename, Mat &camMatrix, Mat &distCoeffs) {
+            if (filename.empty())
+                return false;
             FileStorage fs(filename, FileStorage::READ);
             if(!fs.isOpened())
                 return false;
@@ -38,6 +40,8 @@ namespace mrtable {
         }
 
         bool readBlobParameters(string filename, SimpleBlobDetector::Params *params) {
+            if (filename.empty())
+                return false;
             FileStorage fs(filename, FileStorage::READ);
             if (!fs.isOpened()) 
                 return false;
@@ -95,7 +99,9 @@ namespace mrtable {
             return true;
         }
 
-        bool readDetectorParameters(string filename, Ptr<aruco::DetectorParameters> &params) {
+        bool readDetectorParameters(string filename, Ptr<aruco::DetectorParameters> params) {
+            if (filename.empty()) 
+                return false;
             FileStorage fs(filename, FileStorage::READ);
             if(!fs.isOpened())
                 return false;

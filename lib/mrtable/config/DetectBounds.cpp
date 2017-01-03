@@ -1,6 +1,8 @@
-#ifndef __DETECTBOUNDS_HPP__
-#define __DETECTBOUNDS_HPP__
+#ifndef __DETECTBOUNDS_CPP__
+#define __DETECTBOUNDS_CPP__
 
+#include "ServerConfig.h"
+#include "DetectBounds.h"
 #include <opencv2/aruco.hpp>
 #include <opencv2/core/core.hpp>
 #include <cmath>
@@ -10,38 +12,6 @@ using namespace cv;
 
 namespace mrtable {
     namespace config {
-        class DetectBounds {
-            public:
-                static bool verifyMarkerPlacement(Mat&, cv::Ptr<cv::aruco::Dictionary>, cv::Ptr<cv::aruco::DetectorParameters>);
-                static bool calculateRoi();
-                static bool read(string);
-                static bool write(string);
-                static int rot;
-                static int x;
-                static int y;
-                static int width;
-                static int height;
-                static int sections;
-                static int sectionNum;
-                static int leftOverflow;
-                static void dump(basic_ostream<char>&);
-                static Point2f getScreenPosition(Point2f pos);
-                static void setDefaults(int, int);
-                static int baseline;
-                static int baseheight;
-            private:
-                static vector< int > ids;
-                static vector< vector<Point2f> > corners;
-                static vector<int> orientations;
-                static bool sortMarkers();
-                static int getOrientation(vector< Point2f >);
-                static int getRot();
-                template <class T> static vector<T> makeVector(int);
-                DetectBounds();
-                ~DetectBounds();
-        };
-
-
         vector< int > DetectBounds::ids = makeVector<int>(4);
         vector< vector<Point2f> > DetectBounds::corners = makeVector< vector<Point2f> >(4);
         vector< int > DetectBounds::orientations = makeVector<int>(4);
@@ -58,6 +28,7 @@ namespace mrtable {
         int DetectBounds::baseheight = 0;
 
         bool DetectBounds::read(string filename) {
+            setDefaults();
             if (filename.empty()) {
                 return false;
             }
@@ -103,11 +74,11 @@ namespace mrtable {
 
         }
 
-        void DetectBounds::setDefaults(int camWidth, int camHeight) {
+        void DetectBounds::setDefaults() {
             x = 0;
             y = 0;
-            width = camWidth;
-            height = camHeight;
+            width = ServerConfig::cameraWidth;
+            height = ServerConfig::cameraHeight;
             rot = 0;
             sections = 1;
             sectionNum = 0;
@@ -357,13 +328,6 @@ namespace mrtable {
             outs << "Section " << DetectBounds::sectionNum << " of " << DetectBounds::sections << " with rot " << DetectBounds::rot << endl;
             outs << "baseline: " << baseline << " baseheight: " << baseheight << " left overflow: " << endl;
             outs << "Section screen origin: " << DetectBounds::getScreenPosition(Point2f(0, 0)) << endl;
-
-            for (int i = 0; i < 4; i++) {
-                Point2f p = corners[i][0];
-                p.x -= x;
-                p.y -= y;
-                outs << "Corner " << i << " origin: " << DetectBounds::getScreenPosition(p) << endl;
-            }
         }
     }
 }

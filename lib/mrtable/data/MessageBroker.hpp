@@ -49,7 +49,7 @@ namespace mrtable {
             msgVector->push_back( Message(cmdCode, paramString, time) );
         }
 
-        void mrtable::data::MessageBroker::respond(int cmdCode, bool ok, string message) {
+        void mrtable::data::MessageBroker::respond(int cmdCode, bool ok, string message = "") {
             stringstream ss;
             ss << cmdCode << " " << (ok ? "OK" : "ERROR") << " " << message << endl;
             server::ServerConnector::server_->broadcast(ss.str());

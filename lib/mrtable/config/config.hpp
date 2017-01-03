@@ -1,9 +1,9 @@
 #ifndef __CONFIG_HPP__
 #define __CONFIG_HPP__
 
-#include "DetectBounds.hpp"
+#include "DetectBounds.cpp"
 #include "ContourParams.hpp"
-#include "ServerConfig.hpp"
+#include "ServerConfig.cpp"
 #include "parsers.hpp"
 
 #endif

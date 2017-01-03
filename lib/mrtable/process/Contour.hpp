@@ -70,11 +70,12 @@ namespace mrtable {
                             regions[region] = r;
                             contours[region] = new vector< vector<Point> >();
                             hierarchies[region] = new vector< Vec4i >();
+                            MessageBroker::respond(msg.cmdCode, true, msg.params);
                         } catch (...) {
-                            cerr << "CMD_PUT_REGION error parsing rectangle dimensions " << msg.params << endl;
+                            MessageBroker::respond(msg.cmdCode, false, "CMD_PUT_REGION error parsing rectangle dimensions");
                         }
                     } else {
-                        cerr << "CMD_PUT_REGION expects 5 parameters. Received: " << msg.params << endl;
+                        MessageBroker::respond(msg.cmdCode, false, "CMD_PUT_REGION expects 5 parameters");
                     }
                 }
 
@@ -91,6 +92,9 @@ namespace mrtable {
                         regions.erase(msg.params);
                         contours.erase(msg.params);
                         hierarchies.erase(msg.params);
+                        MessageBroker::respond(msg.cmdCode, true, msg.params);
+                    } else {
+                        MessageBroker::respond(msg.cmdCode, false, msg.params);
                     }
                 }
 

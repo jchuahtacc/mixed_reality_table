@@ -1,7 +1,8 @@
-#ifndef __SERVERCONFIG_HPP__
-#define __SERVERCONFIG_HPP__
+#ifndef __SERVERCONFIG_CPP__
+#define __SERVERCONFIG_CPP__
 
-#include "DetectBounds.hpp"
+#include "DetectBounds.h"
+#include "ServerConfig.h"
 #include <iostream>
 #include <opencv2/core/core.hpp>
 #include <opencv2/aruco.hpp>
@@ -14,52 +15,6 @@ using namespace std;
 
 namespace mrtable {
     namespace config {
-        class ServerConfig {
-            public: 
-                static cv::Ptr<mrtable::config::ContourParams> contourParameters;
-                static cv::Ptr<aruco::DetectorParameters> detectorParameters;
-                static cv::Ptr<aruco::Dictionary> dictionary;
-                static Mat cameraMatrix;
-                static Mat distortionCoefficients;
-                static int dictionaryId;
-                static int cameraWidth;
-                static int cameraHeight;
-                static double markerLength;
-                static int skippableFrames;
-                static float movementThreshold;
-                static float angleThreshold;
-                static string host;
-                static int cmd_port;
-                static int udp_port;
-                static short int tcp_port;
-                static int web_port;
-                static bool enable_udp;
-                static bool enable_tcp;
-                static bool enable_web;
-
-                static bool read(string);
-
-                static bool write(string);
-
-                static void dump(basic_ostream<char>&);
-
-                friend basic_ostream<char>& operator<<(basic_ostream<char>&, cv::Ptr<ServerConfig>);
-
-                ~ServerConfig();
-
-            private:
-
-                ServerConfig();
-
-                static string cameraParametersFile;
-                static string contourParametersFile;
-                static string detectorParametersFile;
-                static string boundsParametersFile;
-                static bool udp_port_default;
-                static bool tcp_port_default;
-                static bool web_port_default; 
-        };
-         
         cv::Ptr<mrtable::config::ContourParams> ServerConfig::contourParameters = ContourParams::create();
         cv::Ptr<aruco::DetectorParameters> ServerConfig::detectorParameters = cv::aruco::DetectorParameters::create();
         cv::Ptr<aruco::Dictionary> ServerConfig::dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_100);
@@ -90,6 +45,7 @@ namespace mrtable {
 
 
         bool ServerConfig::read(string filename){
+            DetectBounds::setDefaults();
             if (filename.empty()) {
                 return false;
             }
@@ -103,7 +59,6 @@ namespace mrtable {
             if (temp.compare("default") != 0) {
                 detectorParametersFile = temp; 
             }
-            detectorParameters.release();
             if (!readDetectorParameters(detectorParametersFile, detectorParameters)) {
                 std::cerr << "Could not open " << detectorParametersFile << " - using default Aruco Detector Parameters" << std::endl;
             }
@@ -125,7 +80,6 @@ namespace mrtable {
             }
             if (!DetectBounds::read(boundsParametersFile)) {
                 std::cerr << "Could not open " << boundsParametersFile << " - using default bounds parameters" << std::endl;
-                DetectBounds::setDefaults(cameraWidth, cameraHeight);
             }
 
             fs["markerLength"] >> temp;
@@ -274,6 +228,7 @@ namespace mrtable {
                 case 16: outs << "DICT_ARUCO_ORIGINAL" << std::endl; break;
                 default: outs << "Unknown Dictionary" << std::endl; break;
             }
+            DetectBounds::dump(outs);
             outs << "*** Aruco Marker Thresholds ***" << std::endl;
             outs << "skippableFrames: " << skippableFrames << std::endl;
             outs << "movementThreshold: " << movementThreshold << std::endl;

@@ -29,6 +29,7 @@ namespace mrtable {
             private:
                 void initTuioServer();
                 void initProcessQueue();
+                void verifyMarkerPlacement();
                 Ptr< mrtable::sources::VideoSource > vidSource;
                 ProcessQueue* proc = NULL;
                 TUIO::TuioServer* server = NULL;
@@ -61,11 +62,23 @@ namespace mrtable {
             msgQueue_.release();
         }
 
+        void TableServer::verifyMarkerPlacement() {
+            Mat image;
+            vidSource->getFrame(image);
+            if (DetectBounds::verifyMarkerPlacement(image, ServerConfig::dictionary, ServerConfig::detectorParameters)) {
+                MessageBroker::respond(CMD_VERIFY_MARKER_PLACEMENT, true);
+            } else {
+                MessageBroker::respond(CMD_VERIFY_MARKER_PLACEMENT, false);
+            }
+        }
+
         void TableServer::processServerMessages() {
             for (vector< Message >::iterator cmd = serverCommands->begin(); cmd < serverCommands->end(); cmd++) {
                 std::cout << "Command: " << cmd->cmdCode << std::endl;
                 switch (cmd->cmdCode) {
                     case CMD_ECHO : MessageBroker::respond(cmd->cmdCode, true, cmd->params); break;
+                    case CMD_VERIFY_MARKER_PLACEMENT : verifyMarkerPlacement(); break;
+                    case CMD_CALCULATE_ROI : DetectBounds::calculateRoi(); break;
                 }
             }
             serverCommands->clear();
