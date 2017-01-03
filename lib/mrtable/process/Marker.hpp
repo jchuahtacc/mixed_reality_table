@@ -32,13 +32,13 @@ namespace mrtable {
                     }
                 }
 
-                bool calculate(vector< Point2f >& corners, int movementThreshold, float angleThreshold) {
+                bool calculate(vector< Point2f >& corners, int movementThresholdPixels, float angleThreshold) {
                     float newX = corners[0].x + corners[2].x / 2;
                     float newY = corners[0].y + corners[2].y / 2;
                     float midX = (corners[1].x + corners[2].x) / 2 - pos.x;
                     float midY = (corners[1].y + corners[2].y) / 2 - pos.y;
                     float newRot = atan2(midY, midX);
-                    if (abs(pos.x - newX) > movementThreshold || abs(pos.y - newY) > movementThreshold || abs(newRot - rot) > angleThreshold) { 
+                    if (abs(pos.x - newX) > movementThresholdPixels || abs(pos.y - newY) > movementThresholdPixels || abs(newRot - rot) > angleThreshold) { 
                         float a = corners[0].x - newX;
                         float b = corners[0].y - newY;
                         radius = sqrt(a * a + b * b);

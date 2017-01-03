@@ -26,7 +26,7 @@ namespace mrtable {
                 static int cameraHeight;
                 static double markerLength;
                 static int skippableFrames;
-                static int movementThreshold;
+                static float movementThreshold;
                 static float angleThreshold;
                 static string host;
                 static int cmd_port;
@@ -70,7 +70,7 @@ namespace mrtable {
         int ServerConfig::cameraHeight = 768;
         double ServerConfig::markerLength = 0.1;
         int ServerConfig::skippableFrames = 3;
-        int ServerConfig::movementThreshold = 5;
+        float ServerConfig::movementThreshold = 0.003;
         float ServerConfig::angleThreshold = 0.17;
         string ServerConfig::host = "127.0.0.1";
         int ServerConfig::cmd_port = 3332;
@@ -140,7 +140,7 @@ namespace mrtable {
 
             fs["movementThreshold"] >> temp;
             if (!temp.empty() && temp.compare("default") != 0) {
-                movementThreshold = stoi(temp);
+                movementThreshold = stof(temp);
             }
 
             fs["angleThreshold"] >> temp;

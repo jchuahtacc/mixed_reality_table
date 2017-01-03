@@ -29,7 +29,7 @@ namespace mrtable {
                     }
                     
                     skippableFrames = ServerConfig::skippableFrames + 1;
-                    movementThreshold = ServerConfig::movementThreshold;
+                    movementThresholdPixels = (int)(ServerConfig::movementThreshold * ServerConfig::cameraHeight);
                     angleThreshold = ServerConfig::angleThreshold;
 
                     if (ServerConfig::dictionaryId == cv::aruco::DICT_ARUCO_ORIGINAL) {
@@ -79,10 +79,11 @@ namespace mrtable {
                     for (; id < ids->end(); id++, cornerVec++) {
                         idx = *id;
                         Marker m = markers[idx];
-                        bool changed = m.calculate(*cornerVec, movementThreshold, angleThreshold);
+                        bool changed = m.calculate(*cornerVec, movementThresholdPixels, angleThreshold);
                         if (m.tObj == NULL) {
                             // Need to update so that position is percentage of screen
-                            m.tObj = server->addTuioObject(idx, m.pos.x, m.pos.y, m.rot);
+                            Point2f pos = DetectBounds::getScreenPosition(m.pos);
+                            m.tObj = server->addTuioObject(idx, pos.x, pos.y, m.rot);
                         } else if (changed) {
                             server->updateTuioObject(m.tObj, m.pos.x, m.pos.y, m.rot);
                         } 
@@ -100,7 +101,7 @@ namespace mrtable {
                 vector< int > *ids;
 
                 int skippableFrames = 4;
-                int movementThreshold = 5;
+                int movementThresholdPixels = 5;
                 float angleThreshold = 0.17;
                 TUIO::TuioServer* server;
         };

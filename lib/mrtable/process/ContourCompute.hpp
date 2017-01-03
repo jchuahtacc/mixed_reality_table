@@ -35,7 +35,7 @@ namespace mrtable {
                     MessageBroker::bind(CMD_UPDATE_REGION, msgVector);
                     MessageBroker::bind(CMD_DELETE_REGION, msgVector);
                     skippableFrames = ServerConfig::skippableFrames + 1;
-                    movementThreshold = ServerConfig::movementThreshold;
+                    movementThresholdPixels = (int)(ServerConfig::movementThreshold * ServerConfig::cameraHeight);;
                     params = ServerConfig::contourParameters;
 
                     // temporary values
@@ -127,10 +127,11 @@ namespace mrtable {
                         for (vector< Rect >::iterator potential = potentials.begin(); potential < potentials.end(); potential++) {
                             // If there is an overlap, update the existing touch and remove newly scanned contour from list of potential new touches
                             if (((*touch)->bounds & *potential).area() > 0) {
-                                bool changed = (*touch)->calculate(*potential, movementThreshold);
+                                bool changed = (*touch)->calculate(*potential, movementThresholdPixels);
                                 (*touch)->deathCounter = -1;
                                 if (changed) {
-                                    server->updateTuioCursor((*touch)->tCur, (*touch)->pos.x, (*touch)->pos.y);
+                                    Point2f pos = DetectBounds::getScreenPosition((*touch)->pos);
+                                    server->updateTuioCursor((*touch)->tCur, pos.x, pos.y);
                                 }
                                 potential = potentials.erase(potential);
                                 potential--;
@@ -148,7 +149,7 @@ namespace mrtable {
                     // Add any leftover potential contours as new touches
                     for (vector< Rect >::iterator potential = potentials.begin(); potential < potentials.end(); potential++) {
                         Touch* t = new Touch();
-                        t->calculate(*potential, movementThreshold);
+                        t->calculate(*potential, movementThresholdPixels);
                         t->tCur = server->addTuioCursor(t->pos.x, t->pos.y);
                         existingTouches->push_back(t); 
                     }
@@ -193,7 +194,7 @@ namespace mrtable {
 
             private:
                 int skippableFrames = 4;
-                int movementThreshold = 5;
+                int movementThresholdPixels = 5;
                 int minPoints = 100;
                 int maxPoints = 300;
                 int minWidth = 50;
