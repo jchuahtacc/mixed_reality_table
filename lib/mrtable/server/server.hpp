@@ -4,7 +4,7 @@
 #define     CMD_ESCAPE_KEY          27
 #include "CommandServer.cpp"
 #include "CommandSession.cpp"
-#include "DisconnectNotifier.cpp"
+#include "ServerConnector.cpp"
 #include "TableServer.hpp"
 
 #endif

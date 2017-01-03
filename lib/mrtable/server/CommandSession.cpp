@@ -1,7 +1,7 @@
 #ifndef __COMMANDSESSION_CPP__
 #define __COMMANDSESSION_CPP__
 
-#include "DisconnectNotifier.h"
+#include "ServerConnector.h"
 #include "CommandSession.h"
 #include <cstdlib>
 #include <iostream>
@@ -68,7 +68,7 @@ namespace mrtable {
                 bindSocket();
             } else {
                 if (error == boost::asio::error::eof || error == boost::asio::error::connection_reset) {
-                    DisconnectNotifier::disconnect(&socket_);
+                    ServerConnector::disconnect(&socket_);
                 }
                 delete this;
             }

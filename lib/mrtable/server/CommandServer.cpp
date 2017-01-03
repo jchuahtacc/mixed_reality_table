@@ -9,7 +9,7 @@
 #include <boost/asio.hpp>
 #include "CommandServer.h"
 #include "CommandSession.h"
-#include "DisconnectNotifier.h"
+#include "ServerConnector.h"
 
 using boost::asio::ip::tcp;
 using namespace std;
@@ -19,7 +19,7 @@ namespace mrtable {
     namespace server {
         CommandServer::CommandServer(boost::asio::io_service& io_service, cv::Ptr< mrtable::data::MutexQueue<string> > msgQueue, cv::Ptr< mrtable::data::MutexQueue<string> > sendQueue, short port) : io_service_(io_service), acceptor_(io_service, tcp::endpoint(tcp::v4(), port)), msgQueue_(msgQueue), sendQueue_(sendQueue) {
 
-            DisconnectNotifier::put(this);
+            ServerConnector::put(this);
             CommandSession* new_session = new CommandSession(io_service_, msgQueue, sendQueue);
             acceptor_.async_accept(new_session->socket(), boost::bind(&CommandServer::handle_accept, this, new_session, boost::asio::placeholders::error));
         }

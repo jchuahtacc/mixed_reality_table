@@ -6,7 +6,7 @@
 #include <sstream>
 #include <tuio/TuioTime.h>
 #include "Message.hpp"
-#include "../server/DisconnectNotifier.h"
+#include "../server/ServerConnector.h"
 
 using namespace std;
 using namespace cv;
@@ -52,7 +52,7 @@ namespace mrtable {
         void mrtable::data::MessageBroker::respond(int cmdCode, bool ok, string message) {
             stringstream ss;
             ss << cmdCode << " " << (ok ? "OK" : "ERROR") << " " << message << endl;
-            server::DisconnectNotifier::server_->broadcast(ss.str());
+            server::ServerConnector::server_->broadcast(ss.str());
             std::cerr << "Sending " << ss.str() << endl;
         }
 
