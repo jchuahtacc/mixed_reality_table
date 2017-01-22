@@ -225,6 +225,7 @@ namespace mrtable {
             proc->addProcessor(mrtable::process::ArucoCompute::create());
             proc->addProcessor(mrtable::process::Contour::create());
             proc->addProcessor(mrtable::process::ContourCompute::create());
+            proc->addProcessor(mrtable::process::TestProcessor::create(0));
         }
 
         void TableServer::setPreview(bool preview) {

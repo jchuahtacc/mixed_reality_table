@@ -21,7 +21,6 @@
 
 #include "LibExport.h"
 #include "osc/OscOutboundPacketStream.h"
-#include "osc/OscHostEndianness.h"
 #include "ip/NetworkingUtils.h"
 #include <iostream>
 #include <cstring>
