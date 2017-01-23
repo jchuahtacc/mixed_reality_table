@@ -37,22 +37,45 @@ namespace mrtable {
                 Ptr< MutexQueue<string> > sendQueue_;
                 bool preview_ = false;
                 bool preview_added = false;
-                int* keyPress = NULL;
+                int keyPress = 0;
                 vector< string >* messages;
                 Ptr< vector< Message > > serverCommands;
                 void processServerMessages();
+                Ptr< SharedData > data;
+
 
         };
 
         TableServer::TableServer(cv::Ptr< mrtable::data::MutexQueue<string> > msgQueue, cv::Ptr< mrtable::data::MutexQueue<string> > sendQueue) : msgQueue_(msgQueue), sendQueue_(sendQueue) {
             messages = new vector< string >();
             serverCommands = makePtr< vector< Message > >(); 
+
+            data = SharedData::create();
+
+            data->regionMessages = makePtr< vector< Message > >();
+
             MessageBroker::bind(CMD_ECHO, serverCommands);
             MessageBroker::bind(CMD_VERIFY_MARKER_PLACEMENT, serverCommands);
             MessageBroker::bind(CMD_CALCULATE_ROI, serverCommands);
             MessageBroker::bind(CMD_WRITE_BOUNDS, serverCommands);
             MessageBroker::bind(CMD_READ_BOUNDS, serverCommands);
-            SharedData::put(KEY_MSG_QUEUE, msgQueue);
+            MessageBroker::bind(CMD_PUT_REGION, data->regionMessages);
+            MessageBroker::bind(CMD_UPDATE_REGION, data->regionMessages);
+            MessageBroker::bind(CMD_DELETE_REGION, data->regionMessages);
+
+            int numMarkers = 100;
+            if (ServerConfig::dictionaryId == cv::aruco::DICT_ARUCO_ORIGINAL) {
+                numMarkers = 1024;
+            } else {
+                switch (ServerConfig::dictionaryId % 4) {
+                    case 0: numMarkers = 50; break;
+                    case 1: numMarkers = 100; break;
+                    case 2: numMarkers = 250; break;
+                    case 4: numMarkers = 1000; break;
+                }
+            }
+            data->markers.resize(numMarkers);
+
             initTuioServer();
             initProcessQueue();
         }
@@ -88,7 +111,8 @@ namespace mrtable {
             if (preview_ and !preview_added) {
                 preview_added = true;
                 proc->addProcessor(mrtable::process::DisplayFrame::create(1));
-                keyPress = SharedData::getPtr<int>(RESULT_KEY_DISPLAYFRAME_KEYPRESS);
+                keyPress = data->keyPress;
+                //keyPress = SharedData::getPtr<int>(RESULT_KEY_DISPLAYFRAME_KEYPRESS);
             }
             bool keepRunning = true;
             Mat image;
@@ -150,7 +174,7 @@ namespace mrtable {
                         std::cerr << "Unable to get video frame from " << vidSource->getSource() << std::endl;
                     }
                 } else {
-                    result_t result = proc->process(image);
+                    result_t result = proc->process(image, data);
                     aggregate.frames++;
                     aggregate.elapsed += result.elapsed;
                     aggregate.detected += result.detected;
@@ -161,9 +185,9 @@ namespace mrtable {
                         aggregate.detected = 0;
                     }
 
-                    if (keyPress != NULL) {
+                    if (keyPress != 0) {
                         // Check for escape key during preview playback
-                        if (*keyPress == CMD_ESCAPE_KEY) {
+                        if (keyPress == CMD_ESCAPE_KEY) {
                             keepRunning = false;
                         }
                     }
@@ -213,18 +237,19 @@ namespace mrtable {
         }
 
         void TableServer::initProcessQueue() {
-            // Prepare frame processors
-            SharedData::put(KEY_TUIO_SERVER, server);
 
             proc = new ProcessQueue();
-            proc->addProcessor(mrtable::process::Grayscale::create());
-            proc->addProcessor(mrtable::process::Otsu::create());
+            
+            //proc->addProcessor(mrtable::process::Grayscale::create());
+            //proc->addProcessor(mrtable::process::Otsu::create());
             //proc->addProcessor(mrtable::process::OtsuCalc::create());
             //proc->addProcessor(mrtable::process::Canny::create());
-            proc->addProcessor(mrtable::process::Aruco::create());
-            proc->addProcessor(mrtable::process::ArucoCompute::create());
-            proc->addProcessor(mrtable::process::Contour::create());
-            proc->addProcessor(mrtable::process::ContourCompute::create());
+
+            //proc->addProcessor(mrtable::process::Aruco::create());
+            //proc->addProcessor(mrtable::process::ArucoCompute::create());
+            //proc->addProcessor(mrtable::process::Contour::create());
+            //proc->addProcessor(mrtable::process::ContourCompute::create());
+            
             proc->addProcessor(mrtable::process::TestProcessor::create(0));
         }
 

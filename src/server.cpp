@@ -56,7 +56,6 @@ int main(int argc, char** argv) {
     if (parser.has("c")) {
         ServerConfig::read(parser.get<String>("c"));
     } else {
-        std::cout << "Loading default config file" << std::endl;
         ServerConfig::read("serverConfig.xml");
     }
 
@@ -100,6 +99,5 @@ int main(int argc, char** argv) {
     aggregate.frames = 0;
     aggregate.elapsed = 0;
 
-    SharedData::destroy();
     thread1.join();
 }

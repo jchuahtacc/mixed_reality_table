@@ -21,8 +21,6 @@ namespace mrtable {
         class ArucoCompute : public FrameProcessor {
             public: 
                 ArucoCompute() {
-                    corners = SharedData::getPtr< vector< vector< Point2f > > >(RESULT_KEY_ARUCO_CORNERS);
-                    ids = SharedData::getPtr< vector< int > >(RESULT_KEY_ARUCO_IDS);
                     err = "No errors";
                     processor = "Aruco Draw";
                 }
@@ -30,8 +28,8 @@ namespace mrtable {
                 ~ArucoCompute() {
                 }
 
-                bool process(Mat& image, result_t& result) {
-                    cv::aruco::drawDetectedMarkers(image, *corners, *ids);
+                bool process(Mat& image, Ptr< SharedData >& data, result_t& result) {
+                    cv::aruco::drawDetectedMarkers(image, data->corners, data->ids);
                     return true;
                 }
 
@@ -39,9 +37,6 @@ namespace mrtable {
                     return makePtr<ArucoDraw>().staticCast<FrameProcessor>();
                 }
 
-            private:
-                vector< vector< Point2f > > *corners;
-                vector< int > *ids;
         };
     }
 }

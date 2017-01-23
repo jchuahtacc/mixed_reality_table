@@ -14,8 +14,6 @@ namespace mrtable {
     namespace process {
         class Aruco : public FrameProcessor {
             public: 
-                vector< int > ids;
-                vector< vector< Point2f > > corners, rejected;
                 
                 Aruco() {
                     dictionary = ServerConfig::dictionary;
@@ -23,25 +21,18 @@ namespace mrtable {
                     camMatrix = ServerConfig::cameraMatrix;
                     distCoeffs = ServerConfig::distortionCoefficients;
                     markerLength = ServerConfig::markerLength;
-                    SharedData::put(RESULT_KEY_ARUCO_IDS, &ids);
-                    SharedData::put(RESULT_KEY_ARUCO_CORNERS, &corners);
-                    SharedData::put(RESULT_KEY_ARUCO_REJECTED, &rejected);
-
                     err = "No errors";
                     processor = "Aruco";
                 }
 
                 ~Aruco() {
-                    SharedData::erase(RESULT_KEY_ARUCO_IDS);
-                    SharedData::erase(RESULT_KEY_ARUCO_CORNERS);
-                    SharedData::erase(RESULT_KEY_ARUCO_REJECTED);
                     detectorParams.release();
                     dictionary.release();
                 }
 
-                bool process(Mat& image, result_t& result) {
-                    aruco::detectMarkers(image, dictionary, corners, ids, detectorParams, rejected);
-                    result.detected += ids.size();
+                bool process(Mat& image, Ptr< SharedData >& data, result_t& result) {
+                    aruco::detectMarkers(image, dictionary, data->corners, data->ids, detectorParams, data->rejected);
+                    result.detected += data->ids.size();
                     return true;
                 }
 

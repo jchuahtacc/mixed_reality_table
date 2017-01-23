@@ -15,21 +15,18 @@ namespace mrtable {
             public:
                 ~FrameProcessor() {
                 }
-                virtual bool process(Mat& image, result_t& result) { 
+                virtual bool process(Mat& image, Ptr< SharedData >& data, result_t& result) { 
                     return false; 
                 }
 
-                virtual void init(Ptr<ServerConfig> config) {
-                }
-                
                 string err = "Default error";
                 string processor = "Virtual processor";
 
-                result_t run(Mat& image, result_t& result) {
+                result_t run(Mat& image, Ptr< SharedData >& data, result_t& result) {
                     steady_clock::time_point detectBegin = steady_clock::now();
                     bool ok = false;
                     try {
-                        ok = process(image, result);
+                        ok = process(image, data, result);
                     } catch (const std::exception& e) {
                         std::cerr << e.what() << std::endl;
                     }

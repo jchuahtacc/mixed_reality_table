@@ -1,70 +1,43 @@
-#ifndef __SHAREDDATA_HPP__
-#define __SHAREDDATA_HPP__
-
-#include <map>
 #include <opencv2/core/core.hpp>
-#include <sstream>
+#include <tuio/TuioServer.h>
+#include <vector>
+#include <map>
+#include "../process/Marker.h"
+#include "../process/Touch.h"
 
-using namespace std;
 using namespace cv;
+using namespace std;
+using namespace mrtable::process;
 
 namespace mrtable {
     namespace data {
         class SharedData {
             public:
-                static void create();
-                static void destroy();
-                template<typename T> static T* getPtr(int key); 
-                template<typename T> static T get(int key);
-                static void put(int key, void* value);
-                static bool has(int key);
-                static void erase(int key);
+                SharedData() {
+                    regionMessages = makePtr< vector< Message > >();
+                }
 
-            private:
-                SharedData();
-                ~SharedData();
-                static std::map<int, void* > dataMap;
+                static Ptr<SharedData> create() {
+                    return makePtr<SharedData>();
+                }
+
+                Ptr< TUIO::TuioServer > server;
+
+                vector< int > ids;
+                vector< vector< Point2f > > corners;
+                vector< vector< Point2f > > rejected;
+                vector< Marker > markers;
+                double otsu_std_dev = 0;
+                map< string, Ptr< vector< Vec4i > > > hierarchies;
+                map< string, Ptr< Rect_<float > > > regions;
+                Ptr< vector< Message > > regionMessages;
+                map< string, Ptr < vector< vector<Point> > > > contours;
+                vector< vector<Point> > globalContours;
+                vector< Vec4i > globalHierarchy;
+                vector< Touch > globalTouches;
+                map< string, Ptr < vector< Touch > > > touches;
+                int keyPress = 0;
+                
         };
-
-        std::map<int, void*> mrtable::data::SharedData::dataMap = std::map<int, void*>();
-
-        void mrtable::data::SharedData::destroy() {
-            mrtable::data::SharedData::dataMap.clear();
-        }
-
-        template<typename T> T* mrtable::data::SharedData::getPtr(int key) {
-            void* val = mrtable::data::SharedData::dataMap[key];
-            return static_cast<T*>(val);
-        }
-
-
-        template<typename T> T mrtable::data::SharedData::get(int key) {
-            if (!has(key)) {
-                stringstream ss;
-                ss << "SharedData invalid_argument exception - invalid key: " << key;
-                throw std::invalid_argument(ss.str());
-            }
-            T* tPtr = mrtable::data::SharedData::getPtr<T>(key);
-            return *tPtr;
-        }
-
-        void mrtable::data::SharedData::put(int key, void* value) {
-            mrtable::data::SharedData::dataMap[key] = value;
-        }
-
-        bool mrtable::data::SharedData::has(int key) {
-            return mrtable::data::SharedData::dataMap.count(key) > 0;
-        }
-
-        void mrtable::data::SharedData::erase(int key) {
-            std::map<int, void*>::iterator it = mrtable::data::SharedData::dataMap.find(key);
-            if (it != mrtable::data::SharedData::dataMap.end()) {
-                mrtable::data::SharedData::dataMap.erase(mrtable::data::SharedData::dataMap.find(key));
-            }
-        }
-
     }
 }
-
-
-#endif

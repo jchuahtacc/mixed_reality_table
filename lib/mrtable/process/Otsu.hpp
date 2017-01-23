@@ -13,10 +13,8 @@ namespace mrtable {
     namespace process {
         class Otsu : public FrameProcessor {
             public: 
-                double stddev = 200;
 
                 Otsu() {
-                    SharedData::put(RESULT_KEY_OTSU_STD_DEV, &stddev);
                     err = "No errors";
                     processor = "Otsu";
                 }
@@ -25,8 +23,8 @@ namespace mrtable {
                 }
 
 
-                bool process(Mat& image, result_t& result) {
-                    stddev = threshold(image, image, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+                bool process(Mat& image, Ptr< SharedData >& data, result_t& result) {
+                    data->otsu_std_dev = threshold(image, image, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
                     return true;
                 }
 

@@ -18,25 +18,23 @@ namespace mrtable {
         class TestProcessor : public FrameProcessor {
             public:
                 int procId;
+                float xpos = 0.5;
+                float ypos = 0.5;
                 TestProcessor(int id) {
                     err = to_string(id);
                     processor = "Test processor";
                     procId = id;
-                    SharedData::put(procId, &procId);
-                    server = SharedData::getPtr<TUIO::TuioServer>(KEY_TUIO_SERVER);
                 }
 
                 ~TestProcessor() {
-                    SharedData::erase(procId);
                 }
 
-                bool process(Mat& image, result_t& result) {
+                bool process(Mat& image, Ptr< SharedData >& data, result_t& result) {
+                    Ptr< TUIO::TuioServer > server = data->server;
                     if (server != NULL) {
-                        if (obj == NULL) {
-                            obj = server->addTuioObject(1, 0.5, 0.5, 0.0);
-                        } else {
-                            server->updateTuioObject(obj, 0.5, 0.5, 0.0);
-                        }
+                        server->initFrame(TUIO::TuioTime::getSessionTime());
+
+                        server->commitFrame();
                     }
                     return true;
                 }
@@ -45,9 +43,6 @@ namespace mrtable {
                     return makePtr<TestProcessor>(id).staticCast<FrameProcessor>();
                 }
 
-            private:
-                TUIO::TuioServer* server = NULL;
-                TUIO::TuioObject* obj = NULL;
         };
     }
 }

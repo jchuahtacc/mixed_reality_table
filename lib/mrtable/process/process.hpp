@@ -2,8 +2,8 @@
 #define __PROCESS_HPP__
 
 #include "result_t.hpp"
-#include "Marker.hpp"
-#include "Touch.hpp"
+#include "Marker.cpp"
+#include "Touch.cpp"
 #include "FrameProcessor.hpp"
 #include "ProcessQueue.hpp"
 #include "Aruco.hpp"

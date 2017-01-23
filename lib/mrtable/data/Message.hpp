@@ -4,6 +4,8 @@
 #include <string>
 #include <tuio/TuioTime.h>
 
+using namespace std;
+
 namespace mrtable {
     namespace data {
         class Message {

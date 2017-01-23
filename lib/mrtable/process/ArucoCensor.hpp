@@ -20,7 +20,6 @@ namespace mrtable {
         class ArucoCompute : public FrameProcessor {
             public: 
                 ArucoCompute() {
-                    markers = SharedData::getPtr< vector< Marker > >(RESULT_KEY_ARUCO_MARKERS);
                     err = "No errors";
                     processor = "Aruco Censor";
                 }
@@ -28,9 +27,9 @@ namespace mrtable {
                 ~ArucoCompute() {
                 }
 
-                bool process(Mat& image, result_t& result) {
-                    vector< Marker >::iterator  marker = markers->begin();
-                    for (; marker < markers->end(); marker++) {
+                bool process(Mat& image, Ptr< SharedData >& data,  result_t& result) {
+                    vector< Marker >::iterator marker = data->markers.begin();
+                    for (; marker < markers.end(); marker++) {
                         cv::circle(image, marker->center, marker->radius, black, -1);
                     }
                     return true;
@@ -41,7 +40,6 @@ namespace mrtable {
                 }
 
             private:
-                vector< Marker > *markers;
                 Scalar black = Scalar(0, 0, 0);
         };
     }

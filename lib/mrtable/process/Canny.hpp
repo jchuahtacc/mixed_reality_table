@@ -14,9 +14,6 @@ namespace mrtable {
         class Canny : public FrameProcessor {
             public: 
                 Canny() {
-                    if (SharedData::has(RESULT_KEY_OTSU_STD_DEV)) {
-                        stddev = SharedData::get<double>(RESULT_KEY_OTSU_STD_DEV);
-                    }
                     err = "No RESULT_KEY_OTSU_STD_DEV value";
                     processor = "Canny";
                 }
@@ -24,12 +21,9 @@ namespace mrtable {
                 ~Canny() {
                 }
                 
-                void init(Ptr<ServerConfig> config) {
-                }
-
-                bool process(Mat& image, result_t& result) {
-                    if (stddev > 0) {
-                        cv::Canny(image, image, stddev * 0.5, stddev);
+                bool process(Mat& image, Ptr< SharedData >& data, result_t& result) {
+                    if (data->otsu_std_dev > 0) {
+                        cv::Canny(image, image, data->otsu_std_dev * 0.5, data->otsu_std_dev);
                         return true;
                     }
                     cv::Canny(image, image, 100, 300);
@@ -39,8 +33,6 @@ namespace mrtable {
                 static Ptr<FrameProcessor> create() {
                     return makePtr<Canny>().staticCast<FrameProcessor>();
                 }
-
-                double stddev = -1;
 
         };
     }
