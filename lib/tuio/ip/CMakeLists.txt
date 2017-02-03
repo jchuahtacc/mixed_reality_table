@@ -1,1 +1,1 @@
-add_library(ip IpEndPointName.cpp NetworkingUtils.cpp UdpSocket.cpp)
+add_library(ip IpEndpointName.cpp NetworkingUtils.cpp UdpSocket.cpp)

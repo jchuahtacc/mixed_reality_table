@@ -30,8 +30,8 @@
 #include <tuio/FlashSender.h>
 #include <tuio/TcpSender.h>
 
-#include <SDL/SDL.h>
-#include <SDL/SDL_thread.h>
+#include <SDL.h>
+#include <SDL_thread.h>
 
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
