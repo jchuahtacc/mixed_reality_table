@@ -94,11 +94,11 @@ string getFilename(string filename) {
     return filename;
 }
 
-result_t processImage(Mat image, Mat* imageCopy) {
+result_t processImage(Mat& image) {
     steady_clock::time_point detectBegin = steady_clock::now();
 
     // detect markers and estimate pose
-    aruco::detectMarkers(image, dictionary, corners, ids, detectorParams, rejected);
+    //aruco::detectMarkers(image, dictionary, corners, ids, detectorParams, rejected);
     if(estimatePose && ids.size() > 0)
         aruco::estimatePoseSingleMarkers(corners, markerLength, camMatrix, distCoeffs, rvecs,
                                          tvecs);
@@ -106,21 +106,18 @@ result_t processImage(Mat image, Mat* imageCopy) {
     long elapsed = duration_cast<milliseconds>(detectEnd - detectBegin).count();
  
     // draw results
-    if (imageCopy) {
-        image.copyTo(*imageCopy);
         if(ids.size() > 0) {
-            aruco::drawDetectedMarkers(*imageCopy, corners, ids);
+            aruco::drawDetectedMarkers(image, corners, ids);
 
             if(estimatePose) {
                 for(unsigned int i = 0; i < ids.size(); i++)
-                    aruco::drawAxis(*imageCopy, camMatrix, distCoeffs, rvecs[i], tvecs[i],
+                    aruco::drawAxis(image, camMatrix, distCoeffs, rvecs[i], tvecs[i],
                                     markerLength * 0.5f);
             }
         }
 
         if(showRejected && rejected.size() > 0)
-            aruco::drawDetectedMarkers(*imageCopy, rejected, noArray(), Scalar(100, 0, 255));
-    }
+            aruco::drawDetectedMarkers(image, rejected, noArray(), Scalar(100, 0, 255));
 
     result_t result;
     result.frames = 1;
@@ -195,15 +192,15 @@ int main(int argc, char *argv[]) {
 
     if (parser.has("i")) {
         string filename = parser.get<String>("i");
-        Mat image, imageCopy;
+        Mat image;
         image = imread(filename);
-        result_t result = processImage(image, &imageCopy);
+        result_t result = processImage(image);
         if (output) {
-            imwrite("output_" + getFilename(filename), imageCopy); 
+            imwrite("output_" + getFilename(filename), image); 
         }
         if (preview) {
             cout << "Press the Escape key to continue..." << endl;
-            imshow("out", imageCopy);
+            imshow("out", image);
             char key = (char)waitKey(0);
         }
         outputResults(result);
@@ -223,7 +220,12 @@ int main(int argc, char *argv[]) {
         inputVideo.open(video);
         waitTime = 0;
     } else {
+	// try 3280x2464 YUYV
         inputVideo.open(camId);
+	inputVideo.set(CV_CAP_PROP_FRAME_WIDTH, 1640);
+	inputVideo.set(CV_CAP_PROP_FRAME_HEIGHT, 1232);
+	int ex = CV_FOURCC('Y','U','V','Y');
+	inputVideo.set(CV_CAP_PROP_FOURCC, ex);
         waitTime = 10;
     }
 
@@ -270,25 +272,24 @@ int main(int argc, char *argv[]) {
         
         result_t result;
 
-        if (preview || output) {
-            result = processImage(image, &imageCopy);
-        } else {
-            result = processImage(image, NULL);
-        }
+        result = processImage(image);
+        
 
         aggregate.frames++;
         aggregate.detected += result.detected;
         aggregate.elapsed += result.elapsed;
 
         if (output) {
-            outputVideo << imageCopy;
+            outputVideo << image;
         }
 
         if (preview) {
-            imshow("out", imageCopy);
+            imshow("out", image);
             char key = (char)waitKey(waitTime);
             if(key == 27) break;
-        }
+        } else if (aggregate.frames % 30 == 0) {
+		outputResults(aggregate);
+	}
     }
 
     outputResults(aggregate);
