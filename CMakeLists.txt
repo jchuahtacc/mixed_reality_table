@@ -5,11 +5,12 @@ project(mixed_reality_table)
 find_package( OpenCV REQUIRED )
 find_package( Boost REQUIRED system )
 find_package( Threads REQUIRED )
-
+find_package( Broadcom REQUIRED )
 set(BUILD_TUIO_TESTS FALSE CACHE PATH "Build TUIO Test programs")
 
 add_subdirectory(lib)
 include_directories("${PROJECT_SOURCE_DIR}/lib")
+include_directories("${BROADCOM_INCLUDE_DIRS}")
 add_executable(generate_markers src/generate_markers.cpp)
 add_executable(generate_charuco src/generate_charuco.cpp)
 add_executable(detect_markers src/detect_markers.cpp)
