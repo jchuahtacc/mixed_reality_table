@@ -1,0 +1,13 @@
+message(STATUS "Building raspberrypi-omxcam")
+find_package(Broadcom REQUIRED)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${BROADCOM_INCLUDE_DIRS})
+add_library(raspberrypi-omxcam ./src/camera.c ./src/core.c ./src/debug.c ./src/dump_omx.c ./src/error.c ./src/event.c ./src/h264.c ./src/jpeg.c ./src/still.c ./src/utils.c ./src/version.c ./src/video.c ./include/omxcam.h ./include/omxcam_version.h)
+target_link_libraries(raspberrypi-omxcam ${BROADCOM_LIBRARIES} pthread)
+set(RASPBERRYPI_OMXCAM_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include)
+message("${RASPBERRYPI_OMXCAM_INCLUDE_DIRS}")
+
+set(BUILD_OMX_EXAMPLES FALSE CACHE PATH "Build raspberrypi-omxcam example programs")
+
+if(BUILD_OMX_EXAMPLES)
+    add_subdirectory(examples)
+endif(BUILD_OMX_EXAMPLES)
