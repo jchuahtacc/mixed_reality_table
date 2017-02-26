@@ -377,7 +377,6 @@ void omxcam__dump_OMX_BUFFERHEADERTYPE (OMX_BUFFERHEADERTYPE* type){
       "nOffset: %d\n"
       "hMarkTargetComponent: %s\n"
       "nTickCount: %d\n"
-      "nTimeStamp: %lld\n"
       "nFlags: %X\n"
       "nOutputPortIndex: %d\n"
       "nInputPortIndex: %d\n",
