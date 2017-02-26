@@ -6,8 +6,7 @@ target_link_libraries(raspberrypi-omxcam ${BROADCOM_LIBRARIES} pthread)
 set(RASPBERRYPI_OMXCAM_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include)
 message("${RASPBERRYPI_OMXCAM_INCLUDE_DIRS}")
 
-set(BUILD_OMX_EXAMPLES FALSE CACHE PATH "Build raspberrypi-omxcam example programs")
-
 if(BUILD_OMX_EXAMPLES)
+    message("Adding raspberrypi-omxcam examples")
     add_subdirectory(examples)
 endif(BUILD_OMX_EXAMPLES)
