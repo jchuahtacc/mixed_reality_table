@@ -1,0 +1,10 @@
+find_package(GLUT REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package( SDL REQUIRED )
+include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS})
+include_directories("${SDL_INCLUDE_DIR}")
+add_executable(tuio_dump TuioDump.cpp)
+add_executable(simple_simulator SimpleSimulator.cpp)
+target_link_libraries(tuio_dump tuio pthread)
+target_link_libraries(simple_simulator ${GLUT_LIBRARY} ${OPENGL_LIBRARIES} ${SDL_LIBRARY} tuio pthread)
+

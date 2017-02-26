@@ -6,7 +6,6 @@ set(RPI_OMXCAM_C_FLAGS "-DSTANDALONE -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MAC
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${RPI_OMXCAM_C_FLAGS}")
 target_link_libraries(raspberrypi-omxcam ${BROADCOM_LIBRARIES} pthread)
 set(RASPBERRYPI_OMXCAM_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include)
-message("${RASPBERRYPI_OMXCAM_INCLUDE_DIRS}")
 
 if(BUILD_OMX_EXAMPLES)
     message("Adding raspberrypi-omxcam examples")
