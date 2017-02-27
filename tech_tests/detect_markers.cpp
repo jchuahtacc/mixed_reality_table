@@ -217,7 +217,12 @@ int main(int argc, char *argv[]) {
     bool videoFile = false;
     if(!video.empty()) {
         videoFile = true;
-        inputVideo.open(video);
+        cout << "Attempting to open video file" << endl;
+        inputVideo.open(video, cv::CAP_FFMPEG);
+        if (!inputVideo.isOpened()) {
+            cout << "Video file wasn't opened!!!!!" << endl;
+        }
+        inputVideo.set(CV_CAP_PROP_FOURCC, CV_FOURCC('H', '2', '6', '4'));
         waitTime = 0;
     } else {
 	// try 3280x2464 YUYV
@@ -264,11 +269,18 @@ int main(int argc, char *argv[]) {
     if (preview) {
         cout << "Press the Escape key to continue..." << endl;
     }
+    Mat image;
+    if (!inputVideo.isOpened()) {
+        cout << "Input video wasn't open" << endl;
+    }
+    while(true){
+        inputVideo >> image;
 
+        cout << "Grabbed frame" << endl;
 
-    while(inputVideo.grab()) {
-        Mat image, imageCopy;
-        inputVideo.retrieve(image);
+        if (image.empty()) break;
+        //Mat image, imageCopy;
+        //inputVideo.retrieve(image);
         
         result_t result;
 

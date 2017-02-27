@@ -10,6 +10,7 @@ find_package( OpenCV REQUIRED )
 find_package( Boost REQUIRED system )
 find_package( Threads REQUIRED )
 find_package( Broadcom REQUIRED )
+find_package( MMAL REQUIRED )
 
 # Optional executables
 set(BUILD_TUIO_SIMULATORS FALSE CACHE PATH "Build TUIO Test programs")
@@ -19,12 +20,13 @@ set(BUILD_GENERATORS FALSE CACHE PATH "Build mrtable fiducial generator")
 
 # CFlags
 
-set(RPI_OMXCAM_C_FLAGS "-DSTANDALONE -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -DTARGET_POSIX -D_LINUX -DPIC -D_REENTRANT -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -U_FORTIFY_SOURCE -DHAVE_LIBOPENMAX=2 -DOMX -DOMX_SKIP64BIT -DUSE_EXTERNAL_OMX -DHAVE_LIBBCM_HOST -DUSE_EXTERNAL_LIBBCM_HOST -DUSE_VCHIQ_ARM -fPIC -ftree-vectorize -pipe -Werror -g -Wall -O3 -fvisibility=hidden -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -funsafe-math-optimizations -mfloat-abi=hard")
+set(CMAKE_CXX_FLAGS "-DSTANDALONE -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -DTARGET_POSIX -D_LINUX -DPIC -D_REENTRANT -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -U_FORTIFY_SOURCE -DHAVE_LIBOPENMAX=2 -DOMX -DOMX_SKIP64BIT -DUSE_EXTERNAL_OMX -DHAVE_LIBBCM_HOST -DUSE_EXTERNAL_LIBBCM_HOST -DUSE_VCHIQ_ARM -fPIC -ftree-vectorize -pipe -g -O3 -fvisibility=hidden -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -funsafe-math-optimizations -mfloat-abi=hard")
 
 # Add main libraries
 add_subdirectory(lib)
 include_directories("${PROJECT_SOURCE_DIR}/lib")
 include_directories("${BROADCOM_INCLUDE_DIRS}")
+include_directories("${MMAL_INCLUDE_DIRS}")
 
 # Add main executables
 add_executable(calibrate_camera src/calibrate_camera.cpp)

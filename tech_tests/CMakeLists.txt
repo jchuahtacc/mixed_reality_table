@@ -8,3 +8,8 @@ target_link_libraries(detect_markers ${OpenCV_LIBS}  ${Boost_LIBRARIES} Threads:
 target_link_libraries(detect_contours ${OpenCV_LIBS} ${Boost_LIBRARIES} Threads::Threads mrtable tuio)
 target_link_libraries(detect_bounds ${OpenCV_LIBS} ${Boost_LIBRARIES} Threads::Threads mrtable tuio)
 
+add_executable(omx_frames omx_frames.cpp)
+target_link_libraries(omx_frames ${OpenCV_LIBS} ${Boost_LIBRARIES} Threads::Threads raspberrypi-omxcam )
+
+add_executable(mmal_test mmal_test.cpp)
+target_link_libraries(mmal_test ${MMAL_LIBRARIES} Threads::Threads)
