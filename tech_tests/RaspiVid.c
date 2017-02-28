@@ -81,7 +81,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <interface/mmal/util/mmal_connection.h>
 #include <interface/mmal/mmal_encodings.h>
 
-//#include "RaspiCamControl.h"
+#include "RaspiCamControl.h"
 #include "RaspiPreview.h"
 #include "RaspiCLI.h"
 
@@ -134,47 +134,6 @@ static void signal_handler(int signal_number);
 
 // Forward
 typedef struct RASPIVID_STATE_S RASPIVID_STATE;
-
-typedef struct param_float_rect_s
-{
-    double x;
-    double y;
-    double w;
-    double h;
-} PARAM_FLOAT_RECT_T;
-
-// From RaspiCamControl.h
-typedef struct raspicam_camera_parameters_s
-{
-   int sharpness;             /// -100 to 100
-   int contrast;              /// -100 to 100
-   int brightness;            ///  0 to 100
-   int saturation;            ///  -100 to 100
-   int ISO;                   ///  TODO : what range?
-   int videoStabilisation;    /// 0 or 1 (false or true)
-   int exposureCompensation;  /// -10 to +10 ?
-   MMAL_PARAM_EXPOSUREMODE_T exposureMode;
-   MMAL_PARAM_EXPOSUREMETERINGMODE_T exposureMeterMode;
-   MMAL_PARAM_AWBMODE_T awbMode;
-   MMAL_PARAM_IMAGEFX_T imageEffect;
-   MMAL_PARAMETER_IMAGEFX_PARAMETERS_T imageEffectsParameters;
-   int rotation;              /// 0-359
-   int hflip;                 /// 0 or 1
-   int vflip;                 /// 0 or 1
-   PARAM_FLOAT_RECT_T  roi;   /// region of interest to use on the sensor. Normalised [0,1] values in the rect
-   int shutter_speed;         /// 0 = auto, otherwise the shutter speed in ms
-   float awb_gains_r;         /// AWB red gain
-   float awb_gains_b;         /// AWB blue gain
-   MMAL_PARAMETER_DRC_STRENGTH_T drc_level;  // Strength of Dynamic Range compression to apply
-   MMAL_BOOL_T stats_pass;    /// Stills capture statistics pass on/off
-   int enable_annotate;       /// Flag to enable the annotate, 0 = disabled, otherwise a bitmask of what needs to be displayed
-   char annotate_string[MMAL_CAMERA_ANNOTATE_MAX_TEXT_LEN_V2]; /// String to use for annotate - overrides certain bitmask settings
-   int annotate_text_size;    // Text size for annotation
-   int annotate_text_colour;  // Text colour for annotation
-   int annotate_bg_colour;    // Background colour for annotation
-   MMAL_PARAMETER_STEREOSCOPIC_MODE_T stereo_mode;
-} RASPICAM_CAMERA_PARAMETERS;
-
 
 /** Struct used to pass information in encoder port userdata to callback
  */
@@ -488,177 +447,7 @@ static void default_status(RASPIVID_STATE *state)
    raspipreview_set_defaults(&state->preview_parameters);
 
    // Set up the camera_parameters to default
-   //raspicamcontrol_set_defaults(&state->camera_parameters);
-   state->camera_parameters.sharpness = 0;
-   state->camera_parameters.contrast = 0;
-   state->camera_parameters.brightness = 50;
-   state->camera_parameters.saturation = 0;
-   state->camera_parameters.ISO = 0;                    // 0 = auto
-   state->camera_parameters.videoStabilisation = 0;
-   state->camera_parameters.exposureCompensation = 0;
-   state->camera_parameters.exposureMode = MMAL_PARAM_EXPOSUREMODE_AUTO;
-   state->camera_parameters.exposureMeterMode = MMAL_PARAM_EXPOSUREMETERINGMODE_AVERAGE;
-   state->camera_parameters.awbMode = MMAL_PARAM_AWBMODE_AUTO;
-   state->camera_parameters.imageEffect = MMAL_PARAM_IMAGEFX_NONE;
-   state->camera_parameters.rotation = 0;
-   state->camera_parameters.shutter_speed = 0;          // 0 = auto
-   state->camera_parameters.awb_gains_r = 0;      // Only have any function if AWB OFF is used.
-   state->camera_parameters.awb_gains_b = 0;
-   state->camera_parameters.drc_level = MMAL_PARAMETER_DRC_STRENGTH_OFF;
-   state->camera_parameters.stats_pass = MMAL_FALSE;
-   state->camera_parameters.enable_annotate = 0;
-   state->camera_parameters.annotate_string[0] = '\0';
-   state->camera_parameters.annotate_text_size = 0;	//Use firmware default
-   state->camera_parameters.annotate_text_colour = -1;   //Use firmware default
-   state->camera_parameters.annotate_bg_colour = -1;     //Use firmware default
-   state->camera_parameters.stereo_mode.mode = MMAL_STEREOSCOPIC_MODE_NONE;
-   state->camera_parameters.stereo_mode.decimate = MMAL_FALSE;
-   state->camera_parameters.stereo_mode.swap_eyes = MMAL_FALSE;
-  
-}
-
-// From RaspiCamControl.c
-int mmal_status_to_int(MMAL_STATUS_T status)
-{
-   if (status == MMAL_SUCCESS)
-      return 0;
-   else
-   {
-      switch (status)
-      {
-      case MMAL_ENOMEM :   vcos_log_error("Out of memory"); break;
-      case MMAL_ENOSPC :   vcos_log_error("Out of resources (other than memory)"); break;
-      case MMAL_EINVAL:    vcos_log_error("Argument is invalid"); break;
-      case MMAL_ENOSYS :   vcos_log_error("Function not implemented"); break;
-      case MMAL_ENOENT :   vcos_log_error("No such file or directory"); break;
-      case MMAL_ENXIO :    vcos_log_error("No such device or address"); break;
-      case MMAL_EIO :      vcos_log_error("I/O error"); break;
-      case MMAL_ESPIPE :   vcos_log_error("Illegal seek"); break;
-      case MMAL_ECORRUPT : vcos_log_error("Data is corrupt \attention FIXME: not POSIX"); break;
-      case MMAL_ENOTREADY :vcos_log_error("Component is not ready \attention FIXME: not POSIX"); break;
-      case MMAL_ECONFIG :  vcos_log_error("Component is not configured \attention FIXME: not POSIX"); break;
-      case MMAL_EISCONN :  vcos_log_error("Port is already connected "); break;
-      case MMAL_ENOTCONN : vcos_log_error("Port is disconnected"); break;
-      case MMAL_EAGAIN :   vcos_log_error("Resource temporarily unavailable. Try again later"); break;
-      case MMAL_EFAULT :   vcos_log_error("Bad address"); break;
-      default :            vcos_log_error("Unknown status error"); break;
-      }
-
-      return 1;
-   }
-}
-
-
-// From RaspiPreview.c
-void raspipreview_set_defaults(RASPIPREVIEW_PARAMETERS *state)
-{
-   state->wantPreview = 1;
-   state->wantFullScreenPreview = 1;
-   state->opacity = 255;
-   state->previewWindow.x = 0;
-   state->previewWindow.y = 0;
-   state->previewWindow.width = 1024;
-   state->previewWindow.height = 768;
-   state->preview_component = NULL;
-}
-
-
-void raspipreview_destroy(RASPIPREVIEW_PARAMETERS *state)
-{
-   if (state->preview_component)
-   {
-      mmal_component_destroy(state->preview_component);
-      state->preview_component = NULL;
-   }
-}
-
-MMAL_STATUS_T raspipreview_create(RASPIPREVIEW_PARAMETERS *state)
-{
-   MMAL_COMPONENT_T *preview = 0;
-   MMAL_PORT_T *preview_port = NULL;
-   MMAL_STATUS_T status;
-
-   if (!state->wantPreview)
-   {
-      // No preview required, so create a null sink component to take its place
-      status = mmal_component_create("vc.null_sink", &preview);
-
-      if (status != MMAL_SUCCESS)
-      {
-         vcos_log_error("Unable to create null sink component");
-         goto error;
-      }
-   }
-   else
-   {
-      status = mmal_component_create(MMAL_COMPONENT_DEFAULT_VIDEO_RENDERER,
-            &preview);
-
-      if (status != MMAL_SUCCESS)
-      {
-         vcos_log_error("Unable to create preview component");
-         goto error;
-      }
-
-      if (!preview->input_num)
-      {
-         status = MMAL_ENOSYS;
-         vcos_log_error("No input ports found on component");
-         goto error;
-      }
-
-      preview_port = preview->input[0];
-
-      MMAL_DISPLAYREGION_T param;
-      param.hdr.id = MMAL_PARAMETER_DISPLAYREGION;
-      param.hdr.size = sizeof(MMAL_DISPLAYREGION_T);
-
-      param.set = MMAL_DISPLAY_SET_LAYER;
-      param.layer = PREVIEW_LAYER;
-
-      param.set |= MMAL_DISPLAY_SET_ALPHA;
-      param.alpha = state->opacity;
-
-      if (state->wantFullScreenPreview)
-      {
-         param.set |= MMAL_DISPLAY_SET_FULLSCREEN;
-         param.fullscreen = 1;
-      }
-      else
-      {
-         param.set |= (MMAL_DISPLAY_SET_DEST_RECT | MMAL_DISPLAY_SET_FULLSCREEN);
-         param.fullscreen = 0;
-         param.dest_rect = state->previewWindow;
-      }
-
-      status = mmal_port_parameter_set(preview_port, &param.hdr);
-
-      if (status != MMAL_SUCCESS && status != MMAL_ENOSYS)
-      {
-         vcos_log_error("unable to set preview port parameters (%u)", status);
-         goto error;
-      }
-   }
-
-   /* Enable component */
-   status = mmal_component_enable(preview);
-
-   if (status != MMAL_SUCCESS)
-   {
-      vcos_log_error("Unable to enable preview/null sink component (%u)", status);
-      goto error;
-   }
-
-   state->preview_component = preview;
-
-   return status;
-
-error:
-
-   if (preview)
-      mmal_component_destroy(preview);
-
-   return status;
+   raspicamcontrol_set_defaults(&state->camera_parameters);
 }
 
 
@@ -676,7 +465,7 @@ static void dump_status(RASPIVID_STATE *state)
       vcos_assert(0);
       return;
    }
-/*
+
    fprintf(stderr, "Width %d, Height %d, filename %s\n", state->width, state->height, state->filename);
    fprintf(stderr, "bitrate %d, framerate %d, time delay %d\n", state->bitrate, state->framerate, state->timeout);
    fprintf(stderr, "H264 Profile %s\n", raspicli_unmap_xref(state->profile, profile_map, profile_map_size));
@@ -702,7 +491,6 @@ static void dump_status(RASPIVID_STATE *state)
 
    raspipreview_dump_parameters(&state->preview_parameters);
    raspicamcontrol_dump_parameters(&state->camera_parameters);
-   */
 }
 
 
@@ -759,7 +547,6 @@ static void camera_control_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buf
  */
 static void update_annotation_data(RASPIVID_STATE *state)
 {
-    /*
    // So, if we have asked for a application supplied string, set it to the H264 parameters
    if (state->camera_parameters.enable_annotate & ANNOTATE_APP_TEXT)
    {
@@ -772,10 +559,12 @@ static void update_annotation_data(RASPIVID_STATE *state)
             state->intraperiod,
             raspicli_unmap_xref(state->profile, profile_map, profile_map_size),
             raspicli_unmap_xref(state->level, level_map, level_map_size));
+
       raspicamcontrol_set_annotate(state->camera_component, state->camera_parameters.enable_annotate, text,
                        state->camera_parameters.annotate_text_size,
                        state->camera_parameters.annotate_text_colour,
                        state->camera_parameters.annotate_bg_colour);
+
       free(text);
    }
    else
@@ -785,7 +574,6 @@ static void update_annotation_data(RASPIVID_STATE *state)
                        state->camera_parameters.annotate_text_colour,
                        state->camera_parameters.annotate_bg_colour);
    }
-   */
 }
 
 
@@ -803,6 +591,7 @@ static void encoder_buffer_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buf
     if((buffer->flags & MMAL_BUFFER_HEADER_FLAG_CODECSIDEINFO)) {
             // Do something with the inline motion vectors...
     }
+/*
    MMAL_BUFFER_HEADER_T *new_buffer;
    static int64_t base_time =  -1;
    static int64_t last_second = -1;
@@ -814,7 +603,7 @@ static void encoder_buffer_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buf
    // We pass our file handle and other stuff in via the userdata field.
 
    PORT_USERDATA *pData = (PORT_USERDATA *)port->userdata;
-/*
+
    if (pData)
    {
       int bytes_written = buffer->length;
@@ -844,7 +633,7 @@ static void encoder_buffer_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buf
                pData->header_wptr += buffer->length;
             }
          }
-         else          
+         else          else
          {
             static int frame_start = -1;
             int i;
@@ -1012,7 +801,7 @@ static void encoder_buffer_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buf
    {
       vcos_log_error("Received a encoder buffer callback with no state");
    }
-   */
+*/
    // release buffer back to the pool
    mmal_buffer_header_release(buffer);
 
@@ -1106,9 +895,6 @@ static MMAL_STATUS_T create_camera_component(RASPIVID_STATE *state)
    MMAL_PORT_T *preview_port = NULL, *video_port = NULL, *still_port = NULL;
    MMAL_STATUS_T status;
 
-   MMAL_PARAMETER_INT32_T camera_num =
-      {{MMAL_PARAMETER_CAMERA_NUM, sizeof(camera_num)}, state->cameraNum};
-
    /* Create the component */
    status = mmal_component_create(MMAL_COMPONENT_DEFAULT_CAMERA, &camera);
 
@@ -1117,7 +903,7 @@ static MMAL_STATUS_T create_camera_component(RASPIVID_STATE *state)
       vcos_log_error("Failed to create camera component");
       goto error;
    }
-/*
+
    status = raspicamcontrol_set_stereo_mode(camera->output[0], &state->camera_parameters.stereo_mode);
    status += raspicamcontrol_set_stereo_mode(camera->output[1], &state->camera_parameters.stereo_mode);
    status += raspicamcontrol_set_stereo_mode(camera->output[2], &state->camera_parameters.stereo_mode);
@@ -1127,8 +913,9 @@ static MMAL_STATUS_T create_camera_component(RASPIVID_STATE *state)
       vcos_log_error("Could not set stereo mode : error %d", status);
       goto error;
    }
-*/
 
+   MMAL_PARAMETER_INT32_T camera_num =
+      {{MMAL_PARAMETER_CAMERA_NUM, sizeof(camera_num)}, state->cameraNum};
 
    status = mmal_port_parameter_set(camera->control, &camera_num.hdr);
 
@@ -1188,8 +975,8 @@ static MMAL_STATUS_T create_camera_component(RASPIVID_STATE *state)
          .max_stills_h = state->height,
          .stills_yuv422 = 0,
          .one_shot_stills = 0,
-         .max_preview_video_w = (uint32_t)state->width,
-         .max_preview_video_h = (uint32_t)state->height,
+         .max_preview_video_w = state->width,
+         .max_preview_video_h = state->height,
          .num_preview_video_frames = 3 + vcos_max(0, (state->framerate-30)/10),
          .stills_capture_circular_buffer_height = 0,
          .fast_preview_resume = 0,
@@ -1328,7 +1115,7 @@ static MMAL_STATUS_T create_camera_component(RASPIVID_STATE *state)
       goto error;
    }
 
-   // raspicamcontrol_set_all_parameters(camera, &state->camera_parameters);
+   raspicamcontrol_set_all_parameters(camera, &state->camera_parameters);
 
    state->camera_component = camera;
 
@@ -1534,9 +1321,6 @@ static MMAL_STATUS_T create_encoder_component(RASPIVID_STATE *state)
 
    status = mmal_component_create(MMAL_COMPONENT_DEFAULT_VIDEO_ENCODER, &encoder);
 
-    // force H264
-   state->encoding = MMAL_ENCODING_H264;
-
    if (status != MMAL_SUCCESS)
    {
       vcos_log_error("Unable to create video encoder component");
@@ -1677,8 +1461,7 @@ static MMAL_STATUS_T create_encoder_component(RASPIVID_STATE *state)
       param.hdr.id = MMAL_PARAMETER_PROFILE;
       param.hdr.size = sizeof(param);
 
-//      param.profile[0].profile = state->profile;
-        param.profile[0].profile = MMAL_VIDEO_PROFILE_H264_BASELINE;
+      param.profile[0].profile = state->profile;
 
       if((VCOS_ALIGN_UP(state->width,16) >> 4) * (VCOS_ALIGN_UP(state->height,16) >> 4) * state->framerate > 245760)
       {
@@ -1694,8 +1477,7 @@ static MMAL_STATUS_T create_encoder_component(RASPIVID_STATE *state)
          }
       }
       
-//      param.profile[0].level = state->level;
-        param.profile[0].level = MMAL_VIDEO_LEVEL_H264_4;
+      param.profile[0].level = state->level;
 
       status = mmal_port_parameter_set(encoder_output, &param.hdr);
       if (status != MMAL_SUCCESS)
@@ -1719,7 +1501,8 @@ static MMAL_STATUS_T create_encoder_component(RASPIVID_STATE *state)
    }
 */
    //set INLINE VECTORS flag to request motion vector estimates
-   if (mmal_port_parameter_set_boolean(encoder_output, MMAL_PARAMETER_VIDEO_ENCODE_INLINE_VECTORS, 1) != MMAL_SUCCESS)
+   if (true || state->encoding == MMAL_ENCODING_H264 &&
+       mmal_port_parameter_set_boolean(encoder_output, MMAL_PARAMETER_VIDEO_ENCODE_INLINE_VECTORS, state->inlineMotionVectors) != MMAL_SUCCESS)
    {
       vcos_log_error("failed to set INLINE VECTORS parameters");
       // Continue rather than abort..
@@ -1742,8 +1525,7 @@ static MMAL_STATUS_T create_encoder_component(RASPIVID_STATE *state)
          param.air_mbs = param.air_ref = param.cir_mbs = param.pir_mbs = 0;
       }
 
-      //param.refresh_mode = state->intra_refresh_type;
-      param.refresh_mode = MMAL_VIDEO_INTRA_REFRESH_CYCLIC;
+      param.refresh_mode = state->intra_refresh_type;
 
       //if (state->intra_refresh_type == MMAL_VIDEO_INTRA_REFRESH_CYCLIC_MROWS)
       //   param.cir_mbs = 10;
@@ -1965,7 +1747,7 @@ static int wait_for_next_change(RASPIVID_STATE *state)
          if (state->verbose)
             fprintf(stderr, "Starting zoom in\n");
 
-         //raspicamcontrol_zoom_in_zoom_out(state->camera_component, ZOOM_IN, &(state->camera_parameters).roi);
+         raspicamcontrol_zoom_in_zoom_out(state->camera_component, ZOOM_IN, &(state->camera_parameters).roi);
 
          if (state->verbose)
             dump_status(state);
@@ -1975,7 +1757,7 @@ static int wait_for_next_change(RASPIVID_STATE *state)
          if (state->verbose)
             fprintf(stderr, "Starting zoom out\n");
 
-         //raspicamcontrol_zoom_in_zoom_out(state->camera_component, ZOOM_OUT, &(state->camera_parameters).roi);
+         raspicamcontrol_zoom_in_zoom_out(state->camera_component, ZOOM_OUT, &(state->camera_parameters).roi);
 
          if (state->verbose)
             dump_status(state);
@@ -1985,7 +1767,7 @@ static int wait_for_next_change(RASPIVID_STATE *state)
          if (state->verbose)
             fprintf(stderr, "starting reset zoom\n");
 
-         //raspicamcontrol_zoom_in_zoom_out(state->camera_component, ZOOM_RESET, &(state->camera_parameters).roi);
+         raspicamcontrol_zoom_in_zoom_out(state->camera_component, ZOOM_RESET, &(state->camera_parameters).roi);
 
          if (state->verbose)
             dump_status(state);
@@ -2239,7 +2021,7 @@ int main(int argc, const char **argv)
          }
 
          state.callback_data.file_handle = NULL;
-/*
+
          if (state.filename)
          {
             if (state.filename[0] == '-')
@@ -2281,9 +2063,9 @@ int main(int argc, const char **argv)
                state.inlineMotionVectors=0;
             }
          }
-*/
+
          state.callback_data.pts_file_handle = NULL;
-/*
+
          if (state.pts_filename)
          {
             if (state.pts_filename[0] == '-')
@@ -2293,7 +2075,7 @@ int main(int argc, const char **argv)
             else
             {
                state.callback_data.pts_file_handle = open_filename(&state, state.pts_filename);
-               if (state.callback_data.pts_file_handle) 
+               if (state.callback_data.pts_file_handle) /* save header for mkvmerge */
                   fprintf(state.callback_data.pts_file_handle, "# timecode format v2\n");
             }
 
@@ -2304,9 +2086,9 @@ int main(int argc, const char **argv)
                state.save_pts=0;
             }
          }
-*/
+
          state.callback_data.raw_file_handle = NULL;
-/*
+
          if (state.raw_filename)
          {
             if (state.raw_filename[0] == '-')
@@ -2325,7 +2107,7 @@ int main(int argc, const char **argv)
                state.raw_output = 0;
             }
          }
-*/
+
          if(state.bCircularBuffer)
          {
             if(state.bitrate == 0)
@@ -2397,7 +2179,7 @@ int main(int argc, const char **argv)
 
             for (i=0;state.timeout == 0 || i<num_iterations;i++)
             {
-               //raspicamcontrol_cycle_test(state.camera_component);
+               raspicamcontrol_cycle_test(state.camera_component);
                vcos_sleep(state.demoInterval);
             }
          }
@@ -2581,9 +2363,9 @@ error:
       if (state.verbose)
          fprintf(stderr, "Close down completed, all components disconnected, disabled and destroyed\n\n");
    }
-/*
+
    if (status != MMAL_SUCCESS)
       raspicamcontrol_check_configuration(128);
-*/
+
    return exit_code;
 }
