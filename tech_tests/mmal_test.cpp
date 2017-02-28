@@ -61,6 +61,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 #include <memory.h>
 #include <sysexits.h>
+#include <iostream>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -127,6 +128,7 @@ const int ABORT_INTERVAL = 100; // ms
 /// Run/record forever
 #define WAIT_METHOD_FOREVER        4
 
+int call_count = 0;
 
 
 int mmal_status_to_int(MMAL_STATUS_T status);
@@ -800,6 +802,8 @@ static void update_annotation_data(RASPIVID_STATE *state)
  */
 static void encoder_buffer_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
 {
+    fprintf(stderr, "encoder buffer callback\n");
+    call_count++;
     if((buffer->flags & MMAL_BUFFER_HEADER_FLAG_CODECSIDEINFO)) {
             // Do something with the inline motion vectors...
     }
@@ -2086,6 +2090,7 @@ int main(int argc, const char **argv)
     state.width = 640;
     state.height = 480;
     state.encoding = MMAL_ENCODING_H264;
+    state.verbose = true;
 
    // OK, we have a nice set of parameters. Now set up our components
    // We have three components. Camera, Preview and encoder.

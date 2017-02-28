@@ -13,3 +13,6 @@ target_link_libraries(omx_frames ${OpenCV_LIBS} ${Boost_LIBRARIES} Threads::Thre
 
 add_executable(mmal_test mmal_test.cpp)
 target_link_libraries(mmal_test ${MMAL_LIBRARIES} Threads::Threads)
+
+add_executable(raspivid RaspiVid.c RaspiCLI.c RaspiPreview.c RaspiCamControl.c RaspiCLI.h RaspiPreview.h RaspiCamControl.h)
+target_link_libraries(raspivid ${MMAL_LIBRARIES} Threads::Threads )
