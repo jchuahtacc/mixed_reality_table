@@ -3,7 +3,7 @@ find_package(Broadcom REQUIRED)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${BROADCOM_INCLUDE_DIRS})
 add_library(raspberrypi-omxcam ./src/camera.c ./src/core.c ./src/debug.c ./src/dump_omx.c ./src/error.c ./src/event.c ./src/h264.c ./src/jpeg.c ./src/still.c ./src/utils.c ./src/version.c ./src/video.c ./include/omxcam.h ./include/omxcam_version.h)
 set(RPI_OMXCAM_C_FLAGS "-DSTANDALONE -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS -DTARGET_POSIX -D_LINUX -DPIC -D_REENTRANT -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -U_FORTIFY_SOURCE -DHAVE_LIBOPENMAX=2 -DOMX -DOMX_SKIP64BIT -DUSE_EXTERNAL_OMX -DHAVE_LIBBCM_HOST -DUSE_EXTERNAL_LIBBCM_HOST -DUSE_VCHIQ_ARM -fPIC -ftree-vectorize -pipe -Werror -g -Wall -O2 -fvisibility=hidden")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${RPI_OMXCAM_C_FLAGS}")
+set_target_properties(raspberrypi-omxcam PROPERTIES COMPILE_FLAGS ${RPI_OMXCAM_C_FLAGS})
 target_link_libraries(raspberrypi-omxcam ${BROADCOM_LIBRARIES} pthread)
 set(RASPBERRYPI_OMXCAM_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include)
 

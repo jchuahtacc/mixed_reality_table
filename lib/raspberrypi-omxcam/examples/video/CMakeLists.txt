@@ -8,6 +8,17 @@ add_executable(h264-update-timer h264-update-timer/h264-update-timer.c)
 add_executable(video-rgb rgb/rgb.c)
 add_executable(video-yuv yuv/yuv.c)
 
+
+set_target_properties(h264 PROPERTIES COMPILE_FLAGS ${RPI_OMXCAM_C_FLAGS})
+set_target_properties(h264-motion PROPERTIES COMPILE_FLAGS ${RPI_OMXCAM_C_FLAGS})
+set_target_properties(h264-motion-nopthread PROPERTIES COMPILE_FLAGS ${RPI_OMXCAM_C_FLAGS})
+set_target_properties(h264-nopthread PROPERTIES COMPILE_FLAGS ${RPI_OMXCAM_C_FLAGS})
+set_target_properties(h264-stdout PROPERTIES COMPILE_FLAGS ${RPI_OMXCAM_C_FLAGS})
+set_target_properties(h264-update PROPERTIES COMPILE_FLAGS ${RPI_OMXCAM_C_FLAGS})
+set_target_properties(h264-update-timer PROPERTIES COMPILE_FLAGS ${RPI_OMXCAM_C_FLAGS})
+set_target_properties(video-rgb PROPERTIES COMPILE_FLAGS ${RPI_OMXCAM_C_FLAGS})
+set_target_properties(video-yuv PROPERTIES COMPILE_FLAGS ${RPI_OMXCAM_C_FLAGS})
+
 target_link_libraries(h264 ${BROADCOM_LIBRARIES} raspberrypi-omxcam )
 target_link_libraries(h264-motion ${BROADCOM_LIBRARIES} raspberrypi-omxcam )
 target_link_libraries(h264-motion-nopthread ${BROADCOM_LIBRARIES} raspberrypi-omxcam )
