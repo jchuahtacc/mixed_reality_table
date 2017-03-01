@@ -2491,7 +2491,7 @@ int main(int argc, const char **argv)
    signal(SIGUSR1, SIG_IGN);
 
    default_status(&state);
-
+/*
    // Do we have any parameters
    if (argc == 1)
    {
@@ -2500,13 +2500,14 @@ int main(int argc, const char **argv)
       display_valid_parameters(basename(argv[0]));
       exit(EX_USAGE);
    }
-
+*/
    // Parse the command line and put options in to our status structure
    if (parse_cmdline(argc, argv, &state))
    {
       status = -1;
       exit(EX_USAGE);
    }
+
 
    if (state.verbose)
    {

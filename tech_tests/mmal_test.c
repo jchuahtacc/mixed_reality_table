@@ -1256,7 +1256,7 @@ static void encoder_buffer_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buf
       int bytes_written = buffer->length;
       int64_t current_time = vcos_getmicrosecs64()/1000;
 
-      vcos_assert(pData->file_handle);
+      //vcos_assert(pData->file_handle);
       //if(pData->pstate->inlineMotionVectors) vcos_assert(pData->imv_file_handle);
 /*
       if (pData->cb_buff)
@@ -1981,6 +1981,7 @@ static MMAL_STATUS_T create_encoder_component(RASPIVID_STATE *state)
 
    if (status != MMAL_SUCCESS)
    {
+      
       vcos_log_error("Unable to create video encoder component");
       goto error;
    }
@@ -2003,6 +2004,7 @@ static MMAL_STATUS_T create_encoder_component(RASPIVID_STATE *state)
 
    if(state->encoding == MMAL_ENCODING_H264)
    {
+       fprintf(stderr, "encoding h264\n");
       if(state->level == MMAL_VIDEO_LEVEL_H264_4)
       {
          if(state->bitrate > MAX_BITRATE_LEVEL4)
@@ -2031,10 +2033,12 @@ static MMAL_STATUS_T create_encoder_component(RASPIVID_STATE *state)
    
    encoder_output->format->bitrate = state->bitrate;
 
-   if (state->encoding == MMAL_ENCODING_H264)
+   if (state->encoding == MMAL_ENCODING_H264) {
+       fprintf(stderr, "setting buffer size to recommended\n");
       encoder_output->buffer_size = encoder_output->buffer_size_recommended;
-   else
+   } else {
       encoder_output->buffer_size = 256<<10;
+   }
 
 
    if (encoder_output->buffer_size < encoder_output->buffer_size_min)
@@ -2053,10 +2057,11 @@ static MMAL_STATUS_T create_encoder_component(RASPIVID_STATE *state)
    // Commit the port changes to the output port
    status = mmal_port_format_commit(encoder_output);
 
-   if (status != MMAL_SUCCESS)
-   {
+   if (status != MMAL_SUCCESS) {
       vcos_log_error("Unable to set format on video encoder output port");
       goto error;
+   } else {
+       fprintf(stderr, "successfully set encoder output format\n");
    }
 
    // Set the rate control parameter
@@ -2075,6 +2080,7 @@ static MMAL_STATUS_T create_encoder_component(RASPIVID_STATE *state)
    if (state->encoding == MMAL_ENCODING_H264 &&
        state->intraperiod != -1)
    {
+       fprintf(stderr, "setting intraperiod\n");
       MMAL_PARAMETER_UINT32_T param = {{ MMAL_PARAMETER_INTRAPERIOD, sizeof(param)}, state->intraperiod};
       status = mmal_port_parameter_set(encoder_output, &param.hdr);
       if (status != MMAL_SUCCESS)
@@ -2087,6 +2093,7 @@ static MMAL_STATUS_T create_encoder_component(RASPIVID_STATE *state)
    if (state->encoding == MMAL_ENCODING_H264 &&
        state->quantisationParameter)
    {
+       fprintf(stderr, "Settign quantisation\n");
       MMAL_PARAMETER_UINT32_T param = {{ MMAL_PARAMETER_VIDEO_ENCODE_INITIAL_QUANT, sizeof(param)}, state->quantisationParameter};
       status = mmal_port_parameter_set(encoder_output, &param.hdr);
       if (status != MMAL_SUCCESS)
@@ -2115,6 +2122,7 @@ static MMAL_STATUS_T create_encoder_component(RASPIVID_STATE *state)
 
    if (state->encoding == MMAL_ENCODING_H264)
    {
+       fprintf(stderr, "setting video profile\n");
       MMAL_PARAMETER_VIDEO_PROFILE_T  param;
       param.hdr.id = MMAL_PARAMETER_PROFILE;
       param.hdr.size = sizeof(param);
@@ -2144,28 +2152,39 @@ static MMAL_STATUS_T create_encoder_component(RASPIVID_STATE *state)
          goto error;
       }
    }
-
+/*
    if (mmal_port_parameter_set_boolean(encoder_input, MMAL_PARAMETER_VIDEO_IMMUTABLE_INPUT, state->immutableInput) != MMAL_SUCCESS)
    {
       vcos_log_error("Unable to set immutable input flag");
+      fprintf(stderr, "Setting immutable input flag\n");
       // Continue rather than abort..
+   } else {
+       fprintf(stderr, "Not setting immutable input flag\n");
    }
 
    //set INLINE HEADER flag to generate SPS and PPS for every IDR if requested
    if (mmal_port_parameter_set_boolean(encoder_output, MMAL_PARAMETER_VIDEO_ENCODE_INLINE_HEADER, state->bInlineHeaders) != MMAL_SUCCESS)
    {
       vcos_log_error("failed to set INLINE HEADER FLAG parameters");
+      fprintf(stderr, "Setting INLINE HEADER flag\n");
       // Continue rather than abort..
+   } else {
+       fprintf(stderr, "Not setting INLINE HEADER FLAG parameters\n");
    }
+*/
 
+   // REQUIRED but not sufficient... something else makes sure we get that callback
    //set INLINE VECTORS flag to request motion vector estimates
-   if (state->encoding == MMAL_ENCODING_H264 &&
-       mmal_port_parameter_set_boolean(encoder_output, MMAL_PARAMETER_VIDEO_ENCODE_INLINE_VECTORS, state->inlineMotionVectors) != MMAL_SUCCESS)
+   if (mmal_port_parameter_set_boolean(encoder_output, MMAL_PARAMETER_VIDEO_ENCODE_INLINE_VECTORS, state->inlineMotionVectors) != MMAL_SUCCESS)
    {
       vcos_log_error("failed to set INLINE VECTORS parameters");
+      fprintf(stderr, "Setting INLINE VECTORS parameters\n");
       // Continue rather than abort..
+   } else {
+       fprintf(stderr, "Not setting inline motion vector parameters!\n");
    }
-
+   
+/*
    // Adaptive intra refresh settings
    if (state->encoding == MMAL_ENCODING_H264 &&
        state->intra_refresh_type != -1)
@@ -2195,7 +2214,7 @@ static MMAL_STATUS_T create_encoder_component(RASPIVID_STATE *state)
          goto error;
       }
    }
-
+*/
    //  Enable component
    status = mmal_component_enable(encoder);
 
@@ -2498,7 +2517,7 @@ int main(int argc, const char **argv)
    signal(SIGUSR1, SIG_IGN);
 
    default_status(&state);
-
+/*
    // Do we have any parameters
    if (argc == 1)
    {
@@ -2514,7 +2533,9 @@ int main(int argc, const char **argv)
       status = -1;
       exit(EX_USAGE);
    }
-
+*/
+   state.verbose = true;
+   state.inlineMotionVectors = 1;
    if (state.verbose)
    {
       fprintf(stderr, "\n%s Camera App %s\n\n", basename(argv[0]), VERSION_STRING);
@@ -2564,6 +2585,7 @@ int main(int argc, const char **argv)
 
       if (state.raw_output)
       {
+          fprintf(stderr, "Raw output enabled\n");
          splitter_input_port = state.splitter_component->input[0];
          splitter_output_port = state.splitter_component->output[SPLITTER_OUTPUT_PORT];
          splitter_preview_port = state.splitter_component->output[SPLITTER_PREVIEW_PORT];
@@ -2571,6 +2593,7 @@ int main(int argc, const char **argv)
 
       if (state.preview_parameters.wantPreview )
       {
+          fprintf(stderr, "want Preview \n");
          if (state.raw_output)
          {
             if (state.verbose)
@@ -2612,6 +2635,7 @@ int main(int argc, const char **argv)
       }
       else
       {
+          fprintf(stderr, "Do not want preview\n");
          if (state.raw_output)
          {
             if (state.verbose)
@@ -2673,7 +2697,7 @@ int main(int argc, const char **argv)
          }
 
          state.callback_data.file_handle = NULL;
-
+/*
          if (state.filename)
          {
             if (state.filename[0] == '-')
@@ -2694,7 +2718,7 @@ int main(int argc, const char **argv)
                vcos_log_error("%s: Error opening output file: %s\nNo output file will be generated\n", __func__, state.filename);
             }
          }
-
+*/
          state.callback_data.imv_file_handle = NULL;
 
          if (state.imv_filename)
@@ -2759,9 +2783,10 @@ int main(int argc, const char **argv)
                state.raw_output = 0;
             }
          }
-
+/*
          if(state.bCircularBuffer)
          {
+             fprintf(stderr, "Circular buffer mode");
             if(state.bitrate == 0)
             {
                vcos_log_error("%s: Error circular buffer requires constant bitrate and small intra period\n", __func__);
@@ -2804,7 +2829,7 @@ int main(int argc, const char **argv)
                }
             }
          }
-
+*/
          // Set up our userdata - this is passed though to the callback where we need the information.
          encoder_output_port->userdata = (struct MMAL_PORT_USERDATA_T *)&state.callback_data;
 
@@ -2819,7 +2844,7 @@ int main(int argc, const char **argv)
             vcos_log_error("Failed to setup encoder output");
             goto error;
          }
-
+/*
          if (state.demoMode)
          {
             // Run for the user specific time..
@@ -2835,11 +2860,11 @@ int main(int argc, const char **argv)
                vcos_sleep(state.demoInterval);
             }
          }
-         else
-         {
+         else*/
+             // NEED TO  ADD BUFFERS TO ENCODER 
             // Only encode stuff if we have a filename and it opened
             // Note we use the copy in the callback, as the call back MIGHT change the file handle
-            if (state.callback_data.file_handle)
+            if (true || state.callback_data.file_handle)
             {
                int running = 1;
 
@@ -2934,7 +2959,7 @@ int main(int argc, const char **argv)
                      vcos_sleep(ABORT_INTERVAL);
                }
             }
-         }
+         
       }
       else
       {
@@ -2982,7 +3007,7 @@ error:
 
       if (state.splitter_connection)
          mmal_connection_destroy(state.splitter_connection);
-
+/*
       // Can now close our file. Note disabling ports may flush buffers which causes
       // problems if we have already closed the file!
       if (state.callback_data.file_handle && state.callback_data.file_handle != stdout)
@@ -2993,7 +3018,7 @@ error:
          fclose(state.callback_data.pts_file_handle);
       if (state.callback_data.raw_file_handle && state.callback_data.raw_file_handle != stdout)
          fclose(state.callback_data.raw_file_handle);
-
+*/
       /* Disable components */
       if (state.encoder_component)
          mmal_component_disable(state.encoder_component);
