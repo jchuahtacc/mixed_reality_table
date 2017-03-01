@@ -320,8 +320,8 @@ static void default_status(RASPIVID_STATE *state)
 
    // Now set anything non-zero
    state->timeout = 5000;     // 5s delay before take image
-   state->width = 1920;       // Default to 1080p
-   state->height = 1080;
+   state->width = 1640;       // Default to 1080p
+   state->height = 1232;
    state->encoding = MMAL_ENCODING_H264;
    state->bitrate = 17000000; // This is a decent default bitrate for 1080p
    state->framerate = VIDEO_FRAME_RATE_NUM;
@@ -330,7 +330,7 @@ static void default_status(RASPIVID_STATE *state)
    state->demoMode = 0;
    state->demoInterval = 250; // ms
    state->immutableInput = 1;
-   state->profile = MMAL_VIDEO_PROFILE_H264_HIGH;
+   state->profile = MMAL_VIDEO_PROFILE_H264_BASELINE;
    state->level = MMAL_VIDEO_LEVEL_H264_4;
    state->waitMethod = WAIT_METHOD_NONE;
    state->onTime = 5000;
@@ -432,9 +432,25 @@ static void encoder_buffer_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buf
 
         if (buffer->length) {
             mmal_buffer_header_mem_lock(buffer);
+            uint16_t sad = 0;
+            int count = 0;
             if(buffer->flags & MMAL_BUFFER_HEADER_FLAG_CODECSIDEINFO) {
-                fprintf(stderr, "Motion vector buffer length %i", buffer->length);
-                //fprintf(stderr, "Saving inline Motion Vector Data\n");
+                int i = 0;
+                for (i = 0; i < buffer->length; i = i + 4) {
+                    /*
+                    sad = (uint16_t)(buffer->data[i + 3]);
+                    sad = sad << 8;
+                    sad = sad | buffer->data[i + 2];
+                    if (sad > 512) {
+                        count++;
+                    }
+                    */
+                    if (buffer->data[i + 3] > 2) {
+                        count++;
+                    }
+
+                }
+                fprintf(stderr, "Macroblocks over threshold: %i\n", count);
             }
             mmal_buffer_header_mem_unlock(buffer);
         }
@@ -489,7 +505,7 @@ static void splitter_buffer_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *bu
             mmal_buffer_header_mem_lock(buffer);
             // DO MEMCPY HERE FOR USEFUL DATA
             // bytes_written = fwrite(buffer->data, 1, bytes_to_write, pData->raw_file_handle);
-            fprintf(stderr, "Frame buffer luma channel length %i\n", bytes_to_write);
+            //fprintf(stderr, "Frame buffer luma channel length %i\n", bytes_to_write);
             mmal_buffer_header_mem_unlock(buffer);
         }
     } else {
@@ -834,7 +850,8 @@ static MMAL_STATUS_T create_splitter_component(RASPIVID_STATE *state)
          {
          case RAW_OUTPUT_FMT_YUV:
          case RAW_OUTPUT_FMT_GRAY: /* Grayscale image contains only luma (Y) component */
-            format->encoding = MMAL_ENCODING_I420;
+            fprintf(stderr, "Setting opaque encoding on splitter output\n");
+            format->encoding = MMAL_ENCODING_OPAQUE;
             format->encoding_variant = MMAL_ENCODING_I420;
             break;
          case RAW_OUTPUT_FMT_RGB:
