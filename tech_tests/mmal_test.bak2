@@ -365,6 +365,49 @@ static void default_status(RASPIVID_STATE *state)
    raspicamcontrol_set_defaults(&state->camera_parameters);
 }
 
+void cleanup(MMAL_STATUS_T status, int exit_code) {
+    mmal_status_to_int(status);
+
+    if (state.verbose)
+        fprintf(stderr, "Closing down\n");
+
+    // Disable all our ports that are not handled by connections
+    check_disable_port(camera_still_port);
+    check_disable_port(encoder_output_port);
+    check_disable_port(splitter_output_port);
+
+    if (state.preview_parameters.wantPreview && state.preview_connection)
+        mmal_connection_destroy(state.preview_connection);
+
+    if (state.encoder_connection)
+        mmal_connection_destroy(state.encoder_connection);
+
+    if (state.splitter_connection)
+        mmal_connection_destroy(state.splitter_connection);
+    if (state.encoder_component)
+        mmal_component_disable(state.encoder_component);
+
+    if (state.preview_parameters.preview_component)
+        mmal_component_disable(state.preview_parameters.preview_component);
+
+    if (state.splitter_component)
+        mmal_component_disable(state.splitter_component);
+
+    if (state.camera_component)
+        mmal_component_disable(state.camera_component);
+
+    destroy_encoder_component(&state);
+    raspipreview_destroy(&state.preview_parameters);
+    destroy_splitter_component(&state);
+    destroy_camera_component(&state);
+
+    if (state.verbose)
+        fprintf(stderr, "Close down completed, all components disconnected, disabled and destroyed\n\n");
+
+    exit(exit_code);
+}
+
+
 /**
  *  buffer header callback function for camera control
  *
@@ -549,39 +592,28 @@ static MMAL_STATUS_T create_camera_component(RASPIVID_STATE *state) {
 
     if (status != MMAL_SUCCESS) {
         vcos_log_error("Failed to create camera component");
-        goto error;
+        cleanup(status, -1);
     }
-    /*
-    status = raspicamcontrol_set_stereo_mode(camera->output[0], &state->camera_parameters.stereo_mode);
-    status += raspicamcontrol_set_stereo_mode(camera->output[1], &state->camera_parameters.stereo_mode);
-    status += raspicamcontrol_set_stereo_mode(camera->output[2], &state->camera_parameters.stereo_mode);
-
-    if (status != MMAL_SUCCESS)
-    {
-      vcos_log_error("Could not set stereo mode : error %d", status);
-      goto error;
-    }
-    */
     MMAL_PARAMETER_INT32_T camera_num = {{MMAL_PARAMETER_CAMERA_NUM, sizeof(camera_num)}, state->cameraNum};
 
     status = mmal_port_parameter_set(camera->control, &camera_num.hdr);
 
     if (status != MMAL_SUCCESS) {
         vcos_log_error("Could not select camera : error %d", status);
-        goto error;
+        cleanup(status, -1);
     }
 
     if (!camera->output_num) {
         status = MMAL_ENOSYS;
         vcos_log_error("Camera doesn't have output ports");
-        goto error;
+        cleanup(status, -1);
     }
 
     status = mmal_port_parameter_set_uint32(camera->control, MMAL_PARAMETER_CAMERA_CUSTOM_SENSOR_CONFIG, state->sensor_mode);
 
     if (status != MMAL_SUCCESS) {
         vcos_log_error("Could not set sensor mode : error %d", status);
-        goto error;
+        cleanup(status, -1);
     }
 
     preview_port = camera->output[MMAL_CAMERA_PREVIEW_PORT];
@@ -604,7 +636,7 @@ static MMAL_STATUS_T create_camera_component(RASPIVID_STATE *state) {
 
     if (status != MMAL_SUCCESS) {
         vcos_log_error("Unable to enable control port : error %d", status);
-        goto error;
+        cleanup(status, -1);
     }
 
     //  set up the camera configuration
@@ -669,7 +701,7 @@ static MMAL_STATUS_T create_camera_component(RASPIVID_STATE *state) {
 
     if (status != MMAL_SUCCESS) {
       vcos_log_error("camera viewfinder format couldn't be set");
-      goto error;
+      cleanup(status, -1);
     }
 
     // Set the encode format on the video  port
@@ -701,7 +733,7 @@ static MMAL_STATUS_T create_camera_component(RASPIVID_STATE *state) {
 
     if (status != MMAL_SUCCESS) {
         vcos_log_error("camera video format couldn't be set");
-        goto error;
+        cleanup(status, -1);
     }
 
     // Ensure there are enough buffers to avoid dropping frames
@@ -729,7 +761,7 @@ static MMAL_STATUS_T create_camera_component(RASPIVID_STATE *state) {
 
     if (status != MMAL_SUCCESS) {
         vcos_log_error("camera still format couldn't be set");
-        goto error;
+        cleanup(status, -1);
     }
 
     /* Ensure there are enough buffers to avoid dropping frames */
@@ -741,7 +773,7 @@ static MMAL_STATUS_T create_camera_component(RASPIVID_STATE *state) {
 
     if (status != MMAL_SUCCESS) {
         vcos_log_error("camera component couldn't be enabled");
-        goto error;
+        cleanup(status, -1);
     }
 
     raspicamcontrol_set_all_parameters(camera, &state->camera_parameters);
@@ -797,7 +829,7 @@ static MMAL_STATUS_T create_splitter_component(RASPIVID_STATE *state)
    {
       status = MMAL_ENOSYS;
       vcos_log_error("Camera component must be created before splitter");
-      goto error;
+      cleanup(status, -1);
    }
 
    /* Create the component */
@@ -806,21 +838,21 @@ static MMAL_STATUS_T create_splitter_component(RASPIVID_STATE *state)
    if (status != MMAL_SUCCESS)
    {
       vcos_log_error("Failed to create splitter component");
-      goto error;
+      cleanup(status, -1);
    }
 
    if (!splitter->input_num)
    {
       status = MMAL_ENOSYS;
       vcos_log_error("Splitter doesn't have any input port");
-      goto error;
+      cleanup(status, -1);
    }
 
    if (splitter->output_num < 2)
    {
       status = MMAL_ENOSYS;
       vcos_log_error("Splitter doesn't have enough output ports");
-      goto error;
+      cleanup(status, -1);
    }
 
    /* Ensure there are enough buffers to avoid dropping frames: */
@@ -834,7 +866,7 @@ static MMAL_STATUS_T create_splitter_component(RASPIVID_STATE *state)
    if (status != MMAL_SUCCESS)
    {
       vcos_log_error("Unable to set format on splitter input port");
-      goto error;
+      cleanup(status, -1);
    }
 
    /* Splitter can do format conversions, configure format for its output port: */
@@ -864,7 +896,7 @@ static MMAL_STATUS_T create_splitter_component(RASPIVID_STATE *state)
          default:
             status = MMAL_EINVAL;
             vcos_log_error("unknown raw output format");
-            goto error;
+            cleanup(status, -1);
          }
       }
 
@@ -873,7 +905,7 @@ static MMAL_STATUS_T create_splitter_component(RASPIVID_STATE *state)
       if (status != MMAL_SUCCESS)
       {
          vcos_log_error("Unable to set format on splitter output port %d", i);
-         goto error;
+         cleanup(status, -1);
       }
    }
 
@@ -883,7 +915,7 @@ static MMAL_STATUS_T create_splitter_component(RASPIVID_STATE *state)
    if (status != MMAL_SUCCESS)
    {
       vcos_log_error("splitter component couldn't be enabled");
-      goto error;
+      cleanup(status, -1);
    }
 
    /* Create pool of buffer headers for the output port to consume */
@@ -953,14 +985,14 @@ static MMAL_STATUS_T create_encoder_component(RASPIVID_STATE *state)
    {
       
       vcos_log_error("Unable to create video encoder component");
-      goto error;
+      cleanup(status, -1);
    }
 
    if (!encoder->input_num || !encoder->output_num)
    {
       status = MMAL_ENOSYS;
       vcos_log_error("Video encoder doesn't have input/output ports");
-      goto error;
+      cleanup(status, -1);
    }
 
    encoder_input = encoder->input[0];
@@ -1029,7 +1061,7 @@ static MMAL_STATUS_T create_encoder_component(RASPIVID_STATE *state)
 
    if (status != MMAL_SUCCESS) {
       vcos_log_error("Unable to set format on video encoder output port");
-      goto error;
+      cleanup(status, -1); 
    } else {
        fprintf(stderr, "successfully set encoder output format\n");
    }
@@ -1042,7 +1074,7 @@ static MMAL_STATUS_T create_encoder_component(RASPIVID_STATE *state)
       if (status != MMAL_SUCCESS)
       {
          vcos_log_error("Unable to set ratecontrol");
-         goto error;
+         cleanup(status, -1); 
       }
 
    }
@@ -1056,7 +1088,7 @@ static MMAL_STATUS_T create_encoder_component(RASPIVID_STATE *state)
       if (status != MMAL_SUCCESS)
       {
          vcos_log_error("Unable to set intraperiod");
-         goto error;
+         cleanup(status, -1);
       }
    }
 
@@ -1069,7 +1101,7 @@ static MMAL_STATUS_T create_encoder_component(RASPIVID_STATE *state)
       if (status != MMAL_SUCCESS)
       {
          vcos_log_error("Unable to set initial QP");
-         goto error;
+         cleanup(status, -1);
       }
 
       MMAL_PARAMETER_UINT32_T param2 = {{ MMAL_PARAMETER_VIDEO_ENCODE_MIN_QUANT, sizeof(param)}, state->quantisationParameter};
@@ -1077,7 +1109,7 @@ static MMAL_STATUS_T create_encoder_component(RASPIVID_STATE *state)
       if (status != MMAL_SUCCESS)
       {
          vcos_log_error("Unable to set min QP");
-         goto error;
+         cleanup(status, -1);
       }
 
       MMAL_PARAMETER_UINT32_T param3 = {{ MMAL_PARAMETER_VIDEO_ENCODE_MAX_QUANT, sizeof(param)}, state->quantisationParameter};
@@ -1085,7 +1117,7 @@ static MMAL_STATUS_T create_encoder_component(RASPIVID_STATE *state)
       if (status != MMAL_SUCCESS)
       {
          vcos_log_error("Unable to set max QP");
-         goto error;
+         cleanup(status, -1);
       }
 
    }
@@ -1109,7 +1141,7 @@ static MMAL_STATUS_T create_encoder_component(RASPIVID_STATE *state)
          else
          {
             vcos_log_error("Too many macroblocks/s requested");
-            goto error;
+            cleanup(status, -1);
          }
       }
       
@@ -1119,7 +1151,7 @@ static MMAL_STATUS_T create_encoder_component(RASPIVID_STATE *state)
       if (status != MMAL_SUCCESS)
       {
          vcos_log_error("Unable to set H264 profile");
-         goto error;
+         cleanup(status, -1);
       }
    }
    // REQUIRED but not sufficient... something else makes sure we get that callback
@@ -1139,7 +1171,7 @@ static MMAL_STATUS_T create_encoder_component(RASPIVID_STATE *state)
    if (status != MMAL_SUCCESS)
    {
       vcos_log_error("Unable to enable video encoder component");
-      goto error;
+      cleanup(status, -1);
    }
 
    /* Create pool of buffer headers for the output port to consume */
@@ -1344,6 +1376,7 @@ static int wait_for_next_change(RASPIVID_STATE *state)
    return keep_running;
 }
 
+
 /**
  * main
  */
@@ -1431,7 +1464,7 @@ int main(int argc, const char **argv) {
     if (status != MMAL_SUCCESS) {
        state.splitter_connection = NULL;
        vcos_log_error("%s: Failed to connect camera preview port to splitter input", __func__);
-       goto error;
+       cleanup(status, -1);
     }
 
     if (state.preview_parameters.wantPreview) {
@@ -1442,7 +1475,7 @@ int main(int argc, const char **argv) {
 
         if (status != MMAL_SUCCESS) {
             state.preview_connection = NULL;
-            goto error;
+            cleanup(status, -1);
         }
     } else {
         // Connect a null sink component here!
@@ -1458,11 +1491,11 @@ int main(int argc, const char **argv) {
         if (status != MMAL_SUCCESS) {
             state.encoder_connection = NULL;
             vcos_log_error("%s: Failed to connect camera video port to encoder input", __func__);
-            goto error;
+            cleanup(status, -1);
         }
     } else {
         vcos_log_error("%s: Failed to connect splitter preview output port to anything\n");
-        goto error;
+        cleanup(status, -1);
     }
 
     // Set up our userdata - this is passed though to the callback where we need the information.
@@ -1480,7 +1513,7 @@ int main(int argc, const char **argv) {
     if (status != MMAL_SUCCESS)
     {
        vcos_log_error("%s: Failed to setup splitter output port", __func__);
-       goto error;
+       cleanup(status, -1);
     }
 
     // Set up our userdata - this is passed though to the callback where we need the information.
@@ -1494,7 +1527,7 @@ int main(int argc, const char **argv) {
 
     if (status != MMAL_SUCCESS) {
         vcos_log_error("Failed to setup encoder output");
-        goto error;
+        cleanup(status, -1);
     }
 
 
@@ -1564,45 +1597,8 @@ int main(int argc, const char **argv) {
     if (state.verbose)
         fprintf(stderr, "Finished capture\n");
 
-error:
-
-    mmal_status_to_int(status);
-
-    if (state.verbose)
-        fprintf(stderr, "Closing down\n");
-
-    // Disable all our ports that are not handled by connections
-    check_disable_port(camera_still_port);
-    check_disable_port(encoder_output_port);
-    check_disable_port(splitter_output_port);
-
-    if (state.preview_parameters.wantPreview && state.preview_connection)
-        mmal_connection_destroy(state.preview_connection);
-
-    if (state.encoder_connection)
-        mmal_connection_destroy(state.encoder_connection);
-
-    if (state.splitter_connection)
-        mmal_connection_destroy(state.splitter_connection);
-    if (state.encoder_component)
-        mmal_component_disable(state.encoder_component);
-
-    if (state.preview_parameters.preview_component)
-        mmal_component_disable(state.preview_parameters.preview_component);
-
-    if (state.splitter_component)
-        mmal_component_disable(state.splitter_component);
-
-    if (state.camera_component)
-        mmal_component_disable(state.camera_component);
-
-    destroy_encoder_component(&state);
-    raspipreview_destroy(&state.preview_parameters);
-    destroy_splitter_component(&state);
-    destroy_camera_component(&state);
-
-    if (state.verbose)
-        fprintf(stderr, "Close down completed, all components disconnected, disabled and destroyed\n\n");
+    cleanup(status);
 
     return exit_code;
+
 }
