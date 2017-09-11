@@ -69,7 +69,8 @@ namespace rpi_motioncam {
             MMAL_PORT_T *encoder_input_port = NULL;
             MMAL_PORT_T *encoder_output_port = NULL;
             MMAL_PORT_T *splitter_input_port = NULL;
-            MMAL_PORT_T *splitter_output_port = NULL;
+            MMAL_PORT_T *splitter_output_port_0 = NULL;
+            MMAL_PORT_T *splitter_output_port_1 = NULL;
             MMAL_PORT_T *splitter_preview_port = NULL;
             MMAL_PORT_T *null_sink_input_port = NULL;
             MMAL_CONNECTION_T *preview_connection = NULL;

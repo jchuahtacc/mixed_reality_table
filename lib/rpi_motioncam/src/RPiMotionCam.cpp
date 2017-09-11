@@ -364,6 +364,67 @@ namespace rpi_motioncam {
     }
 
     MMAL_STATUS_T RPiMotionCam::create_splitter_component() {
+        MMAL_ES_FORMAT_T *format;
+        MMAL_STATUS_T status;
+
+        if ((status = mmal_component_create(MMAL_COMPONENT_DEFAULT_VIDEO_SPLITTER, &splitter_component)) != MMAL_SUCCESS) {
+            vcos_log_error("create_splitter_component(): failed to create splitter component");
+            return status;
+        }
+
+        if (!splitter_component->input_num) {
+            vcos_log_error("create_splitter_component(): splitter does not have input ports");
+            return MMAL_ENOSYS;
+        }
+
+        if (splitter_component->output_num < 2) {
+            vcos_log_error("create_splitter_component(): splitter does not have enough output ports");
+            return MMAL_ENOSYS;
+        }
+
+        splitter_input_port = splitter_component->input[0];
+        splitter_output_port_0 = splitter_component->output[0];
+        splitter_output_port_1 = splitter_component->output[1];
+
+        mmal_format_copy(splitter_input_port->format, camera_video_port->format);
+
+
+        if (splitter_input_port->buffer_num < VIDEO_OUTPUT_BUFFERS_NUM) {
+            splitter_input_port->buffer_num = VIDEO_OUTPUT_BUFFERS_NUM;
+        }
+
+        if ((status = mmal_port_format_commit(splitter_input_port)) != MMAL_SUCCESS) {
+            vcos_log_error("create_splitter_component(): could not set format on splitter input port");
+            return status;
+        }
+
+        mmal_format_copy(splitter_output_port_0->format, splitter_input_port->format);
+        format = splitter_output_port_0->format;
+        format->encoding = MMAL_ENCODING_OPAQUE;
+        format->encoding_variant = MMAL_ENCODING_I420;
+        if ((status = mmal_port_format_commit(splitter_output_port_0)) != MMAL_SUCCESS) {
+            vcos_log_error("create_splitter_component(): could not set format on splitter output port 0");
+            return status;
+        }
+
+        mmal_format_copy(splitter_output_port_1->format, splitter_input_port->format);
+        if ((status = mmal_port_format_commit(splitter_output_port_1)) != MMAL_SUCCESS) {
+            vcos_log_error("create_splitter_component(): could not set format on splitter output port 1");
+            return status;
+        }
+
+
+        if ((status = mmal_component_enable(splitter_component)) != MMAL_SUCCESS) {
+            vcos_log_error("create_splitter_component(): splitter component couldn't be enabled");
+            return status;
+        }
+
+        splitter_pool = mmal_port_pool_create(splitter_output_port_0, splitter_output_port_0->buffer_num, splitter_output_port_0->buffer_size);
+        if (!splitter_pool) {
+            vcos_log_error("create_splitter_component(): failed to create buffer header pool for splitter output port 0");
+            return MMAL_ENOSYS;
+        }
+
         return MMAL_SUCCESS;
     }
 
@@ -471,7 +532,8 @@ namespace rpi_motioncam {
     void RPiMotionCam::destroy_camera_ports() {
         check_disable_port(camera_still_port);
         check_disable_port(encoder_output_port);
-        check_disable_port(splitter_output_port);
+        check_disable_port(splitter_output_port_0);
+        check_disable_port(splitter_output_port_1);
     }
 
     void RPiMotionCam::destroy_connections() {
