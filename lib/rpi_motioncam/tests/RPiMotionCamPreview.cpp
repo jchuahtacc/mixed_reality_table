@@ -5,7 +5,7 @@ using namespace std;
 using namespace rpi_motioncam;
 
 int main(int argc, char** argv) {
-    RPiMotionCam cam = RPiMotionCam();
+    RPiMotionCam* cam = RPiMotionCam::create();
 
-    cout << "Init Status " << cam.init() << endl;
+    cout << "Init Status " << cam->init() << endl;
 }
