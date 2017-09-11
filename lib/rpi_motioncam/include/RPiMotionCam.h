@@ -31,6 +31,7 @@
 #define     PICAM2X                 2
 
 #define     VIDEO_OUTPUT_BUFFERS_NUM        3
+#define     PREVIEW_LAYER                   2
 
 namespace rpi_motioncam {
     class RPiMotionCam {

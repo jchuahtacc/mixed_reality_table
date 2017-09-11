@@ -321,6 +321,45 @@ namespace rpi_motioncam {
     }
 
     MMAL_STATUS_T RPiMotionCam::create_preview_component() {
+        MMAL_STATUS_T status;
+
+        // Create preview renderer
+        if ((status = mmal_component_create(MMAL_COMPONENT_DEFAULT_VIDEO_RENDERER, &preview_component)) != MMAL_SUCCESS) {
+            vcos_log_error("create_preview_component(): could not create preview component"); 
+            return status;
+        }
+
+        // Sanity check on preview renderer
+        if (!preview_component->input_num) {
+            vcos_log_error("create_preview_component(): no input ports found on preview component (?!?!)");
+            return MMAL_ENOSYS;
+        }
+
+        preview_input_port = preview_component->input[0];
+
+        MMAL_DISPLAYREGION_T param;
+        param.hdr.id = MMAL_PARAMETER_DISPLAYREGION;
+        param.hdr.size = sizeof(MMAL_DISPLAYREGION_T);
+        param.set = MMAL_DISPLAY_SET_LAYER;
+        param.layer = PREVIEW_LAYER;
+        param.set |= MMAL_DISPLAY_SET_ALPHA;
+        // Opaque preview
+        param.alpha = 255;
+        param.set |= MMAL_DISPLAY_SET_FULLSCREEN;
+        param.fullscreen = 1;
+
+
+        status = mmal_port_parameter_set(preview_input_port, &param.hdr);
+        if (status != MMAL_SUCCESS && status != MMAL_ENOSYS) {
+            vcos_log_error("create_preview_component(): unable to set preview port parameters (%u)", status);
+            return status;
+        }
+
+        if ((status = mmal_component_enable(preview_component)) != MMAL_SUCCESS) {
+            vcos_log_error("create_preview_component(): unable to enable preview component (%u)", status);
+            return status;
+        }
+
         return MMAL_SUCCESS;
     }
 
@@ -403,6 +442,7 @@ namespace rpi_motioncam {
             mmal_component_destroy(camera_component);
             camera_component = NULL;
         }
+        
     }
 
 
