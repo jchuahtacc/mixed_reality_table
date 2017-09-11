@@ -11,11 +11,10 @@ namespace rpi_motioncam {
     }
 
     RPiMotionCam::~RPiMotionCam() {
-        destroy_camera_component();
-        destroy_preview_component();
-        destroy_splitter_component();
-        destroy_encoder_component();
-        destroy_null_sink_component();
+        destroy_camera_ports();
+        destroy_connections();
+        disable_components();
+        destroy_components();
     }
     
     RPiMotionCam *RPiMotionCam::instance_ = NULL;
@@ -25,10 +24,21 @@ namespace rpi_motioncam {
             RPiMotionCam::instance_ = new RPiMotionCam();
         }
         return RPiMotionCam::instance_;
-    } 
+    }
 
-    MMAL_STATUS_T RPiMotionCam::init(int mode, bool preview = false) {
-        camera_mode_ = mode;
+    MMAL_STATUS_T RPiMotionCam::init() {
+        return init(PICAM_DEFAULT);
+    }
+
+    MMAL_STATUS_T RPiMotionCam::init(int mode) {
+        return init(mode, false);
+    }
+
+    MMAL_STATUS_T RPiMotionCam::init(int mode, bool preview) {
+        if (!setCameraMode(mode)) {
+            // Return error on bad camera mode 
+            return MMAL_ECONFIG;
+        }
         preview_ = preview;
         bcm_host_init();
         vcos_log_register("rpi_motioncam", VCOS_LOG_CATEGORY);
@@ -99,18 +109,14 @@ namespace rpi_motioncam {
         camera_still_port = camera_component->output[2];
 
         // Request camera settings events
-        /*
-        
-            MMAL_PARAMETER_CHANGE_EVENT_REQUEST_T change_event_request =
-                {{MMAL_PARAMETER_CHANGE_EVENT_REQUEST, sizeof(MMAL_PARAMETER_CHANGE_EVENT_REQUEST_T)},
-                MMAL_PARAMETER_CAMERA_SETTINGS, 1};
+        MMAL_PARAMETER_CHANGE_EVENT_REQUEST_T change_event_request =
+            {{MMAL_PARAMETER_CHANGE_EVENT_REQUEST, sizeof(MMAL_PARAMETER_CHANGE_EVENT_REQUEST_T)},
+            MMAL_PARAMETER_CAMERA_SETTINGS, 1};
 
-            status = mmal_port_parameter_set(camera->control, &change_event_request.hdr);
-            if ( status != MMAL_SUCCESS ) {
-                vcos_log_error("No camera settings events");
-            }
+        if ((status = mmal_port_parameter_set(camera_component->control, &change_event_request.hdr)) != MMAL_SUCCESS) {
+            vcos_log_error("No camera settings events");
+        }
 
-        */
         
         // Enable camera, add callback function
         if ((status = mmal_port_enable(camera_component->control, RPiMotionCam::camera_control_callback)) != MMAL_SUCCESS) {
@@ -118,28 +124,26 @@ namespace rpi_motioncam {
             return status;
         }
 
-        /*
 
-        // Disabled - setup still camera format
+        // Setup still camera format
 
         {
             MMAL_PARAMETER_CAMERA_CONFIG_T cam_config =
             {
                 { MMAL_PARAMETER_CAMERA_CONFIG, sizeof(cam_config) },
-                  .max_stills_w = state->width,
-                  .max_stills_h = state->height,
+                  .max_stills_w = width_,
+                  .max_stills_h = height_,
                   .stills_yuv422 = 0,
                   .one_shot_stills = 0,
-                  .max_preview_video_w = state->width,
-                  .max_preview_video_h = state->height,
-                  .num_preview_video_frames = 3 + vcos_max(0, (state->framerate-30)/10),
+                  .max_preview_video_w = width_,
+                  .max_preview_video_h = height_,
+                  .num_preview_video_frames = 3 + vcos_max(0, (fps_ - 30) / 10),
                   .stills_capture_circular_buffer_height = 0,
                   .fast_preview_resume = 0,
                   .use_stc_timestamp = MMAL_PARAM_TIMESTAMP_MODE_RAW_STC
             };
-            mmal_port_parameter_set(camera->control, &cam_config.hdr);
+            mmal_port_parameter_set(camera_component->control, &cam_config.hdr);
         }
-        */
 
         // Setup port formats
         
@@ -169,7 +173,139 @@ namespace rpi_motioncam {
             }
         */
 
+        format->encoding = MMAL_ENCODING_OPAQUE;
+        format->es->video.width = VCOS_ALIGN_UP(width_, 32);
+        format->es->video.height = VCOS_ALIGN_UP(height_, 16);
+        format->es->video.crop.x = 0;
+        format->es->video.crop.y = 0;
+        format->es->video.crop.width = width_;
+        format->es->video.crop.height = height_;
+        // Variable preview frame rate
+        format->es->video.frame_rate.num = 0;
+        format->es->video.frame_rate.den = 1;
+
+        if ((status = mmal_port_format_commit(camera_preview_port)) != MMAL_SUCCESS) {
+            vcos_log_error("create_camera_component(): couldn't set video format");
+            return status;
+        }
+/*
+        // Don't care about the still port
+        if (camera_still_port->buffer_num < VIDEO_OUTPUT_BUFFERS_NUM) {
+            camera_still_port->buffer_num = VIDEO_OUTPUT_BUFFERS_NUM;
+        }
+*/
+        
+        if ((status = mmal_component_enable(camera_component)) != MMAL_SUCCESS) {
+            vcos_log_error("create_camera_component(): camera component couldn't be enabled");
+            return status;
+        }
+
+        // Set a billion camera parameters. Ignoring for now...
+        // raspicamcontrol_set_all_parameters(camera, &state->camera_parameters);
+
         return MMAL_SUCCESS;
+    }
+
+    bool RPiMotionCam::setCameraMode(int mode) {
+        camera_mode_ = mode;
+        switch (camera_mode_) {
+            case PICAM_DEFAULT:
+                width_ = 640;
+                height_ = 480;
+                fps_ = 60;
+                camera_mode_ = 0;
+                return true;
+                break;
+            case PICAM1X_1920_1080_30:
+                width_ = 1920;
+                height_ = 1080;
+                fps_ = 30;
+                camera_mode_ = 1;
+                return true;
+                break;
+            case PICAM1X_2592_1944_30:
+                width_ = 2592;
+                height_= 1944;
+                fps_ = 30;
+                camera_mode_ = 2;
+                return true;
+                break;
+            case PICAM1X_1296_972_42:
+                width_ = 1296;
+                height_ = 972;
+                fps_ = 42;
+                camera_mode_ = 4;
+                return true;
+                break;
+            case PICAM1X_1296_730_49:
+                width_ = 1296;
+                height_ = 730;
+                fps_ = 49;
+                camera_mode_ = 5;
+                return true;
+                break;
+            case PICAM1X_640_480_60:
+                width_ = 640;
+                height_ = 480;
+                fps_ = 60;
+                camera_mode_ = 6;
+                return true;
+                break;
+            case PICAM1X_640_480_90:
+                width_ = 640;
+                height_ = 480;
+                fps_ = 90;
+                camera_mode_ = 7;
+                return true;
+                break;
+            case PICAM2X_1920_1080_30:
+                width_ = 1920;
+                height_ = 1080;
+                fps_ = 30;
+                camera_mode_ = 1;
+                return true;
+                break;
+            case PICAM2X_3280_2464_15:
+                width_ = 3280;
+                height_ = 2464;
+                fps_ = 15;
+                // Or mode 3? ...?
+                camera_mode_ = 2;
+                return true;
+                break;
+            case PICAM2X_1640_1232_40:
+                width_ = 1640;
+                height_ = 1232;
+                fps_ = 40;
+                camera_mode_ = 4;
+                return true;
+                break;
+            case PICAM2X_1640_922_40:
+                width_ = 1640;
+                height_ = 922;
+                fps_ = 40;
+                camera_mode_ = 5;
+                return true;
+                break;
+            case PICAM2X_1280_720_90:
+                width_ = 1280;
+                height_ = 720;
+                fps_ = 90;
+                camera_mode_ = 6;
+                return true;
+                break;
+            case PICAM2X_640_480_90:
+                width_ = 640;
+                height_ = 480;
+                fps_ = 90;
+                camera_mode_ = 7;
+                return true;
+                break;
+            default:
+                // Invalid mode
+                return false;
+        }
+        return false;
     }
 
     int RPiMotionCam::getWidth() {
@@ -178,6 +314,10 @@ namespace rpi_motioncam {
 
     int RPiMotionCam::getHeight() {
         return height_;
+    }
+
+    int RPiMotionCam::getFPS() {
+            return fps_;
     }
 
     MMAL_STATUS_T RPiMotionCam::create_preview_component() {
@@ -196,28 +336,72 @@ namespace rpi_motioncam {
         return MMAL_SUCCESS;
     }
 
-    void RPiMotionCam::destroy_camera_component() {
-        if (camera_component) {
-        }
-    }
-    
-    void RPiMotionCam::destroy_preview_component() {
-        if (preview_component) {
+    void RPiMotionCam::check_disable_port(MMAL_PORT_T *port) {
+        if (port && port->is_enabled) {
+            mmal_port_disable(port);
         }
     }
 
-    void RPiMotionCam::destroy_splitter_component() {
-        if (splitter_component) {
+    void RPiMotionCam::destroy_camera_ports() {
+        check_disable_port(camera_still_port);
+        check_disable_port(encoder_output_port);
+        check_disable_port(splitter_output_port);
+    }
+
+    void RPiMotionCam::destroy_connections() {
+        if (preview_connection) {
+            mmal_connection_destroy(preview_connection);
+        }
+        if (encoder_connection) {
+            mmal_connection_destroy(encoder_connection);
+        }
+        if (splitter_connection) {
+            mmal_connection_destroy(splitter_connection);
         }
     }
 
-    void RPiMotionCam::destroy_encoder_component() {
-        if (encoder_component) {
-        }
-    }
-
-    void RPiMotionCam::destroy_null_sink_component() {
+    void RPiMotionCam::disable_components() {
         if (null_sink_component) {
+            mmal_component_disable(null_sink_component);
+        }
+        if (encoder_component) {
+            mmal_component_disable(encoder_component);
+        }
+        if (preview_component) {
+            mmal_component_disable(preview_component);
+        }
+        if (splitter_component) {
+            mmal_component_disable(splitter_component);
+        }
+        if (camera_component) {
+            mmal_component_disable(camera_component);
+        }
+    }
+
+    void RPiMotionCam::destroy_components() {
+        if (encoder_pool) {
+            mmal_port_pool_destroy(encoder_component->output[0], encoder_pool);
+        }
+        if (encoder_component) {
+            mmal_component_destroy(encoder_component);
+            encoder_component = NULL;
+        }
+        if (preview_component) {
+            mmal_component_destroy(preview_component);
+            preview_component = NULL;
+        }
+        if (null_sink_component) {
+            mmal_component_destroy(null_sink_component);
+            null_sink_component = NULL;
+        }
+        if (splitter_component) {
+            mmal_component_destroy(splitter_component);
+            splitter_component = NULL;
+        }
+
+        if (camera_component) {
+            mmal_component_destroy(camera_component);
+            camera_component = NULL;
         }
     }
 

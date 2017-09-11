@@ -14,42 +14,46 @@
 
 // Camera capture modes (resolutions and frame rates)
 // https://www.raspberrypi.org/documentation/raspbian/applications/camera.md
-#define     PICAM1X_AUTO            0
+#define     PICAM_DEFAULT           0
 #define     PICAM1X_1920_1080_30    1
 #define     PICAM1X_2592_1944_30    2
-#define     PICAM1X_2592_1944_1     3
-#define     PICAM1X_1296_972_42     4
-#define     PICAM1X_1296_730_49     5
-#define     PICAM1X_640_480_60      6
-#define     PICAM1X_640_480_90      7
-#define     PICAM2X_AUTO            0
-#define     PICAM2X_1920_1080_30    1
-#define     PICAM2X_3280_2464_15    2
-#define     PICAM2X_1640_1232_40    4
-#define     PICAM2X_1640_922_40     5
-#define     PICAM2X_1280_720_90     6
-#define     PICAM2X_640_480_90      7
+#define     PICAM1X_1296_972_42     3
+#define     PICAM1X_1296_730_49     4
+#define     PICAM1X_640_480_60      5
+#define     PICAM1X_640_480_90      6
+#define     PICAM2X_1920_1080_30    7
+#define     PICAM2X_3280_2464_15    8
+#define     PICAM2X_1640_1232_40    9
+#define     PICAM2X_1640_922_40     10
+#define     PICAM2X_1280_720_90     11
+#define     PICAM2X_640_480_90      12
 #define     PICAM1X                 1
 #define     PICAM2X                 2
+
+#define     VIDEO_OUTPUT_BUFFERS_NUM        3
 
 namespace rpi_motioncam {
     class RPiMotionCam {
         
         public:
             static RPiMotionCam* create();
+            MMAL_STATUS_T init();
+            MMAL_STATUS_T init(int mode);
             MMAL_STATUS_T init(int mode, bool preview);
             int getWidth();
             int getHeight();
+            int getFPS();
 
         private:
             RPiMotionCam();
             ~RPiMotionCam();
             static RPiMotionCam *instance_;
 
-            int width_;
-            int height_;
+            uint32_t width_;
+            uint32_t height_;
+            uint32_t fps_;
+            uint32_t camera_mode_;
             bool preview_ = false;
-            int camera_mode_ = PICAM1X_AUTO;
             MMAL_COMPONENT_T *camera_component;
             MMAL_COMPONENT_T *splitter_component;
             MMAL_COMPONENT_T *encoder_component;
@@ -65,6 +69,11 @@ namespace rpi_motioncam {
             MMAL_PORT_T *splitter_input_port = NULL;
             MMAL_PORT_T *splitter_output_port = NULL;
             MMAL_PORT_T *splitter_preview_port = NULL;
+            MMAL_CONNECTION_T *preview_connection = NULL;
+            MMAL_CONNECTION_T *splitter_connection = NULL;
+            MMAL_CONNECTION_T *encoder_connection = NULL;
+            MMAL_POOL_T *encoder_pool = NULL;
+            MMAL_POOL_T *splitter_pool = NULL;
 
             MMAL_ES_FORMAT_T *format;
 
@@ -74,11 +83,13 @@ namespace rpi_motioncam {
             MMAL_STATUS_T create_encoder_component();
             MMAL_STATUS_T create_null_sink_component();
 
-            void destroy_camera_component();
-            void destroy_preview_component();
-            void destroy_splitter_component();
-            void destroy_encoder_component();
-            void destroy_null_sink_component();
+            void check_disable_port(MMAL_PORT_T *port);
+            void destroy_camera_ports();
+            void destroy_connections();
+            void disable_components();
+            void destroy_components();
+
+            bool setCameraMode(int mode);
 
             static void camera_control_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer);
 
