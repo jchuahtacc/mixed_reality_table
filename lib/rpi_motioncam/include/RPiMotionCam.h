@@ -42,6 +42,7 @@ namespace rpi_motioncam {
             MMAL_STATUS_T init();
             MMAL_STATUS_T init(int mode);
             MMAL_STATUS_T init(int mode, bool preview);
+            MMAL_STATUS_T start();
             int getWidth();
             int getHeight();
             int getFPS();
@@ -87,6 +88,11 @@ namespace rpi_motioncam {
             MMAL_STATUS_T create_splitter_component();
             MMAL_STATUS_T create_encoder_component();
             MMAL_STATUS_T create_null_sink_component();
+            MMAL_STATUS_T make_connections();
+            MMAL_STATUS_T add_callbacks();
+            MMAL_STATUS_T send_buffers();
+
+            MMAL_STATUS_T connect_ports(MMAL_PORT_T *output_port, MMAL_PORT_T *input_port, MMAL_CONNECTION_T **connection);
 
             void check_disable_port(MMAL_PORT_T *port);
             void destroy_camera_ports();
@@ -97,6 +103,8 @@ namespace rpi_motioncam {
             bool setCameraMode(int mode);
 
             static void camera_control_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer);
+            static void encoder_buffer_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer);
+            static void splitter_buffer_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer);
 
     };
 }

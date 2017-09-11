@@ -72,6 +72,26 @@ namespace rpi_motioncam {
             return status;
         }
 
+        if ((status = make_connections()) != MMAL_SUCCESS) {
+            vcos_log_error("Unable to make port connections");
+            return status;
+        }
+
+        if ((status = add_callbacks()) != MMAL_SUCCESS) {
+            vcos_log_error("Unable to add callbacks");
+            return status;
+        }
+
+        return MMAL_SUCCESS;
+    }
+
+    MMAL_STATUS_T RPiMotionCam::start() {
+        MMAL_STATUS_T status;
+        if ((status = send_buffers()) != MMAL_SUCCESS) {
+            vcos_log_error("Unable to send buffers");
+            return status;
+        }
+
         return MMAL_SUCCESS;
     }
 
@@ -117,13 +137,13 @@ namespace rpi_motioncam {
             vcos_log_error("No camera settings events");
         }
 
-        
+        /* 
         // Enable camera, add callback function
         if ((status = mmal_port_enable(camera_component->control, RPiMotionCam::camera_control_callback)) != MMAL_SUCCESS) {
             vcos_log_error("create_camera_component() could not enable control port : error %d", status);
             return status;
         }
-
+        */
 
         // Setup still camera format
 
@@ -151,27 +171,7 @@ namespace rpi_motioncam {
         format->encoding = MMAL_ENCODING_OPAQUE;
         format->encoding_variant = MMAL_ENCODING_I420;
         
-        /*
-           // Shutter speed code
-
-            if (state->camera_parameters.shutter_speed > 6000000) {
-                MMAL_PARAMETER_FPS_RANGE_T fps_range = {{MMAL_PARAMETER_FPS_RANGE, sizeof(fps_range)}, { 50, 1000 }, {166, 1000}};
-                mmal_port_parameter_set(preview_port, &fps_range.hdr);
-            } else if (state->camera_parameters.shutter_speed > 1000000) {
-                MMAL_PARAMETER_FPS_RANGE_T fps_range = {{MMAL_PARAMETER_FPS_RANGE, sizeof(fps_range)}, { 166, 1000 }, {999, 1000}};
-                mmal_port_parameter_set(preview_port, &fps_range.hdr);
-            }
-
-            // enable dynamic framerate if necessary
-            if (state->camera_parameters.shutter_speed) {
-                if (state->framerate > 1000000./state->camera_parameters.shutter_speed) {
-                    state->framerate=0;
-                    if (state->verbose) {
-                        fprintf(stderr, "Enable dynamic frame rate to fulfil shutter speed requirement\n");
-                    }
-                }
-            }
-        */
+        // Skip shutter speed code
 
         format->encoding = MMAL_ENCODING_OPAQUE;
         format->es->video.width = VCOS_ALIGN_UP(width_, 32);
@@ -185,8 +185,29 @@ namespace rpi_motioncam {
         format->es->video.frame_rate.den = 1;
 
         if ((status = mmal_port_format_commit(camera_preview_port)) != MMAL_SUCCESS) {
-            vcos_log_error("create_camera_component(): couldn't set video format");
+            vcos_log_error("create_camera_component(): couldn't set preview format");
             return status;
+        }
+
+        format = camera_video_port->format;
+        format->encoding_variant = MMAL_ENCODING_I420;
+        // Skip shutter speed
+        format->encoding = MMAL_ENCODING_OPAQUE;
+        format->es->video.width = VCOS_ALIGN_UP(width_, 32);
+        format->es->video.height = VCOS_ALIGN_UP(height_, 16);
+        format->es->video.crop.x = 0;
+        format->es->video.crop.y = 0;
+        format->es->video.crop.width = width_;
+        format->es->video.crop.height = height_;
+        format->es->video.frame_rate.num = fps_;
+        format->es->video.frame_rate.den = 1;
+
+        if ((status = mmal_port_format_commit(camera_video_port)) != MMAL_SUCCESS) {
+            vcos_log_error("create_camera_component(): couldn't set video format");
+        }
+
+        if (camera_video_port->buffer_num < VIDEO_OUTPUT_BUFFERS_NUM) {
+            camera_video_port->buffer_num = VIDEO_OUTPUT_BUFFERS_NUM;
         }
 /*
         // Don't care about the still port
@@ -408,6 +429,9 @@ namespace rpi_motioncam {
         }
 
         mmal_format_copy(splitter_output_port_1->format, splitter_input_port->format);
+        format = splitter_output_port_1->format;
+        format->encoding = MMAL_ENCODING_OPAQUE;
+        format->encoding_variant = MMAL_ENCODING_I420;
         if ((status = mmal_port_format_commit(splitter_output_port_1)) != MMAL_SUCCESS) {
             vcos_log_error("create_splitter_component(): could not set format on splitter output port 1");
             return status;
@@ -489,6 +513,16 @@ namespace rpi_motioncam {
             return status;
         }
 
+
+        /*
+        if (mmal_port_parameter_set_boolean(encoder_input_port, MMAL_PARAMETER_VIDEO_IMMUTABLE_INPUT, true) != MMAL_SUCCESS) {
+            vcos_log_error("create_encoder_component(): unable to set immutable input flag");
+        }
+
+        if (mmal_port_parameter_set_boolean(encoder_output_port, MMAL_PARAMETER_VIDEO_ENCODE_INLINE_HEADER, false) != MMAL_SUCCESS) {
+            vcos_log_error("create_encoder_component(): unable to set inline header flag");
+        }
+*/
         if ((status = mmal_port_parameter_set_boolean(encoder_output_port, MMAL_PARAMETER_VIDEO_ENCODE_INLINE_VECTORS, true)) != MMAL_SUCCESS) {
             vcos_log_error("create_encoder_component(): could not set inline motion vecotrs");
             return status;
@@ -522,6 +556,116 @@ namespace rpi_motioncam {
 
         return MMAL_SUCCESS;
     }
+
+    MMAL_STATUS_T RPiMotionCam::connect_ports(MMAL_PORT_T *output_port, MMAL_PORT_T *input_port, MMAL_CONNECTION_T **connection) {
+        MMAL_STATUS_T status;
+        if ((status = mmal_connection_create(connection, output_port, input_port, MMAL_CONNECTION_FLAG_TUNNELLING | MMAL_CONNECTION_FLAG_ALLOCATION_ON_INPUT)) != MMAL_SUCCESS) {
+            return status;
+        }
+
+        if ((status = mmal_connection_enable(*connection)) != MMAL_SUCCESS) {
+            mmal_connection_destroy(*connection);
+            *connection = NULL;
+            return status;
+        }
+
+        return MMAL_SUCCESS;
+    }
+
+    MMAL_STATUS_T RPiMotionCam::make_connections() {
+        MMAL_STATUS_T status;
+
+/*
+
+        // Connect camera preview to splitter
+        if ((status = connect_ports(camera_preview_port, splitter_input_port, &splitter_connection)) != MMAL_SUCCESS) {
+            vcos_log_error("make_connections(): could not connect camera preview to splitter");
+            return status;
+        }
+
+        // Connect splitter to preview renderer (or null sink)
+        if (preview_) {
+            if ((status = connect_ports(splitter_output_port_1, preview_input_port, &preview_connection)) != MMAL_SUCCESS) {
+                vcos_log_error("make_connections(): could not connect splitter output 1 to preview renderer");
+                return status;
+            }
+        } else {
+            if ((status = connect_ports(splitter_output_port_1, null_sink_input_port, &preview_connection)) != MMAL_SUCCESS) {
+                vcos_log_error("make_connections(): could not connect splitter output 1 to null sink");
+                return status;
+            }
+        }
+
+*/
+
+        // Connect camera video to encoder
+        if ((status = connect_ports(camera_video_port, encoder_input_port, &encoder_connection)) != MMAL_SUCCESS) {
+            vcos_log_error("make_connections(): could not connect camera video to encoder");
+            return status;
+        }
+
+
+        /*
+        // Connect video to splitter
+        if ((status = connect_ports(camera_preview_port, splitter_input_port, &splitter_connection)) != MMAL_SUCCESS) {
+            vcos_log_error("make_connections(): could not connect camera preview port to splitter");
+            return status;
+        }
+
+        // Connect splitter_output_1 to encoder
+        if ((status = connect_ports(camera_video_port, encoder_input_port, &encoder_connection)) != MMAL_SUCCESS) {
+            vcos_log_error("make_connections(): could not connect splitter to encoder");
+            return status;
+        }
+        */
+
+        return MMAL_SUCCESS;
+    }
+
+
+    MMAL_STATUS_T RPiMotionCam::add_callbacks() {
+        MMAL_STATUS_T status;
+        // Skip adding callback pstate, etc.
+
+        if ((status = mmal_port_enable(splitter_output_port_0, RPiMotionCam::splitter_buffer_callback)) != MMAL_SUCCESS) {
+            vcos_log_error("add_callbacks(): could not add splitter buffer callback");
+            return status;
+        }
+
+        if ((status = mmal_port_enable(encoder_output_port, RPiMotionCam::encoder_buffer_callback)) != MMAL_SUCCESS) {
+            vcos_log_error("add_callbacks(): could not add encoder buffer callback");
+            return status;
+        }
+
+        return MMAL_SUCCESS;
+    }
+
+    MMAL_STATUS_T RPiMotionCam::send_buffers() {
+        MMAL_STATUS_T status;
+
+        for (int i = 0; i < mmal_queue_length(encoder_pool->queue); i++) {
+            MMAL_BUFFER_HEADER_T *buffer = mmal_queue_get(encoder_pool->queue);
+            if (!buffer) {
+                vcos_log_error("Unable to get buffer %u from encoder pool", i);
+            } else {
+                if ((status = mmal_port_send_buffer(encoder_output_port, buffer)) != MMAL_SUCCESS) {
+                    vcos_log_error("Unable to send buffer %u to encoder output port", i);
+                }
+            }
+        }
+
+        for (int i = 0; i < mmal_queue_length(splitter_pool->queue); i++) {
+            MMAL_BUFFER_HEADER_T *buffer = mmal_queue_get(splitter_pool->queue);
+            if (!buffer) {
+                vcos_log_error("Unable to get buffer %u from splitter pool", i);
+            } else {
+                if ((status = mmal_port_send_buffer(splitter_output_port_0, buffer)) != MMAL_SUCCESS) {
+                    vcos_log_error("Unable to send buffer %u to splitter output port 0", i);
+                }
+            }
+        }
+    }
+
 
     void RPiMotionCam::check_disable_port(MMAL_PORT_T *port) {
         if (port && port->is_enabled) {
@@ -597,6 +741,16 @@ namespace rpi_motioncam {
 
     void RPiMotionCam::camera_control_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer) {
         cerr << "camera_control_callback(): I mostly don't care" << endl;
+        mmal_buffer_header_release(buffer);
+    }
+
+    void RPiMotionCam::encoder_buffer_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer) {
+        cerr << "encoder_buffer_callback(): method stub" << endl;
+        mmal_buffer_header_release(buffer);
+    }
+
+    void RPiMotionCam::splitter_buffer_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer) {
+        cerr << "splitter_buffer_callback(): method stub" << endl;
         mmal_buffer_header_release(buffer);
     }
 }
