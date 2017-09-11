@@ -368,10 +368,97 @@ namespace rpi_motioncam {
     }
 
     MMAL_STATUS_T RPiMotionCam::create_encoder_component() {
+        MMAL_STATUS_T status;
+
+        if ((status = mmal_component_create(MMAL_COMPONENT_DEFAULT_VIDEO_ENCODER, &encoder_component)) != MMAL_SUCCESS) {
+            vcos_log_error("create_encoder_component(): unable to create video encoder component");
+            return status;
+        }
+
+        // Sanity check that encoder component has inputs and outputs
+        if (!encoder_component->input_num || !encoder_component->output_num) {
+            vcos_log_error("create_encoder_component(): encoder doesn't have input/output ports");
+            vcos_log_error("create_encoder_component(): %u inputs, %u outputs", encoder_component->input_num, encoder_component->output_num);
+            return MMAL_ENOSYS;
+        }
+
+        encoder_input_port = encoder_component->input[0];
+        encoder_output_port = encoder_component->output[0];
+
+        mmal_format_copy(encoder_output_port->format, encoder_input_port->format);
+
+        // Require H264 encoding for motion vectors
+        encoder_output_port->format->encoding = MMAL_ENCODING_H264;
+        encoder_output_port->format->bitrate = MAX_BITRATE_LEVEL_4;
+        encoder_output_port->buffer_size = encoder_output_port->buffer_size_recommended;
+        if (encoder_output_port->buffer_size < encoder_output_port->buffer_size_min) {
+            encoder_output_port->buffer_size = encoder_output_port->buffer_size_min;
+        }
+        encoder_output_port->buffer_num = encoder_output_port->buffer_num_recommended;
+        if (encoder_output_port->buffer_num < encoder_output_port->buffer_num_min) {
+            encoder_output_port->buffer_num = encoder_output_port->buffer_num_min;
+        }
+        encoder_output_port->format->es->video.frame_rate.num = 0;
+        encoder_output_port->format->es->video.frame_rate.den = 1;
+
+        if ((status = mmal_port_format_commit(encoder_output_port)) != MMAL_SUCCESS) {
+            vcos_log_error("create_encoder_component(): unable to set format on video encoder output port");
+            return status;
+        }
+
+        // Omitting intraperiod, quantization code ...
+
+        MMAL_PARAMETER_VIDEO_PROFILE_T param;
+        param.hdr.id = MMAL_PARAMETER_PROFILE;
+        param.hdr.size = sizeof(param);
+        param.profile[0].profile = MMAL_VIDEO_PROFILE_H264_BASELINE;
+        h264level_ = MMAL_VIDEO_LEVEL_H264_4;
+        if ((VCOS_ALIGN_UP(width_, 16) >> 4) * (VCOS_ALIGN_UP(height_, 16) >> 4) * fps_ > 245760) {
+            if ((VCOS_ALIGN_UP(width_, 16) >> 4) * (VCOS_ALIGN_UP(height_, 16) >> 4) * fps_ <= 522240) {
+                // increase H264 level to 4.2... may not do anything for us
+                h264level_ = MMAL_VIDEO_LEVEL_H264_42;
+            } else {
+                vcos_log_error("create_encoder_component(): too many macroblocks per second requested");
+                return MMAL_ENOSYS;
+            }
+        }
+        param.profile[0].level = h264level_;
+        if ((status = mmal_port_parameter_set(encoder_output_port, &param.hdr)) != MMAL_SUCCESS) {
+            vcos_log_error("create_encoder_component(): unable to set h264 profile");
+            return status;
+        }
+
+        if ((status = mmal_port_parameter_set_boolean(encoder_output_port, MMAL_PARAMETER_VIDEO_ENCODE_INLINE_VECTORS, true)) != MMAL_SUCCESS) {
+            vcos_log_error("create_encoder_component(): could not set inline motion vecotrs");
+            return status;
+        }
+
+        if ((status = mmal_component_enable(encoder_component)) != MMAL_SUCCESS) {
+            vcos_log_error("create_encoder_component(): could not enable video encoder component");
+            return status;
+        }
+        
+        encoder_pool = mmal_port_pool_create(encoder_output_port, encoder_output_port->buffer_num, encoder_output_port->buffer_size);
+        if (!encoder_pool) {
+            vcos_log_error("create_encoder_component(): could not create encoder buffer pool");
+            return MMAL_ENOSYS;
+        }
+
         return MMAL_SUCCESS;
     }
 
     MMAL_STATUS_T RPiMotionCam::create_null_sink_component() {
+        MMAL_STATUS_T status;
+        if ((status = mmal_component_create("vc.null_sink", &null_sink_component)) != MMAL_SUCCESS) {
+            vcos_log_error("create_null_sink_component(): could not create null sink component");
+            return status;
+        }
+        if (!null_sink_component->input_num) {
+            vcos_log_error("create_null_sink_component(): null sink component had no inputs");
+            return MMAL_ENOSYS;
+        }
+        null_sink_input_port = null_sink_component->input[0];
+
         return MMAL_SUCCESS;
     }
 

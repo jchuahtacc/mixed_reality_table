@@ -32,6 +32,7 @@
 
 #define     VIDEO_OUTPUT_BUFFERS_NUM        3
 #define     PREVIEW_LAYER                   2
+#define     MAX_BITRATE_LEVEL_4             25000000
 
 namespace rpi_motioncam {
     class RPiMotionCam {
@@ -70,6 +71,7 @@ namespace rpi_motioncam {
             MMAL_PORT_T *splitter_input_port = NULL;
             MMAL_PORT_T *splitter_output_port = NULL;
             MMAL_PORT_T *splitter_preview_port = NULL;
+            MMAL_PORT_T *null_sink_input_port = NULL;
             MMAL_CONNECTION_T *preview_connection = NULL;
             MMAL_CONNECTION_T *splitter_connection = NULL;
             MMAL_CONNECTION_T *encoder_connection = NULL;
@@ -77,6 +79,7 @@ namespace rpi_motioncam {
             MMAL_POOL_T *splitter_pool = NULL;
 
             MMAL_ES_FORMAT_T *format;
+            MMAL_VIDEO_LEVEL_T h264level_;
 
             MMAL_STATUS_T create_camera_component();
             MMAL_STATUS_T create_preview_component();
