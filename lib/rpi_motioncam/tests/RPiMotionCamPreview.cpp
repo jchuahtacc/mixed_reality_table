@@ -20,7 +20,7 @@ int wait() {
 
 int main(int argc, char** argv) {
     RPiMotionCam* cam = RPiMotionCam::create();
-    MMAL_STATUS_T status = cam->init(PICAM2X_640_480_90, true);
+    MMAL_STATUS_T status = cam->init(PICAM_DEFAULT, true);
     if (status == MMAL_SUCCESS) {
         cout << "Init success" << endl;
     } else {

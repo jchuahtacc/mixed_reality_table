@@ -127,6 +127,8 @@ namespace rpi_motioncam {
         camera_preview_port = camera_component->output[0];
         camera_video_port = camera_component->output[1];
         camera_still_port = camera_component->output[2];
+        
+        /*
 
         // Request camera settings events
         MMAL_PARAMETER_CHANGE_EVENT_REQUEST_T change_event_request =
@@ -136,7 +138,7 @@ namespace rpi_motioncam {
         if ((status = mmal_port_parameter_set(camera_component->control, &change_event_request.hdr)) != MMAL_SUCCESS) {
             vcos_log_error("No camera settings events");
         }
-
+*/
         /* 
         // Enable camera, add callback function
         if ((status = mmal_port_enable(camera_component->control, RPiMotionCam::camera_control_callback)) != MMAL_SUCCESS) {
@@ -191,7 +193,6 @@ namespace rpi_motioncam {
 
         format = camera_video_port->format;
         format->encoding_variant = MMAL_ENCODING_I420;
-        // Skip shutter speed
         format->encoding = MMAL_ENCODING_OPAQUE;
         format->es->video.width = VCOS_ALIGN_UP(width_, 32);
         format->es->video.height = VCOS_ALIGN_UP(height_, 16);
@@ -209,12 +210,29 @@ namespace rpi_motioncam {
         if (camera_video_port->buffer_num < VIDEO_OUTPUT_BUFFERS_NUM) {
             camera_video_port->buffer_num = VIDEO_OUTPUT_BUFFERS_NUM;
         }
-/*
-        // Don't care about the still port
+
+        format = camera_still_port->format;
+        format->encoding_variant = MMAL_ENCODING_I420;
+        // Skip shutter speed
+        format->encoding = MMAL_ENCODING_OPAQUE;
+        format->es->video.width = VCOS_ALIGN_UP(width_, 32);
+        format->es->video.height = VCOS_ALIGN_UP(height_, 16);
+        format->es->video.crop.x = 0;
+        format->es->video.crop.y = 0;
+        format->es->video.crop.width = width_;
+        format->es->video.crop.height = height_;
+        format->es->video.frame_rate.num = fps_;
+        format->es->video.frame_rate.den = 1;
+
+        if ((status = mmal_port_format_commit(camera_still_port)) != MMAL_SUCCESS) {
+            vcos_log_error("create_camera_component(): still format couldn't be set");
+            return status;
+        }
+
+
         if (camera_still_port->buffer_num < VIDEO_OUTPUT_BUFFERS_NUM) {
             camera_still_port->buffer_num = VIDEO_OUTPUT_BUFFERS_NUM;
         }
-*/
         
         if ((status = mmal_component_enable(camera_component)) != MMAL_SUCCESS) {
             vcos_log_error("create_camera_component(): camera component couldn't be enabled");
@@ -233,7 +251,7 @@ namespace rpi_motioncam {
             case PICAM_DEFAULT:
                 width_ = 640;
                 height_ = 480;
-                fps_ = 60;
+                fps_ = 30;
                 camera_mode_ = 0;
                 return true;
                 break;
@@ -491,8 +509,6 @@ namespace rpi_motioncam {
             return status;
         }
 
-        // Omitting intraperiod, quantization code ...
-
         MMAL_PARAMETER_VIDEO_PROFILE_T param;
         param.hdr.id = MMAL_PARAMETER_PROFILE;
         param.hdr.size = sizeof(param);
@@ -513,16 +529,6 @@ namespace rpi_motioncam {
             return status;
         }
 
-
-        /*
-        if (mmal_port_parameter_set_boolean(encoder_input_port, MMAL_PARAMETER_VIDEO_IMMUTABLE_INPUT, true) != MMAL_SUCCESS) {
-            vcos_log_error("create_encoder_component(): unable to set immutable input flag");
-        }
-
-        if (mmal_port_parameter_set_boolean(encoder_output_port, MMAL_PARAMETER_VIDEO_ENCODE_INLINE_HEADER, false) != MMAL_SUCCESS) {
-            vcos_log_error("create_encoder_component(): unable to set inline header flag");
-        }
-*/
         if ((status = mmal_port_parameter_set_boolean(encoder_output_port, MMAL_PARAMETER_VIDEO_ENCODE_INLINE_VECTORS, true)) != MMAL_SUCCESS) {
             vcos_log_error("create_encoder_component(): could not set inline motion vecotrs");
             return status;

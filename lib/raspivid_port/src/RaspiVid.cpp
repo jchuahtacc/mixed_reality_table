@@ -104,10 +104,12 @@ namespace raspivid {
         state.profile = MMAL_VIDEO_PROFILE_H264_HIGH;
         state.level = MMAL_VIDEO_LEVEL_H264_4;
 
+        state.verbose = 1;
+
         state.bCapturing = 0;
         state.bInlineHeaders = 0;
 
-        state.inlineMotionVectors = 0;
+        state.inlineMotionVectors = 1;
         state.cameraNum = 0;
         state.settings = 0;
         state.sensor_mode = 0;
@@ -174,6 +176,8 @@ namespace raspivid {
         static int64_t base_time =  -1;
         static int64_t last_second = -1;
 
+        vcos_log_error("encoder_buffer_callback");
+
         // All our segment times based on the receipt of the first encoder callback
         if (base_time == -1) {
             base_time = vcos_getmicrosecs64() / 1000;
@@ -197,14 +201,19 @@ namespace raspivid {
                         vcos_log_error("Error in header bytes\n");
                     } else {
                         // These are the header bytes, save them for final output
+                        /*
                         mmal_buffer_header_mem_lock(buffer);
                         memcpy(pData->header_bytes + pData->header_wptr, buffer->data, buffer->length);
                         mmal_buffer_header_mem_unlock(buffer);
+                        */
                         pData->header_wptr += buffer->length;
                     }
                 } else if ((buffer->flags & MMAL_BUFFER_HEADER_FLAG_CODECSIDEINFO)) {
                     // Do something with the inline motion vectors...
+                    vcos_log_error("inline motion vector callback 1");
                 } else {
+                    /*
+                    vcos_log_error("encoder_buffer_callback(): Frame data");
                     static int frame_start = -1;
                     int i;
 
@@ -249,6 +258,7 @@ namespace raspivid {
                             vcos_log_error("Error in iframe list\n");
                         }
                     }
+                    */
                 }
             } else {
                 // For segmented record mode, we need to see if we have exceeded our time/size,
@@ -273,13 +283,17 @@ namespace raspivid {
                 */
                 if (buffer->length) {
                     mmal_buffer_header_mem_lock(buffer);
+                    fprintf(stderr, "Got filled buffer\n");
+                    mmal_buffer_header_mem_unlock(buffer);
+                }
+                /*
+                if (buffer->length) {
+                    mmal_buffer_header_mem_lock(buffer);
                     if(buffer->flags & MMAL_BUFFER_HEADER_FLAG_CODECSIDEINFO) {
                         if(pData->pstate->inlineMotionVectors) {
                             // Do Stuff with Inline Motion Vectors
-                            /*
-                                bytes_written = fwrite(buffer->data, 1, buffer->length, pData->imv_file_handle);
-                                if(pData->flush_buffers) fflush(pData->imv_file_handle);
-                            */
+                                //bytes_written = fwrite(buffer->data, 1, buffer->length, pData->imv_file_handle);
+                                // if(pData->flush_buffers) fflush(pData->imv_file_handle);
                         } else {
                             //We do not want to save inlineMotionVectors...
                             bytes_written = buffer->length;
@@ -307,6 +321,7 @@ namespace raspivid {
                         pData->abort = 1;
                     }
                 }
+                */
             }
         } else {
             vcos_log_error("Received a encoder buffer callback with no state");
@@ -848,6 +863,7 @@ namespace raspivid {
             }
         }
 
+        /*
         if (state.encoding == MMAL_ENCODING_H264 && state.intraperiod != -1) {
             MMAL_PARAMETER_UINT32_T param = {{ MMAL_PARAMETER_INTRAPERIOD, sizeof(param)}, state.intraperiod};
             status = mmal_port_parameter_set(encoder_output, &param.hdr);
@@ -856,6 +872,7 @@ namespace raspivid {
              return status;
             }
         }
+        */
 
         if (state.encoding == MMAL_ENCODING_H264 && state.quantisationParameter) {
             MMAL_PARAMETER_UINT32_T param = {{ MMAL_PARAMETER_VIDEO_ENCODE_INITIAL_QUANT, sizeof(param)}, state.quantisationParameter};
@@ -1282,6 +1299,8 @@ namespace raspivid {
                 vcos_log_error("Unable to send a buffer to splitter output port (%d)", q);
           }
        }
+
+       mmal_port_parameter_set_boolean(RaspiVid::camera_video_port, MMAL_PARAMETER_CAPTURE, 1);
 
        return MMAL_SUCCESS;
     }
