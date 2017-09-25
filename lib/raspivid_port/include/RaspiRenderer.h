@@ -26,8 +26,8 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef RASPIPREVIEW_H_
-#define RASPIPREVIEW_H_
+#ifndef RASPIRENDERER_H_
+#define RASPIRENDERER_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,13 +44,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "interface/mmal/util/mmal_default_components.h"
 #include "interface/mmal/util/mmal_connection.h"
 #include "interface/mmal/mmal_parameters_camera.h"
-
-#include "RaspiPreview.h"
-
-#define CommandPreview        1
-#define CommandFullScreen     2
-#define CommandOpacity        3
-#define CommandDisablePreview 4
 
 /// Layer that preview window should be displayed on
 #define PREVIEW_LAYER      2
@@ -71,19 +64,23 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define FULL_FOV_PREVIEW_FRAME_RATE_NUM 0
 #define FULL_FOV_PREVIEW_FRAME_RATE_DEN 1
 
-namespace raspi_preview {
-    typedef struct
-    {
-       int wantPreview;                       /// Display a preview
-       int wantFullScreenPreview;             /// 0 is use previewRect, non-zero to use full screen
-       int opacity;                           /// Opacity of window - 0 = transparent, 255 = opaque
-       MMAL_RECT_T previewWindow;             /// Destination rectangle for the preview window.
-       MMAL_COMPONENT_T *preview_component;   /// Pointer to the created preview display component
-    } RASPIPREVIEW_PARAMETERS;
+namespace raspivid {
 
-    MMAL_STATUS_T raspipreview_create(RASPIPREVIEW_PARAMETERS *state);
-    void raspipreview_destroy(RASPIPREVIEW_PARAMETERS *state);
-    void raspipreview_set_defaults(RASPIPREVIEW_PARAMETERS *state);
+    class RaspiRenderer {
+        public:
+            static RaspiRenderer* create(int alpha, int layer);
+            static RaspiRenderer* create();
+            MMAL_PORT_T *input;
+            ~RaspiRenderer();
+            void destroy();
+        private:
+            int alpha_ = 255;
+            int layer_ = PREVIEW_LAYER;
+            RaspiRenderer();
+            MMAL_STATUS_T init();
+            MMAL_RECT_T rendererWindow;
+            MMAL_COMPONENT_T *renderer;
+    };
 }
 
-#endif /* RASPIPREVIEW_H_ */
+#endif /* RASPIRENDERER_H_ */

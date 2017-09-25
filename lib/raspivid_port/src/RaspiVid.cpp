@@ -59,7 +59,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "RaspiVid.h"
 
-using namespace raspi_preview;
 using namespace raspi_cam_control;
 
 namespace raspivid {
@@ -118,12 +117,9 @@ namespace raspivid {
 
         state.frame = 0;
         state.save_pts = 0;
+        state.raw_output_fmt = RAW_OUTPUT_FMT_GRAY;
+        state.preview = false;
 
-        state.netListen = false;
-
-
-        // Setup preview window defaults
-        raspipreview_set_defaults(&state.preview_parameters);
 
         // Set up the camera_parameters to default
         raspicamcontrol_set_defaults(&state.camera_parameters);
@@ -709,7 +705,7 @@ namespace raspivid {
                         break;
                     default:
                         status = MMAL_EINVAL;
-                        vcos_log_error("unknown raw output format");
+                        vcos_log_error("RaspiVid::create_encoder_component(): unknown raw output format");
                         return status;
                 }
             }
@@ -1051,16 +1047,20 @@ namespace raspivid {
 
     MMAL_STATUS_T RaspiVid::create_components() {
         MMAL_STATUS_T status = MMAL_SUCCESS;
-        if ((status = create_camera_component()) != MMAL_SUCCESS)
-        {
+        if ((status = create_camera_component()) != MMAL_SUCCESS) {
           vcos_log_error("%s: Failed to create camera component", __func__);
           return status;
         }
-        if ((status = raspipreview_create(&state.preview_parameters)) != MMAL_SUCCESS)
-        {
-          vcos_log_error("%s: Failed to create preview component", __func__);
-          return status;
+
+        if (state.preview) {
+            preview_renderer = RaspiRenderer::create();
+            if (preview_renderer == NULL) {
+                vcos_log_error("%s: Failed to create preview component", __func__);
+                return MMAL_ENOSYS;
+            }
+            RaspiVid::preview_input_port = RaspiVid::preview_renderer->input;
         }
+
         if ((status = create_encoder_component()) != MMAL_SUCCESS)
         {
           vcos_log_error("%s: Failed to create encode component", __func__);
@@ -1074,7 +1074,6 @@ namespace raspivid {
         RaspiVid::camera_preview_port = RaspiVid::camera_component->output[MMAL_CAMERA_PREVIEW_PORT];
         RaspiVid::camera_video_port   = RaspiVid::camera_component->output[MMAL_CAMERA_VIDEO_PORT];
         RaspiVid::camera_still_port   = RaspiVid::camera_component->output[MMAL_CAMERA_CAPTURE_PORT];
-        RaspiVid::preview_input_port  = state.preview_parameters.preview_component->input[0];
         RaspiVid::encoder_input_port  = RaspiVid::encoder_component->input[0];
         RaspiVid::encoder_output_port = RaspiVid::encoder_component->output[0];
         
@@ -1090,7 +1089,7 @@ namespace raspivid {
             RaspiVid::splitter_preview_port = RaspiVid::splitter_component->output[SPLITTER_PREVIEW_PORT];
         }
 
-        if (state.preview_parameters.wantPreview ) {
+        if (state.preview) {
             if (state.raw_output) {
                 // Want preview, also want raw output
                 // camera_preview to splitter_input
@@ -1148,6 +1147,9 @@ namespace raspivid {
                    vcos_log_error("%s: Failed to connect camera preview port to splitter input", __func__);
                    return status;
                 }
+            } else {
+                // Don't want preview or raw output
+                // Connect null sink
             }
         }
 
@@ -1326,8 +1328,9 @@ namespace raspivid {
             mmal_component_disable(RaspiVid::encoder_component);
         }
 
-        if (state.preview_parameters.preview_component) {
-            mmal_component_disable(state.preview_parameters.preview_component);
+        if (preview_renderer) {
+            preview_renderer->destroy();
+            delete preview_renderer;
         }
 
         if (RaspiVid::splitter_component) {
@@ -1339,7 +1342,6 @@ namespace raspivid {
         }
 
         destroy_encoder_component();
-        raspipreview_destroy(&state.preview_parameters);
         destroy_splitter_component();
         destroy_camera_component();
 

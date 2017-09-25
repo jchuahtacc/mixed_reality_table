@@ -18,7 +18,9 @@ int wait() {
 
 
 int main(int argc, char** argv) {
-    RaspiVid* cam = RaspiVid::create();
+    RASPIVID_STATE_S state = createRaspiVidDefaultState();
+    state.preview = true;
+    RaspiVid* cam = RaspiVid::create(state);
 
     if (cam->init() == MMAL_SUCCESS) {
         cout << "Init success" << endl;

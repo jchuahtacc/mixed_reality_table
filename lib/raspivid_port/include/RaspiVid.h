@@ -70,7 +70,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "interface/mmal/mmal_parameters_camera.h"
 
 #include "RaspiCamControl.h"
-#include "RaspiPreview.h"
+#include "RaspiRenderer.h"
 
 
 // Standard port setting for the camera component
@@ -91,7 +91,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VIDEO_OUTPUT_BUFFERS_NUM 3
 
 namespace raspivid {
-    using namespace raspi_preview;
     using namespace raspi_cam_control;
 
     // Max bitrate we allow for recording
@@ -156,7 +155,6 @@ namespace raspivid {
        MMAL_VIDEO_PROFILE_T profile;                        /// H264 profile to use for encoding
        MMAL_VIDEO_LEVEL_T level;                          /// H264 level to use for encoding
 
-       RASPIPREVIEW_PARAMETERS preview_parameters;   /// Preview setup parameters
        RASPICAM_CAMERA_PARAMETERS camera_parameters; /// Camera setup parameters
 
 
@@ -176,8 +174,9 @@ namespace raspivid {
        int save_pts;
        int64_t starttime;
        int64_t lasttime;
+       
+       bool preview;
 
-       bool netListen;
     };
 
     RASPIVID_STATE_S createRaspiVidDefaultState();
@@ -335,5 +334,7 @@ namespace raspivid {
             static MMAL_PORT_T *splitter_input_port;
             static MMAL_PORT_T *splitter_output_port;
             static MMAL_PORT_T *splitter_preview_port;
+
+            RaspiRenderer *preview_renderer;
     };
 }
