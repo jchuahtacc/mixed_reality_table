@@ -93,6 +93,7 @@ namespace raspivid {
             return status;
         }
 
+        return MMAL_SUCCESS;
     }
 
 
