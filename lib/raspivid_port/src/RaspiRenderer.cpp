@@ -29,23 +29,23 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "RaspiRenderer.h"
 
 namespace raspivid {
-
-
-    RaspiRenderer* RaspiRenderer::create() {
-        return create(255, PREVIEW_LAYER);
+    const char* RaspiRenderer::component_name() {
+        return MMAL_COMPONENT_DEFAULT_VIDEO_RENDERER;
     }
 
     RaspiRenderer* RaspiRenderer::create(int alpha, int layer) {
         RaspiRenderer* result = new RaspiRenderer();
         result->alpha_ = alpha;
         result->layer_ = layer;
-        MMAL_STATUS_T status;
-        if ((status = result->init()) != MMAL_SUCCESS) {
+        if (result->init() != MMAL_SUCCESS) {
             result->destroy();
-            vcos_log_error("RaspiRenderer::create(): unable to create renderer");
             return NULL;
         }
         return result;
+    }
+
+    RaspiRenderer* RaspiRenderer::create() {
+        return create(255, PREVIEW_LAYER);
     }
 
     /**
@@ -59,18 +59,13 @@ namespace raspivid {
     MMAL_STATUS_T RaspiRenderer::init() {
         MMAL_STATUS_T status;
 
-        if ((status = mmal_component_create(MMAL_COMPONENT_DEFAULT_VIDEO_RENDERER, &renderer)) != MMAL_SUCCESS) {
-            vcos_log_error("RaspiRenderer::init(): unable to create renderer component");
+        if ((status = RaspiComponent::init()) != MMAL_SUCCESS) {
             return status;
         }
 
-        if (!renderer->input_num) {
-            status = MMAL_ENOSYS;
-            vcos_log_error("RaspiRenderer::init(): No input ports found on component");
-            return status;
-        }
+        assert_ports(1, 0);
 
-        input = renderer->input[0];
+        input = component->input[0];
 
         MMAL_DISPLAYREGION_T param;
         param.hdr.id = MMAL_PARAMETER_DISPLAYREGION;
@@ -93,7 +88,7 @@ namespace raspivid {
         }
 
         /* Enable component */
-        if ((status = mmal_component_enable(renderer)) != MMAL_SUCCESS) {
+        if ((status = mmal_component_enable(component)) != MMAL_SUCCESS) {
             vcos_log_error("RaspiRenderer::init(): unable to enable renderer component (%u)", status);
             return status;
         }
@@ -108,18 +103,8 @@ namespace raspivid {
      *
      */
     void RaspiRenderer::destroy() {
-        if (renderer) {
-            mmal_component_disable(renderer);
-            mmal_component_destroy(renderer);
-            renderer = NULL;
-        }
-    }
-
-    RaspiRenderer::RaspiRenderer() {
-    }
-
-    RaspiRenderer::~RaspiRenderer() {
-        destroy();
+        RaspiComponent::destroy();
+        check_disable_port(input);
     }
 
 }
