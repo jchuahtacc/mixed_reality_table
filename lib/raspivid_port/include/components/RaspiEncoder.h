@@ -1,14 +1,12 @@
 #ifndef __RASPIENCODER_H__
 #define __RASPIENCODER_H__
 
-#include "RaspiComponent.h"
+#include "components/RaspiComponent.h"
+#include "RaspiPort.h"
 
 
 #define VIDEO_FRAME_RATE_NUM 30
 #define VIDEO_FRAME_RATE_DEN 1
-#define MAX_BITRATE_MJPEG 25000000
-#define MAX_BITRATE_LEVEL4 25000000
-#define MAX_BITRATE_LEVEL42 62500000
 
 namespace raspivid {
       
@@ -28,18 +26,19 @@ namespace raspivid {
         int inlineMotionVectors;
     };
 
-    class RaspiEncoder : RaspiComponent {
+    class RaspiEncoder : public RaspiComponent {
         public:
             static RASPIENCODER_OPTION_S createDefaultEncoderOptions();
             static RaspiEncoder* create(RASPIENCODER_OPTION_S options);
             static RaspiEncoder* create();
-            MMAL_PORT_T *input;
-            MMAL_PORT_T *output;
+            RaspiPort *input;
+            RaspiPort *output;
             void destroy();
         protected:
-            static void callback(MMAL_PORT_T* port, MMAL_BUFFER_HEADER_T* buffer);
+            const int MAX_BITRATE_MJPEG = 25000000;
+            const int MAX_BITRATE_LEVEL4 = 25000000;
+            const int MAX_BITRATE_LEVEL42 = 62500000;
             const char* component_name();
-            static MMAL_POOL_T* pool;
             MMAL_STATUS_T init();
             RASPIENCODER_OPTION_S options_;
     };

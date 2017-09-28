@@ -1,14 +1,15 @@
 #ifndef __RASPINULLSINK_H__
 #define __RASPINULLSINK_H__
 
-#include "RaspiComponent.h"
+#include "components/RaspiComponent.h"
+#include "RaspiPort.h"
 
 namespace raspivid {
 
-    class RaspiNullsink : RaspiComponent {
+    class RaspiNullsink : public RaspiComponent {
         public:
             static RaspiNullsink* create();
-            MMAL_PORT_T *input;
+            RaspiPort *input;
             void destroy();
         protected:
             const char* component_name();

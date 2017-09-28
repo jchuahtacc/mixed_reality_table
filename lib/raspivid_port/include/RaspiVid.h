@@ -70,7 +70,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "interface/mmal/mmal_parameters_camera.h"
 
 #include "RaspiCamControl.h"
-#include "RaspiRenderer.h"
+#include "RaspiPort.h"
+#include "components/RaspiRenderer.h"
+#include "components/RaspiEncoder.h"
 
 
 // Standard port setting for the camera component
@@ -336,5 +338,6 @@ namespace raspivid {
             static MMAL_PORT_T *splitter_preview_port;
 
             RaspiRenderer *preview_renderer;
+            RaspiEncoder *encoder;
     };
 }

@@ -1058,14 +1058,22 @@ namespace raspivid {
                 vcos_log_error("%s: Failed to create preview component", __func__);
                 return MMAL_ENOSYS;
             }
-            RaspiVid::preview_input_port = RaspiVid::preview_renderer->input;
+            // RaspiVid::preview_input_port = RaspiVid::preview_renderer->input;
         }
 
+        /* RASPIENCODER
         if ((status = create_encoder_component()) != MMAL_SUCCESS)
         {
           vcos_log_error("%s: Failed to create encode component", __func__);
           return status;
         }
+        */
+
+        encoder = RaspiEncoder::create();
+        if (encoder == NULL) {
+            vcos_log_error("%s: Failed to create encoder component", __func__);
+        }
+
         if (state.raw_output && (status = create_splitter_component()) != MMAL_SUCCESS)
         {
           vcos_log_error("%s: Failed to create splitter component", __func__);
@@ -1074,8 +1082,10 @@ namespace raspivid {
         RaspiVid::camera_preview_port = RaspiVid::camera_component->output[MMAL_CAMERA_PREVIEW_PORT];
         RaspiVid::camera_video_port   = RaspiVid::camera_component->output[MMAL_CAMERA_VIDEO_PORT];
         RaspiVid::camera_still_port   = RaspiVid::camera_component->output[MMAL_CAMERA_CAPTURE_PORT];
+        /* RASPIENCODER
         RaspiVid::encoder_input_port  = RaspiVid::encoder_component->input[0];
         RaspiVid::encoder_output_port = RaspiVid::encoder_component->output[0];
+        */
         
         return MMAL_SUCCESS;
 
@@ -1108,14 +1118,22 @@ namespace raspivid {
                    fprintf(stderr, "Connecting splitter preview port to preview input port\n");
                    fprintf(stderr, "Starting video preview\n");
                 }
-
+                
+                
                 // Connect splitter to preview
+                status = preview_renderer->input->connect(RaspiVid::splitter_preview_port, &RaspiVid::preview_connection);
+                if (status != MMAL_SUCCESS) {
+                    vcos_log_error("failed to connect preview_renderer");
+                    return status;
+                }
+                /*
                 status = connect_ports(RaspiVid::splitter_preview_port, RaspiVid::preview_input_port, &RaspiVid::preview_connection);
                 if (status != MMAL_SUCCESS) {
                     RaspiVid::preview_connection = NULL;
                     vcos_log_error("%s: Failed to connect splitter preview to preview input port", __func__);
                     return status;
                 }
+                */
             } else {
                 // Want preview, don't want raw output
                 // camera_preview to preview
@@ -1125,7 +1143,8 @@ namespace raspivid {
                 }
 
                 // Connect camera to preview
-                status = connect_ports(RaspiVid::camera_preview_port, RaspiVid::preview_input_port, &RaspiVid::preview_connection);
+                //status = connect_ports(RaspiVid::camera_preview_port, RaspiVid::preview_input_port, &RaspiVid::preview_connection);
+                status = preview_renderer->input->connect(RaspiVid::camera_preview_port, &RaspiVid::preview_connection);
                 if (status != MMAL_SUCCESS) {
                     RaspiVid::preview_connection = NULL;
                     vcos_log_error("%s: Failed to connect camera preview to preview input port", __func__);
@@ -1156,6 +1175,7 @@ namespace raspivid {
         if (state.verbose)
             fprintf(stderr, "Connecting camera video port to encoder input port\n");
 
+        /* RASPIENCODER
         // Now connect the camera to the encoder
         status = connect_ports(RaspiVid::camera_video_port, RaspiVid::encoder_input_port, &RaspiVid::encoder_connection);
 
@@ -1164,6 +1184,12 @@ namespace raspivid {
             vcos_log_error("%s: Failed to connect camera video port to encoder input", __func__);
             return status;
         }
+        */
+        /*
+        if ((status = encoder->connect(RaspiVid::camera_video_port)) != MMAL_SUCCESS) {
+            vcos_log_error("your new code sucks");
+        }
+        */
 
         return MMAL_SUCCESS;
     }
@@ -1217,6 +1243,7 @@ namespace raspivid {
             }
         }
 
+        /* RASPIENCODER
         // Set up our userdata - this is passed though to the callback where we need the information.
         encoder_output_port->userdata = (struct MMAL_PORT_USERDATA_T *)&state.callback_data;
 
@@ -1231,6 +1258,7 @@ namespace raspivid {
             vcos_log_error("Failed to setup encoder_buffer_callback on encoder output port");
             return status;
         }
+        */
 
         return MMAL_SUCCESS;
     }
@@ -1272,6 +1300,7 @@ namespace raspivid {
     }
 
     MMAL_STATUS_T RaspiVid::start() {
+        /* RASPIENCODER
        // Send all the buffers to the encoder output port
        {
           int num = mmal_queue_length(RaspiVid::encoder_pool->queue);
@@ -1287,6 +1316,7 @@ namespace raspivid {
                 vcos_log_error("Unable to send a buffer to encoder output port (%d)", q);
           }
        }
+       */
 
        // Send all the buffers to the splitter output port
        if (state.raw_output) {

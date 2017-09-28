@@ -15,7 +15,7 @@ set(RPI_MOTIONCAM_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include CACHE PATH "r
 
 include_directories("${RPI_MOTIONCAM_INCLUDE_DIRS}")
 
-add_library(rpi_motioncam ./src/RaspiVid.cpp ./src/RaspiRenderer.cpp ./src/RaspiCamControl.cpp ./src/RaspiComponent.cpp ./src/RaspiNullsink.cpp ./src/RaspiEncoder.cpp)
+add_library(rpi_motioncam ./src/RaspiVid.cpp ./src/components/RaspiRenderer.cpp ./src/RaspiCamControl.cpp ./src/components/RaspiComponent.cpp ./src/components/RaspiNullsink.cpp ./src/components/RaspiEncoder.cpp ./src/RaspiPort.cpp)
 target_link_libraries(rpi_motioncam ${MMAL_LIBRARIES} pthread)
 
 if (BUILD_RPIMOTIONCAM_TESTS)

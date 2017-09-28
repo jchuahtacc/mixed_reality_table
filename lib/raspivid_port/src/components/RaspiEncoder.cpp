@@ -1,4 +1,4 @@
-#include "RaspiEncoder.h"
+#include "components/RaspiEncoder.h"
 
 namespace raspivid {
     const char* RaspiEncoder::component_name() {
@@ -37,6 +37,7 @@ namespace raspivid {
         return create(RaspiEncoder::createDefaultEncoderOptions());
     }
 
+    // Subclasses should override, call RaspiEncoder::init() and then output->add_callback
     MMAL_STATUS_T RaspiEncoder::init() {
         MMAL_STATUS_T status;
 
@@ -46,13 +47,16 @@ namespace raspivid {
 
         assert_ports(1, 1);
 
-        input = component->input[0];
-        output = component->output[0];
+        MMAL_PORT_T *mmal_input = component->input[0];
+        MMAL_PORT_T *mmal_output = component->output[0];
 
-        mmal_format_copy(output->format, input->format);
+        input = new RaspiPort(mmal_input);
+        output = new RaspiPort(mmal_output);
+
+        mmal_format_copy(mmal_output->format, mmal_input->format);
 
         // Only supporting H264 at the moment
-        output->format->encoding = options_.encoding;
+        mmal_output->format->encoding = options_.encoding;
 
         if (options_.encoding == MMAL_ENCODING_H264) {
             if (options_.level == MMAL_VIDEO_LEVEL_H264_4) {
@@ -73,32 +77,32 @@ namespace raspivid {
             }
         }
 
-        output->format->bitrate = options_.bitrate;
+        mmal_output->format->bitrate = options_.bitrate;
 
         if (options_.encoding == MMAL_ENCODING_H264) {
-            output->buffer_size = output->buffer_size_recommended;
+            mmal_output->buffer_size = mmal_output->buffer_size_recommended;
         } else {
-            output->buffer_size = 256<<10;
+            mmal_output->buffer_size = 256<<10;
         }
 
 
-        if (output->buffer_size < output->buffer_size_min) {
-            output->buffer_size = output->buffer_size_min;
+        if (mmal_output->buffer_size < mmal_output->buffer_size_min) {
+            mmal_output->buffer_size = mmal_output->buffer_size_min;
         }
 
-        output->buffer_num = output->buffer_num_recommended;
+        mmal_output->buffer_num = mmal_output->buffer_num_recommended;
 
-        if (output->buffer_num < output->buffer_num_min) {
-            output->buffer_num = output->buffer_num_min;
+        if (mmal_output->buffer_num < mmal_output->buffer_num_min) {
+            mmal_output->buffer_num = mmal_output->buffer_num_min;
         }
 
         // We need to set the frame rate on output to 0, to ensure it gets
         // updated correctly from the input framerate when port connected
-        output->format->es->video.frame_rate.num = 0;
-        output->format->es->video.frame_rate.den = 1;
+        mmal_output->format->es->video.frame_rate.num = 0;
+        mmal_output->format->es->video.frame_rate.den = 1;
 
         // Commit the port changes to the output port
-        status = mmal_port_format_commit(output);
+        status = mmal_port_format_commit(mmal_output);
 
         if (status != MMAL_SUCCESS) {
             vcos_log_error("RaspiEncoder::init(): Unable to set format on video encoder output port");
@@ -107,21 +111,21 @@ namespace raspivid {
 
         if (options_.encoding == MMAL_ENCODING_H264 && options_.quantisationParameter) {
             MMAL_PARAMETER_UINT32_T param = {{ MMAL_PARAMETER_VIDEO_ENCODE_INITIAL_QUANT, sizeof(param)}, options_.quantisationParameter};
-            status = mmal_port_parameter_set(output, &param.hdr);
+            status = mmal_port_parameter_set(mmal_output, &param.hdr);
             if (status != MMAL_SUCCESS) {
                 vcos_log_error("RaspiEncoder::init(): Unable to set initial QP");
                 return status;
             }
 
             MMAL_PARAMETER_UINT32_T param2 = {{ MMAL_PARAMETER_VIDEO_ENCODE_MIN_QUANT, sizeof(param)}, options_.quantisationParameter};
-            status = mmal_port_parameter_set(output, &param2.hdr);
+            status = mmal_port_parameter_set(mmal_output, &param2.hdr);
             if (status != MMAL_SUCCESS) {
                 vcos_log_error("RaspiEncoder::init(): Unable to set min QP");
                 return status;
             }
 
             MMAL_PARAMETER_UINT32_T param3 = {{ MMAL_PARAMETER_VIDEO_ENCODE_MAX_QUANT, sizeof(param)}, options_.quantisationParameter};
-            status = mmal_port_parameter_set(output, &param3.hdr);
+            status = mmal_port_parameter_set(mmal_output, &param3.hdr);
             if (status != MMAL_SUCCESS) {
                 vcos_log_error("RaspiEncoder::init(): Unable to set max QP");
                 return status;
@@ -147,27 +151,27 @@ namespace raspivid {
 
             param.profile[0].level = options_.level;
 
-            status = mmal_port_parameter_set(output, &param.hdr);
+            status = mmal_port_parameter_set(mmal_output, &param.hdr);
             if (status != MMAL_SUCCESS) {
                 vcos_log_error("RaspiEncoder::init(): Unable to set H264 profile");
                 return status;
             }
         }
 
-        if (mmal_port_parameter_set_boolean(input, MMAL_PARAMETER_VIDEO_IMMUTABLE_INPUT, options_.immutableInput) != MMAL_SUCCESS) {
+        if (mmal_port_parameter_set_boolean(mmal_input, MMAL_PARAMETER_VIDEO_IMMUTABLE_INPUT, options_.immutableInput) != MMAL_SUCCESS) {
             vcos_log_error("RaspiEncoder::init(): Unable to set immutable input flag");
             // Continue rather than abort..
         }
 
         //set INLINE HEADER flag to generate SPS and PPS for every IDR if requested
-        if (mmal_port_parameter_set_boolean(output, MMAL_PARAMETER_VIDEO_ENCODE_INLINE_HEADER, options_.bInlineHeaders) != MMAL_SUCCESS) {
+        if (mmal_port_parameter_set_boolean(mmal_output, MMAL_PARAMETER_VIDEO_ENCODE_INLINE_HEADER, options_.bInlineHeaders) != MMAL_SUCCESS) {
             vcos_log_error("RaspiEncoder::init(): failed to set INLINE HEADER FLAG parameters");
             // Continue rather than abort..
         }
 
         //set INLINE VECTORS flag to request motion vector estimates
         if (options_.encoding == MMAL_ENCODING_H264 && 
-                mmal_port_parameter_set_boolean(output, MMAL_PARAMETER_VIDEO_ENCODE_INLINE_VECTORS, options_.inlineMotionVectors) != MMAL_SUCCESS) {
+                mmal_port_parameter_set_boolean(mmal_output, MMAL_PARAMETER_VIDEO_ENCODE_INLINE_VECTORS, options_.inlineMotionVectors) != MMAL_SUCCESS) {
             vcos_log_error("RaspiEncoder::init(): failed to set INLINE VECTORS parameters");
             // Continue rather than abort..
         }
@@ -179,7 +183,7 @@ namespace raspivid {
             param.hdr.size = sizeof(param);
 
             // Get first so we don't overwrite anything unexpectedly
-            status = mmal_port_parameter_get(output, &param.hdr);
+            status = mmal_port_parameter_get(mmal_output, &param.hdr);
             if (status != MMAL_SUCCESS) {
                 vcos_log_warn("RaspiEncoder::init(): Unable to get existing H264 intra-refresh values. Please update your firmware");
                 // Set some defaults, don't just pass random stack data
@@ -191,7 +195,7 @@ namespace raspivid {
             //if (state->intra_refresh_type == MMAL_VIDEO_INTRA_REFRESH_CYCLIC_MROWS)
             //   param.cir_mbs = 10;
 
-            status = mmal_port_parameter_set(output, &param.hdr);
+            status = mmal_port_parameter_set(mmal_output, &param.hdr);
             if (status != MMAL_SUCCESS) {
                 vcos_log_error("RaspiEncoder::init(): Unable to set H264 intra-refresh values");
                 return status;
@@ -203,52 +207,19 @@ namespace raspivid {
             return status;
         }
 
-        pool = mmal_port_pool_create(output, output->buffer_num, output->buffer_size);
-        if (!pool) {
-            vcos_log_error("RaspiEncoder::init(): unable to create buffer header pool for output port");
-        }
-
-        int queue_length = mmal_queue_length(pool->queue);
-        for (int i = 0; i < queue_length; i++) {
-            MMAL_BUFFER_HEADER_T *buffer = mmal_queue_get(pool->queue);
-            if (!buffer) {
-                vcos_log_error("RaspiEncoder::init(): unable to get buffer from pool");
-            }
-            if (mmal_port_send_buffer(output, buffer) != MMAL_SUCCESS) {
-                vcos_log_error("RaspiEncoder::init(): unable to send buffer to output port");
-            }
-        }
-
-        // attempting to skip userdata pointer, enable callback BEFORE connecting components 
-        // also attempting to do static callback function to child class
-        if ((status = mmal_port_enable(output, callback)) != MMAL_SUCCESS) {
-            vcos_log_error("RaspiEncoder::init(): unable to setup callback on output port");
-            return status;
-        }
-
         return MMAL_SUCCESS;
-
     }
 
     void RaspiEncoder::destroy() {
-        if (pool) {
-            mmal_port_pool_destroy(output, pool);
+        if (input) {
+            input->destroy();
+            delete input;
+        }
+        if (output) {
+            output->destroy();
+            delete output;
         }
         RaspiComponent::destroy();
-        check_disable_port(input);
     }
 
-    void RaspiEncoder::callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer) {
-        // Debug:
-        vcos_log_error("RaspiEncoder::callback()");
-        mmal_buffer_header_release(buffer);
-        if (port->is_enabled) {
-            MMAL_BUFFER_HEADER_T *new_buffer = mmal_queue_get(RaspiEncoder::pool->queue);
-            if (new_buffer) {
-                if (mmal_port_send_buffer(port, new_buffer) != MMAL_SUCCESS) {
-                    vcos_log_error("RaspiEncoder::callback(): unable to return a buffer");
-                }
-            }
-        }
-    }
 }

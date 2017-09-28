@@ -20,19 +20,17 @@
 using namespace std;
 
 namespace raspivid {
+
     class RaspiComponent {
         public:
             ~RaspiComponent();
-            MMAL_PORT_T* input;
             void destroy();
-            MMAL_CONNECTION_T* connect(MMAL_PORT_T* output);
         protected:
             RaspiComponent();
             MMAL_STATUS_T init();
             MMAL_COMPONENT_T *component;
             virtual const char* component_name() =0;
             void assert_ports(int inputs, int outputs);
-            void check_disable_port(MMAL_PORT_T* port);
     };
 }
 
