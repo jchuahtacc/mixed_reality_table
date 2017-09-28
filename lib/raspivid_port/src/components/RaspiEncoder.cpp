@@ -37,7 +37,6 @@ namespace raspivid {
         return create(RaspiEncoder::createDefaultEncoderOptions());
     }
 
-    // Subclasses should override, call RaspiEncoder::init() and then output->add_callback
     MMAL_STATUS_T RaspiEncoder::init() {
         MMAL_STATUS_T status;
 
@@ -206,6 +205,8 @@ namespace raspivid {
             vcos_log_error("RaspiEncoder::init(): unable to enable encoder component (%u)", status);
             return status;
         }
+
+        vcos_log_error("RaspiEncoder::init(): success!");
 
         return MMAL_SUCCESS;
     }

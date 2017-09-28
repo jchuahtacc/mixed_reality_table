@@ -1185,11 +1185,14 @@ namespace raspivid {
             return status;
         }
         */
-        /*
-        if ((status = encoder->connect(RaspiVid::camera_video_port)) != MMAL_SUCCESS) {
-            vcos_log_error("your new code sucks");
+
+        vcos_assert(encoder->input);
+        vcos_assert(RaspiVid::camera_video_port);
+        status = encoder->input->connect(RaspiVid::camera_video_port, &RaspiVid::encoder_connection);
+        if (status != MMAL_SUCCESS) {
+            vcos_log_error("Failed to connect RaspiEncoder");
+            return status;
         }
-        */
 
         return MMAL_SUCCESS;
     }
@@ -1243,6 +1246,8 @@ namespace raspivid {
             }
         }
 
+        mvCallback = new MotionVectorCallback();
+        encoder->output->add_callback(mvCallback);
         /* RASPIENCODER
         // Set up our userdata - this is passed though to the callback where we need the information.
         encoder_output_port->userdata = (struct MMAL_PORT_USERDATA_T *)&state.callback_data;
@@ -1374,6 +1379,10 @@ namespace raspivid {
         destroy_encoder_component();
         destroy_splitter_component();
         destroy_camera_component();
+
+        if (mvCallback) {
+            delete mvCallback;
+        }
 
         if (state.verbose) {
             fprintf(stderr, "Close down completed, all components disconnected, disabled and destroyed\n\n");

@@ -71,6 +71,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "RaspiCamControl.h"
 #include "RaspiPort.h"
+#include "MotionVectorCallback.h"
 #include "components/RaspiRenderer.h"
 #include "components/RaspiEncoder.h"
 
@@ -339,5 +340,7 @@ namespace raspivid {
 
             RaspiRenderer *preview_renderer;
             RaspiEncoder *encoder;
+
+            MotionVectorCallback *mvCallback;
     };
 }
