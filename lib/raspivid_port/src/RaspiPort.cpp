@@ -39,11 +39,11 @@ namespace raspivid {
         result.frame_rate_den = 1;
     }
 
-    MMAL_STATUS_T RaspiPort::format(RASPIPORT_FORMAT_S options) {
+    MMAL_STATUS_T RaspiPort::set_format(RASPIPORT_FORMAT_S options) {
         vcos_assert(port);
         MMAL_ES_FORMAT_T *format = port->format;
         format->encoding = options.encoding;
-        format->encoding_variant = options.encoding;
+        format->encoding_variant = options.encoding_variant;
         format->es->video.width = VCOS_ALIGN_UP(options.width, 32);
         format->es->video.height = VCOS_ALIGN_UP(options.height, 16);
         format->es->video.crop.x = options.crop_x;
@@ -59,6 +59,23 @@ namespace raspivid {
             return status;
         }
         return MMAL_SUCCESS;
+    }
+
+    RASPIPORT_FORMAT_S RaspiPort::get_format() {
+        vcos_assert(port);
+        MMAL_ES_FORMAT_T *format = port->format;
+        RASPIPORT_FORMAT_S result;
+        result.encoding = format->encoding;
+        result.encoding_variant = format->encoding_variant;
+        result.width = format->es->video.width;
+        result.height = format->es->video.height;
+        result.crop_x = format->es->video.crop.x;
+        result.crop_y = format->es->video.crop.y;
+        result.crop_width = format->es->video.crop.width;
+        result.crop_height = format->es->video.crop.height;
+        result.frame_rate_num = format->es->video.frame_rate.num;
+        result.frame_rate_den = format->es->video.frame_rate.den;
+        return result;
     }
 
 
@@ -84,23 +101,6 @@ namespace raspivid {
 
     MMAL_STATUS_T RaspiPort::connect(RaspiPort *output_port) {
         return connect(output_port->port, &connection);
-        /*
-        vcos_assert(port);
-        MMAL_STATUS_T status = mmal_connection_create(&connection, output_port->port, port, MMAL_CONNECTION_FLAG_TUNNELLING | MMAL_CONNECTION_FLAG_ALLOCATION_ON_INPUT);
-        if (status != MMAL_SUCCESS) {
-            vcos_log_error("RaspiPort::connect(): unable to connect port");
-            return status;
-        }
-
-        if ((status = mmal_connection_enable(connection)) != MMAL_SUCCESS) {
-            vcos_log_error("RaspiPort::connect(): unable to enable connection");
-            mmal_connection_destroy(connection);
-            connection = NULL;
-            return status;
-        }
-
-        return MMAL_SUCCESS;
-        */
     }
 
     void RaspiPort::callback_wrapper(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer) {

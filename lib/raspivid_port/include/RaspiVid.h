@@ -72,8 +72,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "RaspiCamControl.h"
 #include "RaspiPort.h"
 #include "MotionVectorCallback.h"
+#include "RawOutputCallback.h"
 #include "components/RaspiRenderer.h"
 #include "components/RaspiEncoder.h"
+#include "components/RaspiSplitter.h"
 
 
 // Standard port setting for the camera component
@@ -340,7 +342,9 @@ namespace raspivid {
 
             RaspiRenderer *preview_renderer;
             RaspiEncoder *encoder;
+            RaspiSplitter *splitter;
 
             MotionVectorCallback *mvCallback;
+            RawOutputCallback *roCallback;
     };
 }

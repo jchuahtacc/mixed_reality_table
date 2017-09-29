@@ -28,7 +28,8 @@ namespace raspivid {
             RaspiPort(MMAL_PORT_T *port);
             ~RaspiPort();
             static RASPIPORT_FORMAT_S createDefaultPortFormat();
-            MMAL_STATUS_T format(RASPIPORT_FORMAT_S new_format);
+            MMAL_STATUS_T set_format(RASPIPORT_FORMAT_S new_format);
+            RASPIPORT_FORMAT_S get_format();
             MMAL_STATUS_T add_callback(RaspiCallback *callback);
             MMAL_STATUS_T connect(RaspiPort *output);
             MMAL_STATUS_T connect(MMAL_PORT_T *output, MMAL_CONNECTION_T **connection);

@@ -15,8 +15,8 @@ namespace raspivid {
 
     void RaspiComponent::assert_ports(int inputs, int outputs) {
         vcos_assert(component);
-        vcos_assert(component->input_num == inputs);
-        vcos_assert(component->output_num == outputs);
+        vcos_assert(component->input_num >= inputs);
+        vcos_assert(component->output_num >= outputs);
     }
 
     void RaspiComponent::destroy() {
