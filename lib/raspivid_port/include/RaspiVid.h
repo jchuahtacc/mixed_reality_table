@@ -180,6 +180,9 @@ namespace raspivid {
        int save_pts;
        int64_t starttime;
        int64_t lasttime;
+
+       uint32_t resizer_width;               /// Resizer component width for compressed motion vectors
+       uint32_t resizer_height;              /// Resizer component height 
        
        bool preview;
 

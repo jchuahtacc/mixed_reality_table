@@ -120,6 +120,9 @@ namespace raspivid {
         state.raw_output_fmt = RAW_OUTPUT_FMT_GRAY;
         state.preview = false;
 
+        state.resizer_width = 640;
+        state.resizer_height = 480;
+
 
         // Set up the camera_parameters to default
         raspicamcontrol_set_defaults(&state.camera_parameters);
@@ -1075,7 +1078,12 @@ namespace raspivid {
             return MMAL_ENOSYS;
         }
 
-        encoder = RaspiEncoder::create();
+        // encoder = RaspiEncoder::create();
+        RASPIENCODER_OPTION_S encoder_options = RaspiEncoder::createDefaultEncoderOptions();
+        encoder_options.width = state.resizer_width;
+        encoder_options.height = state.resizer_height;
+        encoder = RaspiEncoder::create(encoder_options);
+
         if (encoder == NULL) {
             vcos_log_error("%s: Failed to create encoder component", __func__);
             return MMAL_ENOSYS;
@@ -1230,7 +1238,7 @@ namespace raspivid {
             vcos_log_error("Failed to connect RaspiResizer to camera_video_port");
             return status;
         }
-        status = resizer->set_output(800, 600);
+        status = resizer->set_output(state.resizer_width, state.resizer_height);
         if (status != MMAL_SUCCESS) {
             vcos_log_error("Failed to set output format on resizer");
             return status;
