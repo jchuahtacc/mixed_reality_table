@@ -1069,6 +1069,12 @@ namespace raspivid {
         }
         */
 
+        resizer = RaspiResize::create();
+        if (resizer == NULL) {
+            vcos_log_error("%s: Failed to create resizer component", __func__);
+            return MMAL_ENOSYS;
+        }
+
         encoder = RaspiEncoder::create();
         if (encoder == NULL) {
             vcos_log_error("%s: Failed to create encoder component", __func__);
@@ -1203,7 +1209,7 @@ namespace raspivid {
         }
 
         if (state.verbose)
-            fprintf(stderr, "Connecting camera video port to encoder input port\n");
+            fprintf(stderr, "Connecting camera video port to resizer input port\n");
 
         /* RASPIENCODER
         // Now connect the camera to the encoder
@@ -1216,6 +1222,30 @@ namespace raspivid {
         }
         */
 
+        // Connect camera to resizer
+        vcos_assert(resizer->input);
+        vcos_assert(RaspiVid::camera_video_port);
+        status = resizer->input->connect(RaspiVid::camera_video_port, &RaspiVid::encoder_connection);
+        if (status != MMAL_SUCCESS) {
+            vcos_log_error("Failed to connect RaspiResizer to camera_video_port");
+            return status;
+        }
+        status = resizer->set_output(800, 600);
+        if (status != MMAL_SUCCESS) {
+            vcos_log_error("Failed to set output format on resizer");
+            return status;
+        }
+        
+        // Connect resizer to encoder
+        vcos_assert(encoder->input);
+        vcos_assert(resizer->output);
+        status = encoder->input->connect(resizer->output);
+        if (status != MMAL_SUCCESS) {
+            vcos_log_error("Failed to connect RaspiEncoder to RaspiResizer");
+            return status;
+        }
+
+        /*
         vcos_assert(encoder->input);
         vcos_assert(RaspiVid::camera_video_port);
         status = encoder->input->connect(RaspiVid::camera_video_port, &RaspiVid::encoder_connection);
@@ -1223,6 +1253,7 @@ namespace raspivid {
             vcos_log_error("Failed to connect RaspiEncoder");
             return status;
         }
+        */
 
         return MMAL_SUCCESS;
     }

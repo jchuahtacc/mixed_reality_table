@@ -76,6 +76,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "components/RaspiRenderer.h"
 #include "components/RaspiEncoder.h"
 #include "components/RaspiSplitter.h"
+#include "components/RaspiResize.h"
 
 
 // Standard port setting for the camera component
@@ -326,6 +327,7 @@ namespace raspivid {
             static MMAL_CONNECTION_T *preview_connection; /// Pointer to the connection from camera or splitter to preview
             static MMAL_CONNECTION_T *splitter_connection;/// Pointer to the connection from camera to splitter
             static MMAL_CONNECTION_T *encoder_connection; /// Pointer to the connection from camera to encoder
+            static MMAL_CONNECTION_T *resizer_connection; /// Pointer to the connection from camera to resizer -- replaces encoder_connection
 
             static MMAL_POOL_T *splitter_pool; /// Pointer to the pool of buffers used by splitter output port 0
             static MMAL_POOL_T *encoder_pool; /// Pointer to the pool of buffers used by encoder output port
@@ -343,6 +345,7 @@ namespace raspivid {
             RaspiRenderer *preview_renderer;
             RaspiEncoder *encoder;
             RaspiSplitter *splitter;
+            RaspiResize *resizer;
 
             MotionVectorCallback *mvCallback;
             RawOutputCallback *roCallback;
