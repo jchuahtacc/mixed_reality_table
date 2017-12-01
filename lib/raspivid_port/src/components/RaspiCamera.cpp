@@ -39,6 +39,7 @@ namespace raspivid {
         options.settings_callback = NULL;
         options.verbose = 0;
         raspicamcontrol_set_defaults(&options.camera_parameters);
+        return options;
     }
 
     RaspiCamera* RaspiCamera::create(RASPICAMERA_OPTION_S options) {

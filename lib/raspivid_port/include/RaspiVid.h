@@ -77,6 +77,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "components/RaspiEncoder.h"
 #include "components/RaspiSplitter.h"
 #include "components/RaspiResize.h"
+#include "components/RaspiCamera.h"
 
 
 // Standard port setting for the camera component
@@ -345,6 +346,7 @@ namespace raspivid {
             static MMAL_PORT_T *splitter_output_port;
             static MMAL_PORT_T *splitter_preview_port;
 
+            RaspiCamera *camera;
             RaspiRenderer *preview_renderer;
             RaspiEncoder *encoder;
             RaspiSplitter *splitter;

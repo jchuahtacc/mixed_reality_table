@@ -421,6 +421,7 @@ namespace raspivid {
             return status;
         }
 
+        vcos_log_error("camera num: %d", state.cameraNum);
         MMAL_PARAMETER_INT32_T camera_num =
             {{MMAL_PARAMETER_CAMERA_NUM, sizeof(camera_num)}, state.cameraNum};
 
@@ -1050,9 +1051,18 @@ namespace raspivid {
 
     MMAL_STATUS_T RaspiVid::create_components() {
         MMAL_STATUS_T status = MMAL_SUCCESS;
+        /*
         if ((status = create_camera_component()) != MMAL_SUCCESS) {
           vcos_log_error("%s: Failed to create camera component", __func__);
           return status;
+        }
+        */
+
+
+        camera = RaspiCamera::create();
+        if (camera == NULL) {
+            vcos_log_error("RaspiVid::create_components(): Failed to create RaspiCamera");
+            return MMAL_ENOSYS;
         }
 
         if (state.preview) {
@@ -1103,9 +1113,11 @@ namespace raspivid {
           return status;
         }
         */
+        /*
         RaspiVid::camera_preview_port = RaspiVid::camera_component->output[MMAL_CAMERA_PREVIEW_PORT];
         RaspiVid::camera_video_port   = RaspiVid::camera_component->output[MMAL_CAMERA_VIDEO_PORT];
         RaspiVid::camera_still_port   = RaspiVid::camera_component->output[MMAL_CAMERA_CAPTURE_PORT];
+        */
         /* RASPIENCODER
         RaspiVid::encoder_input_port  = RaspiVid::encoder_component->input[0];
         RaspiVid::encoder_output_port = RaspiVid::encoder_component->output[0];
@@ -1147,9 +1159,10 @@ namespace raspivid {
                 
                 */
                 vcos_assert(splitter);
-                status = splitter->input->connect(RaspiVid::camera_preview_port, &RaspiVid::splitter_connection);
+                // status = splitter->input->connect(RaspiVid::camera_preview_port, &RaspiVid::splitter_connection);
+                status = splitter->input->connect(camera->preview);
                 if (status != MMAL_SUCCESS) {
-                    RaspiVid::splitter_connection = NULL;
+                    // RaspiVid::splitter_connection = NULL;
                     vcos_log_error("RaspiVid::connect_components(): failed to connect camera preview to splitter input");
                     return status;
                 }
@@ -1183,9 +1196,10 @@ namespace raspivid {
 
                 // Connect camera to preview
                 //status = connect_ports(RaspiVid::camera_preview_port, RaspiVid::preview_input_port, &RaspiVid::preview_connection);
-                status = preview_renderer->input->connect(RaspiVid::camera_preview_port, &RaspiVid::preview_connection);
+                //status = preview_renderer->input->connect(RaspiVid::camera_preview_port, &RaspiVid::preview_connection);
+                status = preview_renderer->input->connect(camera->preview);
                 if (status != MMAL_SUCCESS) {
-                    RaspiVid::preview_connection = NULL;
+                    // RaspiVid::preview_connection = NULL;
                     vcos_log_error("%s: Failed to connect camera preview to preview input port", __func__);
                     return status;
                 }
@@ -1199,11 +1213,12 @@ namespace raspivid {
 
                 // Connect camera to splitter
                 //status = connect_ports(RaspiVid::camera_preview_port, RaspiVid::splitter_input_port, &RaspiVid::splitter_connection);
-                status = splitter->input->connect(RaspiVid::camera_preview_port, &RaspiVid::splitter_connection);
+                //status = splitter->input->connect(RaspiVid::camera_preview_port, &RaspiVid::splitter_connection);
+                status = splitter->input->connect(camera->preview);
                 if (status != MMAL_SUCCESS) {
-                    RaspiVid::splitter_connection = NULL;
-                   vcos_log_error("%s: Failed to connect camera preview port to splitter input", __func__);
-                   return status;
+                    // RaspiVid::splitter_connection = NULL;
+                    vcos_log_error("%s: Failed to connect camera preview port to splitter input", __func__);
+                    return status;
                 }
                 if (splitter->duplicate_input() != MMAL_SUCCESS) {
                     vcos_log_error("RaspiComponent::connect_components(): unable to copy splitter input format to outputs");
@@ -1232,8 +1247,9 @@ namespace raspivid {
 
         // Connect camera to resizer
         vcos_assert(resizer->input);
-        vcos_assert(RaspiVid::camera_video_port);
-        status = resizer->input->connect(RaspiVid::camera_video_port, &RaspiVid::encoder_connection);
+        // vcos_assert(RaspiVid::camera_video_port);
+        // status = resizer->input->connect(RaspiVid::camera_video_port, &RaspiVid::encoder_connection);
+        status = resizer->input->connect(camera->video);
         if (status != MMAL_SUCCESS) {
             vcos_log_error("Failed to connect RaspiResizer to camera_video_port");
             return status;
@@ -1415,7 +1431,8 @@ namespace raspivid {
        }
        */
 
-       mmal_port_parameter_set_boolean(RaspiVid::camera_video_port, MMAL_PARAMETER_CAPTURE, 1);
+       // mmal_port_parameter_set_boolean(RaspiVid::camera_video_port, MMAL_PARAMETER_CAPTURE, 1);
+       return camera->start();
 
        return MMAL_SUCCESS;
     }
@@ -1423,9 +1440,11 @@ namespace raspivid {
     void RaspiVid::stop() {
 
         // Disable all our ports that are not handled by connections
-        check_disable_port(RaspiVid::camera_still_port);
-        check_disable_port(RaspiVid::encoder_output_port);
-        check_disable_port(RaspiVid::splitter_output_port);
+        // check_disable_port(RaspiVid::camera_still_port);
+        // check_disable_port(RaspiVid::encoder_output_port);
+        // check_disable_port(RaspiVid::splitter_output_port);
+
+        /*
 
         if (RaspiVid::preview_connection)
             mmal_connection_destroy(RaspiVid::preview_connection);
@@ -1435,17 +1454,37 @@ namespace raspivid {
 
         if (RaspiVid::splitter_connection)
             mmal_connection_destroy(RaspiVid::splitter_connection);
-
+        */
         /* Disable components */
+        /*
         if (RaspiVid::encoder_component) {
             mmal_component_disable(RaspiVid::encoder_component);
         }
+        */
+
 
         if (preview_renderer) {
-            preview_renderer->destroy();
+        //    preview_renderer->destroy();
             delete preview_renderer;
         }
 
+        if (encoder) {
+            delete encoder;
+        }
+
+        if (resizer) {
+            delete resizer;
+        }
+
+        if (splitter) {
+            delete splitter;
+        }
+
+        if (camera) {
+            delete camera;
+        }
+
+        /*
         if (RaspiVid::splitter_component) {
             mmal_component_disable(RaspiVid::splitter_component);
         }
@@ -1453,6 +1492,7 @@ namespace raspivid {
         if (RaspiVid::camera_component) {
             mmal_component_disable(RaspiVid::camera_component);
         }
+        */
 
         destroy_encoder_component();
         destroy_splitter_component();
