@@ -44,7 +44,7 @@ namespace raspivid {
         uint32_t framerate;
         int cameraNum;
         int sensor_mode;
-        int verbose;
+        bool verbose;
         RASPICAM_CAMERA_PARAMETERS camera_parameters; 
         RaspiCameraCallback *settings_callback;
     };

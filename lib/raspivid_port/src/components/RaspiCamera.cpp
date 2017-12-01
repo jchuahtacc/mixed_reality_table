@@ -37,7 +37,7 @@ namespace raspivid {
         options.cameraNum = 0;
         options.sensor_mode = 0;
         options.settings_callback = NULL;
-        options.verbose = 0;
+        options.verbose = true;
         raspicamcontrol_set_defaults(&options.camera_parameters);
         return options;
     }
