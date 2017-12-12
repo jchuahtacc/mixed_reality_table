@@ -9,7 +9,7 @@ namespace raspivid {
         result.width = format.width;
         result.height = format.height;
         result.layer = 128;
-        result.alpha = 0;
+        result.alpha = 255;
         result.crop = format.crop;
         result.dest.x = 0;
         result.dest.y = 0;
