@@ -23,6 +23,7 @@ namespace raspivid {
 
     RaspiPort::RaspiPort(MMAL_PORT_T *mmal_port) {
         port = mmal_port;
+        pool = NULL;
     }
 
     RASPIPORT_FORMAT_S RaspiPort::createDefaultPortFormat() {
@@ -31,10 +32,10 @@ namespace raspivid {
         result.encoding_variant = MMAL_ENCODING_I420;
         result.width = 1920;
         result.height = 1080;
-        result.crop_x = 0;
-        result.crop_y = 0;
-        result.crop_width = 0;
-        result.crop_height = 0;
+        result.crop.x = 0;
+        result.crop.y = 0;
+        result.crop.width = 0;
+        result.crop.height = 0;
         result.frame_rate_num = 0;
         result.frame_rate_den = 1;
     }
@@ -46,10 +47,10 @@ namespace raspivid {
         format->encoding_variant = options.encoding_variant;
         format->es->video.width = VCOS_ALIGN_UP(options.width, 32);
         format->es->video.height = VCOS_ALIGN_UP(options.height, 16);
-        format->es->video.crop.x = options.crop_x;
-        format->es->video.crop.y = options.crop_y;
-        format->es->video.crop.width = options.crop_width ? options.crop_width : options.width;
-        format->es->video.crop.height = options.crop_height ? options.crop_height : options.height;
+        format->es->video.crop.x = options.crop.x;
+        format->es->video.crop.y = options.crop.y;
+        format->es->video.crop.width = options.crop.width ? options.crop.width : options.width;
+        format->es->video.crop.height = options.crop.height ? options.crop.height : options.height;
         format->es->video.frame_rate.num = options.frame_rate_num;
         format->es->video.frame_rate.den = options.frame_rate_den;
 
@@ -69,10 +70,7 @@ namespace raspivid {
         result.encoding_variant = format->encoding_variant;
         result.width = format->es->video.width;
         result.height = format->es->video.height;
-        result.crop_x = format->es->video.crop.x;
-        result.crop_y = format->es->video.crop.y;
-        result.crop_width = format->es->video.crop.width;
-        result.crop_height = format->es->video.crop.height;
+        result.crop = format->es->video.crop;
         result.frame_rate_num = format->es->video.frame_rate.num;
         result.frame_rate_den = format->es->video.frame_rate.den;
         return result;
@@ -100,6 +98,8 @@ namespace raspivid {
     }
 
     MMAL_STATUS_T RaspiPort::connect(RaspiPort *output_port) {
+        vcos_assert(output_port);
+        vcos_assert(output_port->port);
         return connect(output_port->port, &connection);
     }
 
@@ -119,6 +119,37 @@ namespace raspivid {
         }
     }
 
+    MMAL_BUFFER_HEADER_T* RaspiPort::get_buffer() {
+        vcos_assert(pool);
+        return mmal_queue_wait(pool->queue);
+    }
+
+    MMAL_STATUS_T RaspiPort::send_buffer(MMAL_BUFFER_HEADER_T *buffer) {
+        buffer->length = buffer->alloc_size;
+        return mmal_port_send_buffer(port, buffer);
+    }
+
+    MMAL_STATUS_T RaspiPort::create_buffer_pool() {
+        vcos_assert(port);
+        if (!pool) {
+            //port->buffer_num = port->buffer_num_recommended;
+            port->buffer_size = port->buffer_size_recommended;
+            /*
+            if (port->buffer_num < 3) {
+                port->buffer_num = 3;
+            }
+            */
+            pool = mmal_port_pool_create(port, port->buffer_num, port->buffer_size);
+            if (!pool) {
+                vcos_log_error("RaspiPort::create_buffer_pool(): unable to create buffer pool");
+                return MMAL_ENOSYS;
+            }
+        } else {
+            vcos_log_error("RaspiPort::create_buffer_pool(): buffer pool already created for port");
+        }
+        return MMAL_SUCCESS;
+    }
+
     MMAL_STATUS_T RaspiPort::add_callback(RaspiCallback *cb_instance) {
         port->userdata = (struct MMAL_PORT_USERDATA_T *)&userdata;
         
@@ -127,14 +158,16 @@ namespace raspivid {
         MMAL_STATUS_T status;
 
         if ((status = mmal_port_enable(port, callback_wrapper)) != MMAL_SUCCESS) {
-            vcos_log_error("RaspiPort::enable(): unable to setup callback on port");
+            vcos_log_error("RaspiPort::add_callback(): unable to setup callback on port");
             return status;
         }
 
-        pool = mmal_port_pool_create(port, port->buffer_num, port->buffer_size);
-        if (!pool) {
-            vcos_log_error("RaspiPort::add_callback(): unable to create buffer header pool");
+        
+        if ((status = create_buffer_pool()) != MMAL_SUCCESS) {
+            vcos_log_error("RaspiPort::add_callback(): unable to allocate buffers for callback");
+            return status;
         }
+       
         userdata.pool = pool;
         int queue_length = mmal_queue_length(pool->queue);
         for (int i = 0; i < queue_length; i++) {

@@ -15,10 +15,7 @@ namespace raspivid {
         uint32_t encoding_variant;
         uint32_t width;
         uint32_t height;
-        uint32_t crop_x;
-        uint32_t crop_y;
-        uint32_t crop_width;
-        uint32_t crop_height;
+        MMAL_RECT_T crop;
         uint32_t frame_rate_num;
         uint32_t frame_rate_den;
     } RASPIPORT_FORMAT_S;
@@ -33,6 +30,9 @@ namespace raspivid {
             MMAL_STATUS_T add_callback(RaspiCallback *callback);
             MMAL_STATUS_T connect(RaspiPort *output);
             MMAL_STATUS_T connect(MMAL_PORT_T *output, MMAL_CONNECTION_T **connection);
+            MMAL_STATUS_T create_buffer_pool();
+            MMAL_BUFFER_HEADER_T* get_buffer();
+            MMAL_STATUS_T send_buffer(MMAL_BUFFER_HEADER_T *buffer);
             void destroy();
         private:
             static void callback_wrapper(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer);

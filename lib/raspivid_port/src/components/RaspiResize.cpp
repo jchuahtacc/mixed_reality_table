@@ -40,8 +40,8 @@ namespace raspivid {
         format.encoding_variant = MMAL_ENCODING_I420;
         format.width = VCOS_ALIGN_UP(width, 32);
         format.height = VCOS_ALIGN_UP(height, 16);
-        format.crop_width = width;
-        format.crop_height = height;
+        format.crop.width = width;
+        format.crop.height = height;
         MMAL_STATUS_T status;
         if ((status = output->set_format(format)) != MMAL_SUCCESS) {
             vcos_log_error("RaspiResize::set_output(): unable to set output size format");
