@@ -38,6 +38,7 @@ namespace raspivid {
         result.crop.height = 0;
         result.frame_rate_num = 0;
         result.frame_rate_den = 1;
+        return result;
     }
 
     MMAL_STATUS_T RaspiPort::set_format(RASPIPORT_FORMAT_S options) {
