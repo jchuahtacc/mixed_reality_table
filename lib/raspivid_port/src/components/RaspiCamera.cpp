@@ -36,23 +36,23 @@ namespace raspivid {
         options.framerate = 0;
         options.cameraNum = 0;
         options.sensor_mode = 0;
-        options.settings_callback = NULL;
+        options.settings_callback = nullptr;
         options.verbose = true;
         raspicamcontrol_set_defaults(&options.camera_parameters);
         return options;
     }
 
-    RaspiCamera* RaspiCamera::create(RASPICAMERA_OPTION_S options) {
-        RaspiCamera* result = new RaspiCamera();
+    shared_ptr< RaspiCamera > RaspiCamera::create(RASPICAMERA_OPTION_S options) {
+        shared_ptr< RaspiCamera > result = shared_ptr< RaspiCamera >( new RaspiCamera() );
         result->options_ = options;
         if (result->init() != MMAL_SUCCESS) {
-            result->destroy();
-            return NULL;
+        //    delete result;
+            return nullptr;
         }
         return result;
     }
 
-    RaspiCamera* RaspiCamera::create() {
+    shared_ptr< RaspiCamera > RaspiCamera::create() {
         return create(RaspiCamera::createDefaultCameraOptions());
     }
 
@@ -77,9 +77,9 @@ namespace raspivid {
         MMAL_PORT_T *video_port = component->output[MMAL_CAMERA_VIDEO_PORT];
         
 
-        preview = new RaspiPort(preview_port);
-        still = new RaspiPort(still_port);
-        video = new RaspiPort(video_port);
+        preview = RaspiPort::create(preview_port);
+        still = RaspiPort::create(still_port);
+        video = RaspiPort::create(video_port);
 
         if ((status = mmal_port_parameter_set_uint32(component->control, MMAL_PARAMETER_CAMERA_CUSTOM_SENSOR_CONFIG, options_.sensor_mode)) != MMAL_SUCCESS) {
             vcos_log_error("RaspiCamera::init(): unable to set sensor mode (%u)", status);
@@ -90,7 +90,7 @@ namespace raspivid {
             return status;
         }
 
-        if (options_.settings_callback != NULL) {
+        if (options_.settings_callback) {
             MMAL_PARAMETER_CHANGE_EVENT_REQUEST_T change_event_request =
                 {{MMAL_PARAMETER_CHANGE_EVENT_REQUEST, sizeof(MMAL_PARAMETER_CHANGE_EVENT_REQUEST_T)},
                 MMAL_PARAMETER_CAMERA_SETTINGS, 1};
@@ -264,18 +264,17 @@ namespace raspivid {
     }
 
     void RaspiCamera::destroy() {
+        /*
         if (preview) {
-            preview->destroy();
             delete preview;
         }
         if (still) {
-            still->destroy();
             delete still;
         }
         if (video) {
-            video->destroy();
             delete video;
         }
+        */
         RaspiComponent::destroy();
     }
 

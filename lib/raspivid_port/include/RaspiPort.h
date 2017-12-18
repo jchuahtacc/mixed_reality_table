@@ -1,12 +1,13 @@
 #ifndef __RASPIPORT_H__
 #define __RASPIPORT_H__
 
+#include <memory>
 #include "components/RaspiComponent.h"
 #include "RaspiCallback.h"
 
 namespace raspivid {
     typedef struct {
-        RaspiCallback* cb_instance;
+        shared_ptr< RaspiCallback > cb_instance;
         MMAL_POOL_T* pool;
     } RASPIPORT_USERDATA_S;
 
@@ -22,18 +23,20 @@ namespace raspivid {
 
     class RaspiPort {
         public:
-            RaspiPort(MMAL_PORT_T *port);
-            ~RaspiPort();
             static RASPIPORT_FORMAT_S createDefaultPortFormat();
+            static shared_ptr< RaspiPort > create(MMAL_PORT_T *port);
             MMAL_STATUS_T set_format(RASPIPORT_FORMAT_S new_format);
             RASPIPORT_FORMAT_S get_format();
-            MMAL_STATUS_T add_callback(RaspiCallback *callback);
-            MMAL_STATUS_T connect(RaspiPort *output);
+            MMAL_STATUS_T add_callback(shared_ptr< RaspiCallback > callback);
+            MMAL_STATUS_T connect(shared_ptr< RaspiPort > output);
             MMAL_STATUS_T connect(MMAL_PORT_T *output, MMAL_CONNECTION_T **connection);
             MMAL_STATUS_T create_buffer_pool();
             MMAL_BUFFER_HEADER_T* get_buffer();
             MMAL_STATUS_T send_buffer(MMAL_BUFFER_HEADER_T *buffer);
             void destroy();
+            ~RaspiPort();
+        protected:
+            RaspiPort(MMAL_PORT_T *port);
         private:
             static void callback_wrapper(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer);
             RASPIPORT_USERDATA_S userdata;

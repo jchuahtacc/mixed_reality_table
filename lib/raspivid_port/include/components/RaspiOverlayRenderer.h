@@ -1,6 +1,7 @@
 #ifndef __RASPIOVERLAYRENDERER_H__
 #define __RASPIOVERLAYRENDERER_H__
 
+#include <memory>
 #include "components/RaspiComponent.h"
 #include "RaspiPort.h"
 #include "RaspiRenderer.h"
@@ -25,8 +26,8 @@ namespace raspivid {
             MMAL_BUFFER_HEADER_T* get_buffer();
             void send_buffer(MMAL_BUFFER_HEADER_T *buffer);
             static RASPIOVERLAYRENDERER_FORMAT_S createDefaultOverlayFormat();
-            static RaspiOverlayRenderer* create();
-            static RaspiOverlayRenderer* create(RASPIOVERLAYRENDERER_FORMAT_S format);
+            static shared_ptr< RaspiOverlayRenderer > create();
+            static shared_ptr< RaspiOverlayRenderer >create(RASPIOVERLAYRENDERER_FORMAT_S format);
         protected:
             MMAL_STATUS_T init();
             RASPIOVERLAYRENDERER_FORMAT_S format_;

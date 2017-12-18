@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
     options.width = 1024;
     options.height = 768;
     options.preview = true;
-    RaspiVid* cam = RaspiVid::create(options);
+    auto cam = RaspiVid::create(options);
 
     if (cam->init() == MMAL_SUCCESS) {
         cout << "Init success" << endl;

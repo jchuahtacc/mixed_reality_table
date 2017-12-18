@@ -1,6 +1,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <stdio.h>
+#include <memory>
 #include "components/RaspiOverlayRenderer.h"
 
 using namespace std;
@@ -10,7 +11,7 @@ using namespace raspivid;
 int main(int argc, char** argv) {
     RASPIOVERLAYRENDERER_FORMAT_S format = RaspiOverlayRenderer::createDefaultOverlayFormat();
     format.alpha = 128;
-    RaspiOverlayRenderer* renderer = RaspiOverlayRenderer::create(format);
+    auto renderer = RaspiOverlayRenderer::create(format);
     vcos_assert(renderer);
     cout << "Init success" << endl;
     int i = 0;
@@ -28,5 +29,4 @@ int main(int argc, char** argv) {
         renderer->send_buffer(buffer);
         sleep(1);
     }
-    delete renderer;
 }

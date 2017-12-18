@@ -5,11 +5,11 @@ namespace raspivid {
         return "vc.ril.resize";
     }
 
-    RaspiResize* RaspiResize::create() {
-        RaspiResize* result = new RaspiResize();
+    shared_ptr< RaspiResize > RaspiResize::create() {
+        shared_ptr< RaspiResize > result = shared_ptr< RaspiResize >( new RaspiResize() );
         if (result->init() != MMAL_SUCCESS) {
-            result->destroy();
-            return NULL;
+        //    delete result;
+            return nullptr;
         }
         return result;
     }
@@ -26,8 +26,8 @@ namespace raspivid {
         MMAL_PORT_T *mmal_input = component->input[0];
         MMAL_PORT_T *mmal_output = component->output[0];
 
-        input = new RaspiPort(mmal_input);
-        output = new RaspiPort(mmal_output);
+        input = RaspiPort::create(mmal_input);
+        output = RaspiPort::create(mmal_output);
 
         vcos_log_error("RaspiResize::init(): success!");
 
@@ -51,14 +51,14 @@ namespace raspivid {
     }
 
     void RaspiResize::destroy() {
+        /*
         if (input) {
-            input->destroy();
             delete input;
         }
         if (output) {
-            output->destroy();
             delete output;
         }
+        */
         RaspiComponent::destroy();
     }
 

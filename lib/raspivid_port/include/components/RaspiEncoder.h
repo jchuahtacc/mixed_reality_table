@@ -1,6 +1,7 @@
 #ifndef __RASPIENCODER_H__
 #define __RASPIENCODER_H__
 
+#include <memory>
 #include "components/RaspiComponent.h"
 #include "RaspiPort.h"
 
@@ -29,10 +30,10 @@ namespace raspivid {
     class RaspiEncoder : public RaspiComponent {
         public:
             static RASPIENCODER_OPTION_S createDefaultEncoderOptions();
-            static RaspiEncoder* create(RASPIENCODER_OPTION_S options);
-            static RaspiEncoder* create();
-            RaspiPort *input;
-            RaspiPort *output;
+            static shared_ptr< RaspiEncoder > create(RASPIENCODER_OPTION_S options);
+            static shared_ptr< RaspiEncoder > create();
+            shared_ptr< RaspiPort > input;
+            shared_ptr< RaspiPort > output;
             void destroy();
         protected:
             const int MAX_BITRATE_MJPEG = 25000000;

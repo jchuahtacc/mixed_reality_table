@@ -1,6 +1,7 @@
 #ifndef __RASPISPLITTER_H__
 #define __RASPISPLITTER_H__
 
+#include <memory>
 #include "components/RaspiComponent.h"
 #include "RaspiPort.h"
 
@@ -12,10 +13,10 @@ namespace raspivid {
       
     class RaspiSplitter : public RaspiComponent {
         public:
-            static RaspiSplitter* create();
-            RaspiPort *input;
-            RaspiPort *output_0;
-            RaspiPort *output_1;
+            static shared_ptr< RaspiSplitter > create();
+            shared_ptr< RaspiPort > input;
+            shared_ptr< RaspiPort > output_0;
+            shared_ptr< RaspiPort > output_1;
             MMAL_STATUS_T duplicate_input(); 
             void destroy();
         protected:

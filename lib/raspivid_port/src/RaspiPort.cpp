@@ -21,6 +21,10 @@ namespace raspivid {
         }
     }
 
+    shared_ptr< RaspiPort > RaspiPort::create(MMAL_PORT_T *mmal_port) {
+        return shared_ptr< RaspiPort >( new RaspiPort(mmal_port) );
+    }
+
     RaspiPort::RaspiPort(MMAL_PORT_T *mmal_port) {
         port = mmal_port;
         pool = NULL;
@@ -98,7 +102,7 @@ namespace raspivid {
         return MMAL_SUCCESS;
     }
 
-    MMAL_STATUS_T RaspiPort::connect(RaspiPort *output_port) {
+    MMAL_STATUS_T RaspiPort::connect(shared_ptr< RaspiPort > output_port) {
         vcos_assert(output_port);
         vcos_assert(output_port->port);
         return connect(output_port->port, &connection);
@@ -151,7 +155,7 @@ namespace raspivid {
         return MMAL_SUCCESS;
     }
 
-    MMAL_STATUS_T RaspiPort::add_callback(RaspiCallback *cb_instance) {
+    MMAL_STATUS_T RaspiPort::add_callback(shared_ptr< RaspiCallback > cb_instance) {
         port->userdata = (struct MMAL_PORT_USERDATA_T *)&userdata;
         
         userdata.cb_instance = cb_instance;

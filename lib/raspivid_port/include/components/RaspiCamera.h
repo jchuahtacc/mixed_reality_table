@@ -1,6 +1,7 @@
 #ifndef __RASPICAMERA_H__
 #define __RASPICAMERA_H__
 
+#include <memory>
 #include "components/RaspiComponent.h"
 #include "components/RaspiRenderer.h"
 #include "RaspiPort.h"
@@ -30,7 +31,7 @@ namespace raspivid {
     };
 
     typedef struct {
-        RaspiCameraCallback *cb_instance;
+        shared_ptr< RaspiCameraCallback > cb_instance;
     } RASPICAMERA_USERDATA_S;
 
     class DefaultRaspiCameraCallback : public RaspiCameraCallback {
@@ -46,16 +47,16 @@ namespace raspivid {
         int sensor_mode;
         bool verbose;
         RASPICAM_CAMERA_PARAMETERS camera_parameters; 
-        RaspiCameraCallback *settings_callback;
+        shared_ptr< RaspiCameraCallback > settings_callback;
     };
 
     class RaspiCamera : public RaspiComponent {
         public:
-            RaspiPort *still;
-            RaspiPort *video;
-            RaspiPort *preview;
-            static RaspiCamera* create();
-            static RaspiCamera* create(RASPICAMERA_OPTION_S options);
+            shared_ptr< RaspiPort > still;
+            shared_ptr< RaspiPort > video;
+            shared_ptr< RaspiPort > preview;
+            static shared_ptr< RaspiCamera > create();
+            static shared_ptr< RaspiCamera > create(RASPICAMERA_OPTION_S options);
             static RASPICAMERA_OPTION_S createDefaultCameraOptions();
             void destroy();
             MMAL_STATUS_T start();

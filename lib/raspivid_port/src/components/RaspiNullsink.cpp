@@ -5,11 +5,11 @@ namespace raspivid {
         return "vc.null_sink";
     }
 
-    RaspiNullsink* RaspiNullsink::create() {
-        RaspiNullsink* result = new RaspiNullsink();
+    shared_ptr< RaspiNullsink > RaspiNullsink::create() {
+        shared_ptr< RaspiNullsink > result = shared_ptr< RaspiNullsink >( new RaspiNullsink() );
         if (result->init() != MMAL_SUCCESS) {
-            result->destroy();
-            return NULL;
+        //    delete result;
+            return nullptr;
         }
         return result;
     }
@@ -27,16 +27,17 @@ namespace raspivid {
             return status;
         }
 
-        input = new RaspiPort(component->input[0]);
+        input = RaspiPort::create(component->input[0]);
 
         return MMAL_SUCCESS;
     }
 
     void RaspiNullsink::destroy() {
+        /*
         if (input) {
-            input->destroy();
             delete input;
         }
+        */
         RaspiComponent::destroy();
     }
 

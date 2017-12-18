@@ -27,7 +27,7 @@ namespace raspivid {
         input->send_buffer(buffer);
     }
 
-    RaspiOverlayRenderer* RaspiOverlayRenderer::create() {
+    shared_ptr< RaspiOverlayRenderer > RaspiOverlayRenderer::create() {
         return RaspiOverlayRenderer::create(RaspiOverlayRenderer::createDefaultOverlayFormat());  
     }
 
@@ -35,12 +35,12 @@ namespace raspivid {
         mmal_buffer_header_release(buffer);
     }
 
-    RaspiOverlayRenderer* RaspiOverlayRenderer::create(RASPIOVERLAYRENDERER_FORMAT_S format) {
-        RaspiOverlayRenderer* result = new RaspiOverlayRenderer();
+    shared_ptr< RaspiOverlayRenderer > RaspiOverlayRenderer::create(RASPIOVERLAYRENDERER_FORMAT_S format) {
+        shared_ptr< RaspiOverlayRenderer > result = shared_ptr< RaspiOverlayRenderer > (new RaspiOverlayRenderer());
         result->format_ = format;
         if (result->init() != MMAL_SUCCESS) {
-            result->destroy();
-            return NULL;
+            // delete result
+            return nullptr;
         }
         return result;   
     }
@@ -75,7 +75,7 @@ namespace raspivid {
             input_port->buffer_num = 2;
         }
 
-        input = new RaspiPort(input_port);
+        input = RaspiPort::create(input_port);
         
         if ((status = input->create_buffer_pool()) != MMAL_SUCCESS) {
             vcos_log_error("RaspiOverlayrenderer::init(): could not create port buffer pool");
@@ -111,10 +111,11 @@ namespace raspivid {
     }
 
     void RaspiOverlayRenderer::destroy() {
+        /*
         if (input) {
-            input->destroy();
             delete input;
         }
+        */
         RaspiRenderer::destroy();
     }
 

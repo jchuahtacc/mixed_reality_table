@@ -8,7 +8,7 @@ using namespace raspi_cam_control;
 
 namespace raspivid {
 
-    RaspiVid* RaspiVid::singleton_ = NULL;
+    shared_ptr< RaspiVid > RaspiVid::singleton_ = nullptr;
 
     RASPIVID_OPTIONS_S RaspiVid::createRaspiVidDefaultOptions() {
         RASPIVID_OPTIONS_S options;
@@ -172,13 +172,13 @@ namespace raspivid {
         MMAL_STATUS_T status = MMAL_SUCCESS;
 
         if (options_.raw_output) {
-            roCallback = new RawOutputCallback();
+            roCallback = shared_ptr< RawOutputCallback >( new RawOutputCallback() );
             if (splitter->output_0->add_callback(roCallback) != MMAL_SUCCESS) {
                 vcos_log_error("RaspiVid::add_callbacks(): Could not add raw output callback");
             }
         }
 
-        mvCallback = new MotionVectorCallback();
+        mvCallback = shared_ptr< MotionVectorCallback >( new MotionVectorCallback() );
         encoder->output->add_callback(mvCallback);
         return MMAL_SUCCESS;
     }
@@ -220,6 +220,7 @@ namespace raspivid {
     }
 
     void RaspiVid::stop() {
+        /*
         if (preview_renderer) {
             delete preview_renderer;
         }
@@ -247,25 +248,26 @@ namespace raspivid {
         if (roCallback) {
             delete roCallback;
         }
+        */
 
         if (options_.verbose) {
             fprintf(stderr, "Close down completed, all components disconnected, disabled and destroyed\n\n");
         }
     }
 
-    RaspiVid* RaspiVid::create() {
+    shared_ptr< RaspiVid > RaspiVid::create() {
         return RaspiVid::create(RaspiVid::createRaspiVidDefaultOptions());
     }
 
-    RaspiVid* RaspiVid::create(RASPIVID_OPTIONS_S options) {
+    shared_ptr< RaspiVid > RaspiVid::create(RASPIVID_OPTIONS_S options) {
         if (!RaspiVid::singleton_) {
-            RaspiVid::singleton_ = new RaspiVid();
+            RaspiVid::singleton_ = shared_ptr< RaspiVid >( new RaspiVid() );
         }
         RaspiVid::singleton_->options_ = options; 
         return RaspiVid::singleton_;
     }
 
-    RaspiVid* RaspiVid::getInstance() {
+    shared_ptr< RaspiVid > RaspiVid::getInstance() {
         return RaspiVid::singleton_;
     }
     

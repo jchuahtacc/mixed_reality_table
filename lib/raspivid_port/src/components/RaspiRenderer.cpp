@@ -5,18 +5,18 @@ namespace raspivid {
         return MMAL_COMPONENT_DEFAULT_VIDEO_RENDERER;
     }
 
-    RaspiRenderer* RaspiRenderer::create(int alpha, int layer) {
-        RaspiRenderer* result = new RaspiRenderer();
+    shared_ptr< RaspiRenderer > RaspiRenderer::create(int alpha, int layer) {
+        shared_ptr< RaspiRenderer > result = shared_ptr< RaspiRenderer >( new RaspiRenderer() );
         result->alpha_ = alpha;
         result->layer_ = layer;
         if (result->init() != MMAL_SUCCESS) {
-            result->destroy();
-            return NULL;
+            // delete result;
+            return nullptr;
         }
         return result;
     }
 
-    RaspiRenderer* RaspiRenderer::create() {
+    shared_ptr< RaspiRenderer > RaspiRenderer::create() {
         return create(255, PREVIEW_LAYER);
     }
 
@@ -38,7 +38,7 @@ namespace raspivid {
         assert_ports(1, 0);
 
         MMAL_PORT_T *mmal_input = component->input[0];
-        input = new RaspiPort(mmal_input);
+        input = RaspiPort::create(mmal_input);
 
         MMAL_DISPLAYREGION_T param;
         param.hdr.id = MMAL_PARAMETER_DISPLAYREGION;
@@ -70,10 +70,11 @@ namespace raspivid {
     }
 
     void RaspiRenderer::destroy() {
+        /*
         if (input) {
-            input->destroy();
             delete input;
         }
+        */
         RaspiComponent::destroy();
     }
 

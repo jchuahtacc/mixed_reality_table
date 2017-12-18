@@ -2,6 +2,7 @@
    #define _GNU_SOURCE
 #endif
 
+#include <memory>
 
 #include "bcm_host.h"
 #include "interface/vcos/vcos.h"
@@ -82,9 +83,12 @@ namespace raspivid {
 
     class RaspiVid {
         public:
-            static RaspiVid* create();
-            static RaspiVid* create(RASPIVID_OPTIONS_S options);
-            static RaspiVid* getInstance();
+            static shared_ptr< RaspiVid > create();
+            static shared_ptr< RaspiVid > create(RASPIVID_OPTIONS_S options);
+            static shared_ptr< RaspiVid > getInstance();
+            //static RaspiVid* create();
+            //static RaspiVid* create(RASPIVID_OPTIONS_S options);
+            //static RaspiVid* getInstance();
             static RASPIVID_OPTIONS_S createRaspiVidDefaultOptions();
             MMAL_STATUS_T init();
             MMAL_STATUS_T start();
@@ -96,12 +100,23 @@ namespace raspivid {
 
         private:
             RaspiVid();
-            static RaspiVid* singleton_;
+            //static RaspiVid* singleton_;
+            static shared_ptr< RaspiVid > singleton_;
 
             MMAL_STATUS_T create_components();
             MMAL_STATUS_T connect_components();
             MMAL_STATUS_T add_callbacks();
 
+            shared_ptr< RaspiCamera > camera;
+            shared_ptr< RaspiRenderer > preview_renderer;
+            shared_ptr< RaspiEncoder > encoder;
+            shared_ptr< RaspiSplitter > splitter;
+            shared_ptr< RaspiResize > resizer;
+
+            shared_ptr< MotionVectorCallback > mvCallback;
+            shared_ptr< RawOutputCallback > roCallback;
+
+            /*
             RaspiCamera *camera;
             RaspiRenderer *preview_renderer;
             RaspiEncoder *encoder;
@@ -110,5 +125,6 @@ namespace raspivid {
 
             MotionVectorCallback *mvCallback;
             RawOutputCallback *roCallback;
+            */
     };
 }

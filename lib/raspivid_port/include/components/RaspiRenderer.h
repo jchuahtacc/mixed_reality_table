@@ -1,6 +1,7 @@
 #ifndef __RASPIRENDERER_H__
 #define __RASPIRENDERER_H__
 
+#include <memory>
 #include "components/RaspiComponent.h"
 #include "RaspiPort.h"
 
@@ -27,9 +28,9 @@ namespace raspivid {
 
     class RaspiRenderer : public RaspiComponent {
         public:
-            static RaspiRenderer* create(int alpha, int layer);
-            static RaspiRenderer* create();
-            RaspiPort *input;
+            static shared_ptr< RaspiRenderer > create(int alpha, int layer);
+            static shared_ptr< RaspiRenderer > create();
+            shared_ptr< RaspiPort > input;
             void destroy();
         protected:
             const char* component_name();

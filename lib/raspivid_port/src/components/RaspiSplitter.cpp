@@ -5,11 +5,11 @@ namespace raspivid {
         return MMAL_COMPONENT_DEFAULT_VIDEO_SPLITTER;
     }
 
-    RaspiSplitter* RaspiSplitter::create() {
-        RaspiSplitter* result = new RaspiSplitter();
+    shared_ptr< RaspiSplitter > RaspiSplitter::create() {
+        shared_ptr< RaspiSplitter > result = shared_ptr< RaspiSplitter >( new RaspiSplitter() );
         if (result->init() != MMAL_SUCCESS) {
-            result->destroy();
-            return NULL;
+            // delete result;
+            return nullptr;
         }
         return result;
     }
@@ -27,9 +27,9 @@ namespace raspivid {
         MMAL_PORT_T *mmal_output_0 = component->output[0];
         MMAL_PORT_T *mmal_output_1 = component->output[1];
 
-        input = new RaspiPort(mmal_input);
-        output_0 = new RaspiPort(mmal_output_0);
-        output_1 = new RaspiPort(mmal_output_1);
+        input = RaspiPort::create(mmal_input);
+        output_0 = RaspiPort::create(mmal_output_0);
+        output_1 = RaspiPort::create(mmal_output_1);
 
         vcos_log_error("RaspiSplitter::init(): success!");
 
@@ -54,18 +54,17 @@ namespace raspivid {
     }
 
     void RaspiSplitter::destroy() {
+        /*
         if (input) {
-            input->destroy();
             delete input;
         }
         if (output_0) {
-            output_0->destroy();
             delete output_0;
         }
         if (output_1) {
-            output_1->destroy();
             delete output_1;
         }
+        */
         RaspiComponent::destroy();
     }
 

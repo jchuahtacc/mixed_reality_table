@@ -23,17 +23,17 @@ namespace raspivid {
         return options;
     }
 
-    RaspiEncoder* RaspiEncoder::create(RASPIENCODER_OPTION_S options) {
-        RaspiEncoder* result = new RaspiEncoder();
+    shared_ptr< RaspiEncoder > RaspiEncoder::create(RASPIENCODER_OPTION_S options) {
+        shared_ptr< RaspiEncoder > result = shared_ptr< RaspiEncoder >( new RaspiEncoder() );
         result->options_ = options;
         if (result->init() != MMAL_SUCCESS) {
-            result->destroy();
-            return NULL;
+        //    delete result;
+            return nullptr;
         }
         return result;
     }
 
-    RaspiEncoder* RaspiEncoder::create() {
+    shared_ptr< RaspiEncoder > RaspiEncoder::create() {
         return create(RaspiEncoder::createDefaultEncoderOptions());
     }
 
@@ -49,8 +49,8 @@ namespace raspivid {
         MMAL_PORT_T *mmal_input = component->input[0];
         MMAL_PORT_T *mmal_output = component->output[0];
 
-        input = new RaspiPort(mmal_input);
-        output = new RaspiPort(mmal_output);
+        input = RaspiPort::create(mmal_input);
+        output = RaspiPort::create(mmal_output);
 
         mmal_format_copy(mmal_output->format, mmal_input->format);
 
@@ -212,14 +212,14 @@ namespace raspivid {
     }
 
     void RaspiEncoder::destroy() {
+        /*
         if (input) {
-            input->destroy();
             delete input;
         }
         if (output) {
-            output->destroy();
             delete output;
         }
+        */
         RaspiComponent::destroy();
     }
 

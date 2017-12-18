@@ -1,6 +1,7 @@
 #ifndef __RASPIRESIZE_H__
 #define __RASPIRESIZE_H__
 
+#include <memory>
 #include "components/RaspiComponent.h"
 #include "RaspiPort.h"
 
@@ -9,9 +10,9 @@ namespace raspivid {
       
     class RaspiResize : public RaspiComponent {
         public:
-            static RaspiResize* create();
-            RaspiPort *input;
-            RaspiPort *output;
+            static shared_ptr< RaspiResize > create();
+            shared_ptr< RaspiPort > input;
+            shared_ptr< RaspiPort > output;
             void destroy();
             MMAL_STATUS_T set_output(int width, int height);
         protected:
