@@ -10,7 +10,6 @@ namespace raspivid {
         result->alpha_ = alpha;
         result->layer_ = layer;
         if (result->init() != MMAL_SUCCESS) {
-            // delete result;
             return nullptr;
         }
         return result;
@@ -67,15 +66,6 @@ namespace raspivid {
         }
 
         return MMAL_SUCCESS;
-    }
-
-    void RaspiRenderer::destroy() {
-        /*
-        if (input) {
-            delete input;
-        }
-        */
-        RaspiComponent::destroy();
     }
 
 }

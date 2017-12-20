@@ -58,7 +58,6 @@ namespace raspivid {
             static shared_ptr< RaspiCamera > create();
             static shared_ptr< RaspiCamera > create(RASPICAMERA_OPTION_S options);
             static RASPICAMERA_OPTION_S createDefaultCameraOptions();
-            void destroy();
             MMAL_STATUS_T start();
         protected:
             const char* component_name();

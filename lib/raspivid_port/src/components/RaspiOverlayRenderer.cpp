@@ -39,7 +39,6 @@ namespace raspivid {
         shared_ptr< RaspiOverlayRenderer > result = shared_ptr< RaspiOverlayRenderer > (new RaspiOverlayRenderer());
         result->format_ = format;
         if (result->init() != MMAL_SUCCESS) {
-            // delete result
             return nullptr;
         }
         return result;   
@@ -108,15 +107,6 @@ namespace raspivid {
         }
 
         return MMAL_SUCCESS;
-    }
-
-    void RaspiOverlayRenderer::destroy() {
-        /*
-        if (input) {
-            delete input;
-        }
-        */
-        RaspiRenderer::destroy();
     }
 
 }

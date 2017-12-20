@@ -8,7 +8,6 @@ namespace raspivid {
     shared_ptr< RaspiNullsink > RaspiNullsink::create() {
         shared_ptr< RaspiNullsink > result = shared_ptr< RaspiNullsink >( new RaspiNullsink() );
         if (result->init() != MMAL_SUCCESS) {
-        //    delete result;
             return nullptr;
         }
         return result;
@@ -30,15 +29,6 @@ namespace raspivid {
         input = RaspiPort::create(component->input[0]);
 
         return MMAL_SUCCESS;
-    }
-
-    void RaspiNullsink::destroy() {
-        /*
-        if (input) {
-            delete input;
-        }
-        */
-        RaspiComponent::destroy();
     }
 
 }

@@ -46,7 +46,6 @@ namespace raspivid {
         shared_ptr< RaspiCamera > result = shared_ptr< RaspiCamera >( new RaspiCamera() );
         result->options_ = options;
         if (result->init() != MMAL_SUCCESS) {
-        //    delete result;
             return nullptr;
         }
         return result;
@@ -261,21 +260,6 @@ namespace raspivid {
         }
 
         return MMAL_SUCCESS;
-    }
-
-    void RaspiCamera::destroy() {
-        /*
-        if (preview) {
-            delete preview;
-        }
-        if (still) {
-            delete still;
-        }
-        if (video) {
-            delete video;
-        }
-        */
-        RaspiComponent::destroy();
     }
 
 }

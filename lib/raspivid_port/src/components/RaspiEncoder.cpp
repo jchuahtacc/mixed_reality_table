@@ -27,7 +27,6 @@ namespace raspivid {
         shared_ptr< RaspiEncoder > result = shared_ptr< RaspiEncoder >( new RaspiEncoder() );
         result->options_ = options;
         if (result->init() != MMAL_SUCCESS) {
-        //    delete result;
             return nullptr;
         }
         return result;
@@ -209,18 +208,6 @@ namespace raspivid {
         vcos_log_error("RaspiEncoder::init(): success!");
 
         return MMAL_SUCCESS;
-    }
-
-    void RaspiEncoder::destroy() {
-        /*
-        if (input) {
-            delete input;
-        }
-        if (output) {
-            delete output;
-        }
-        */
-        RaspiComponent::destroy();
     }
 
 }

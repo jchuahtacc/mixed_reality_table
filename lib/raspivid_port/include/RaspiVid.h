@@ -86,9 +86,6 @@ namespace raspivid {
             static shared_ptr< RaspiVid > create();
             static shared_ptr< RaspiVid > create(RASPIVID_OPTIONS_S options);
             static shared_ptr< RaspiVid > getInstance();
-            //static RaspiVid* create();
-            //static RaspiVid* create(RASPIVID_OPTIONS_S options);
-            //static RaspiVid* getInstance();
             static RASPIVID_OPTIONS_S createRaspiVidDefaultOptions();
             MMAL_STATUS_T init();
             MMAL_STATUS_T start();
@@ -100,7 +97,6 @@ namespace raspivid {
 
         private:
             RaspiVid();
-            //static RaspiVid* singleton_;
             static shared_ptr< RaspiVid > singleton_;
 
             MMAL_STATUS_T create_components();
@@ -116,15 +112,5 @@ namespace raspivid {
             shared_ptr< MotionVectorCallback > mvCallback;
             shared_ptr< RawOutputCallback > roCallback;
 
-            /*
-            RaspiCamera *camera;
-            RaspiRenderer *preview_renderer;
-            RaspiEncoder *encoder;
-            RaspiSplitter *splitter;
-            RaspiResize *resizer;
-
-            MotionVectorCallback *mvCallback;
-            RawOutputCallback *roCallback;
-            */
-    };
+        };
 }

@@ -220,36 +220,6 @@ namespace raspivid {
     }
 
     void RaspiVid::stop() {
-        /*
-        if (preview_renderer) {
-            delete preview_renderer;
-        }
-
-        if (encoder) {
-            delete encoder;
-        }
-
-        if (resizer) {
-            delete resizer;
-        }
-
-        if (splitter) {
-            delete splitter;
-        }
-
-        if (camera) {
-            delete camera;
-        }
-
-        if (mvCallback) {
-            delete mvCallback;
-        }
-
-        if (roCallback) {
-            delete roCallback;
-        }
-        */
-
         if (options_.verbose) {
             fprintf(stderr, "Close down completed, all components disconnected, disabled and destroyed\n\n");
         }

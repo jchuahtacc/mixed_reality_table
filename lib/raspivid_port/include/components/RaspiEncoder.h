@@ -34,7 +34,6 @@ namespace raspivid {
             static shared_ptr< RaspiEncoder > create();
             shared_ptr< RaspiPort > input;
             shared_ptr< RaspiPort > output;
-            void destroy();
         protected:
             const int MAX_BITRATE_MJPEG = 25000000;
             const int MAX_BITRATE_LEVEL4 = 25000000;

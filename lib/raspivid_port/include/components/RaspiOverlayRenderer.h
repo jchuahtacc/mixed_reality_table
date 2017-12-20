@@ -22,7 +22,6 @@ namespace raspivid {
 
     class RaspiOverlayRenderer : public RaspiRenderer {
         public:
-            void destroy();
             MMAL_BUFFER_HEADER_T* get_buffer();
             void send_buffer(MMAL_BUFFER_HEADER_T *buffer);
             static RASPIOVERLAYRENDERER_FORMAT_S createDefaultOverlayFormat();

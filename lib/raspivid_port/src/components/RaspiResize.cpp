@@ -8,7 +8,6 @@ namespace raspivid {
     shared_ptr< RaspiResize > RaspiResize::create() {
         shared_ptr< RaspiResize > result = shared_ptr< RaspiResize >( new RaspiResize() );
         if (result->init() != MMAL_SUCCESS) {
-        //    delete result;
             return nullptr;
         }
         return result;
@@ -48,18 +47,6 @@ namespace raspivid {
             return status;
         }
         return MMAL_SUCCESS;
-    }
-
-    void RaspiResize::destroy() {
-        /*
-        if (input) {
-            delete input;
-        }
-        if (output) {
-            delete output;
-        }
-        */
-        RaspiComponent::destroy();
     }
 
 }

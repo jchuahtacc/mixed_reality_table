@@ -11,7 +11,6 @@ namespace raspivid {
         public:
             static shared_ptr< RaspiNullsink > create();
             shared_ptr< RaspiPort > input;
-            void destroy();
         protected:
             const char* component_name();
             MMAL_STATUS_T init();

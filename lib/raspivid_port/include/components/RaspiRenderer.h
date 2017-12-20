@@ -31,7 +31,6 @@ namespace raspivid {
             static shared_ptr< RaspiRenderer > create(int alpha, int layer);
             static shared_ptr< RaspiRenderer > create();
             shared_ptr< RaspiPort > input;
-            void destroy();
         protected:
             const char* component_name();
             int alpha_ = 255;

@@ -52,20 +52,4 @@ namespace raspivid {
 
         return MMAL_SUCCESS;
     }
-
-    void RaspiSplitter::destroy() {
-        /*
-        if (input) {
-            delete input;
-        }
-        if (output_0) {
-            delete output_0;
-        }
-        if (output_1) {
-            delete output_1;
-        }
-        */
-        RaspiComponent::destroy();
-    }
-
 }

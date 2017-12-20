@@ -13,7 +13,6 @@ namespace raspivid {
             static shared_ptr< RaspiResize > create();
             shared_ptr< RaspiPort > input;
             shared_ptr< RaspiPort > output;
-            void destroy();
             MMAL_STATUS_T set_output(int width, int height);
         protected:
             const char* component_name();

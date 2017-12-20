@@ -18,7 +18,6 @@ namespace raspivid {
             shared_ptr< RaspiPort > output_0;
             shared_ptr< RaspiPort > output_1;
             MMAL_STATUS_T duplicate_input(); 
-            void destroy();
         protected:
             const char* component_name();
             MMAL_STATUS_T init();
