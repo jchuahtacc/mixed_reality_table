@@ -12,8 +12,8 @@ namespace raspivid {
 
     RASPIVID_OPTIONS_S RaspiVid::createRaspiVidDefaultOptions() {
         RASPIVID_OPTIONS_S options;
-        options.width = 1920;       // Default to 1080p
-        options.height = 1080;
+        options.width = 1640;       // Default to 1080p
+        options.height = 1232;
         options.framerate = VIDEO_FRAME_RATE_NUM;
 
         options.verbose = true;
@@ -178,7 +178,7 @@ namespace raspivid {
             }
         }
 
-        mvCallback = shared_ptr< MotionVectorCallback >( new MotionVectorCallback() );
+        mvCallback = shared_ptr< MotionVectorPreviewCallback >( new MotionVectorPreviewCallback(options_.resizer_width, options_.resizer_height) );
         encoder->output->add_callback(mvCallback);
         return MMAL_SUCCESS;
     }

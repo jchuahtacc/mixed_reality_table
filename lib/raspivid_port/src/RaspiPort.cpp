@@ -122,6 +122,7 @@ namespace raspivid {
                 }
             }
         }
+        userdata->cb_instance->post_process();
     }
 
     MMAL_BUFFER_HEADER_T* RaspiPort::get_buffer() {

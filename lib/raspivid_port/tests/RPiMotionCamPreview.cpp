@@ -19,8 +19,6 @@ int wait() {
 
 int main(int argc, char** argv) {
     RASPIVID_OPTIONS_S options = RaspiVid::createRaspiVidDefaultOptions();
-    options.width = 1024;
-    options.height = 768;
     options.preview = true;
     auto cam = RaspiVid::create(options);
 

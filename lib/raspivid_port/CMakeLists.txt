@@ -5,6 +5,7 @@ message(STATUS "Building rpi_motioncam")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 find_package( MMAL REQUIRED )
 find_package( Broadcom REQUIRED )
+find_package( OpenCV REQUIRED )
 
 set(BUILD_RPIMOTIONCAM_TESTS FALSE CACHE PATH "Build RPiMotionCam Test Programs")
 
@@ -15,8 +16,8 @@ set(RPI_MOTIONCAM_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include CACHE PATH "r
 
 include_directories("${RPI_MOTIONCAM_INCLUDE_DIRS}")
 
-add_library(rpi_motioncam ./src/RaspiVid.cpp ./src/components/RaspiRenderer.cpp ./src/RaspiCamControl.cpp ./src/components/RaspiComponent.cpp ./src/components/RaspiNullsink.cpp ./src/components/RaspiEncoder.cpp ./src/RaspiPort.cpp ./src/MotionVectorCallback.cpp ./src/components/RaspiSplitter.cpp ./src/components/RaspiResize.cpp ./src/components/RaspiCamera.cpp ./src/components/RaspiOverlayRenderer.cpp ./src/RawOutputCallback.cpp)
-target_link_libraries(rpi_motioncam ${MMAL_LIBRARIES} pthread)
+add_library(rpi_motioncam ./src/RaspiVid.cpp ./src/components/RaspiRenderer.cpp ./src/RaspiCamControl.cpp ./src/components/RaspiComponent.cpp ./src/components/RaspiNullsink.cpp ./src/components/RaspiEncoder.cpp ./src/RaspiPort.cpp ./src/MotionVectorCallback.cpp ./src/components/RaspiSplitter.cpp ./src/components/RaspiResize.cpp ./src/components/RaspiCamera.cpp ./src/components/RaspiOverlayRenderer.cpp ./src/MotionVectorPreviewCallback.cpp ./src/RawOutputCallback.cpp)
+target_link_libraries(rpi_motioncam ${OpenCV_LIBS} ${MMAL_LIBRARIES} pthread)
 
 if (BUILD_RPIMOTIONCAM_TESTS)
     add_subdirectory(tests)

@@ -15,7 +15,7 @@ namespace raspivid {
         result.dest.y = 0;
         result.dest.width = format.width;
         result.dest.height = format.height;
-        result.encoding = MMAL_ENCODING_RGB24;
+        result.fullscreen = true;
         return result;
     }
 
@@ -93,7 +93,7 @@ namespace raspivid {
             param.alpha = format_.alpha;    //0 = opaque, 255 = transparent IIRC
 
             param.set |= (MMAL_DISPLAY_SET_DEST_RECT | MMAL_DISPLAY_SET_FULLSCREEN);
-            param.fullscreen = 0;
+            param.fullscreen = format_.fullscreen;
             param.dest_rect = format_.dest;
             if ((status = mmal_port_parameter_set(input_port, &param.hdr)) != MMAL_SUCCESS) {
                 vcos_log_error("RaspiOverlayRenderer::init(): Couldn't set port display region");

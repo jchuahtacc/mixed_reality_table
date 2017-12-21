@@ -158,6 +158,8 @@ namespace raspivid {
         format->es->video.crop.y = 0;
         format->es->video.crop.width = options_.width;
         format->es->video.crop.height = options_.height;
+        format->es->video.frame_rate.num = 15;
+        format->es->video.frame_rate.den = 1;
         format->es->video.frame_rate.num = PREVIEW_FRAME_RATE_NUM;
         format->es->video.frame_rate.den = PREVIEW_FRAME_RATE_DEN;
 

@@ -18,6 +18,7 @@ namespace raspivid {
     class RaspiCallback {
         public:
             virtual void callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer) =0;
+            virtual void post_process() { };
     };
 }
 

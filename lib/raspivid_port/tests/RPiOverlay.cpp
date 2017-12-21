@@ -11,6 +11,8 @@ using namespace raspivid;
 int main(int argc, char** argv) {
     RASPIOVERLAYRENDERER_FORMAT_S format = RaspiOverlayRenderer::createDefaultOverlayFormat();
     format.alpha = 128;
+    format.width = 640;
+    format.height = 480;
     auto renderer = RaspiOverlayRenderer::create(format);
     vcos_assert(renderer);
     cout << "Init success" << endl;

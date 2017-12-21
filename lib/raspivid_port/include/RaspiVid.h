@@ -19,6 +19,7 @@
 #include "RaspiCamControl.h"
 #include "RaspiPort.h"
 #include "MotionVectorCallback.h"
+#include "MotionVectorPreviewCallback.h"
 #include "RawOutputCallback.h"
 #include "components/RaspiRenderer.h"
 #include "components/RaspiEncoder.h"

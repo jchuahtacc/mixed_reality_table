@@ -1,20 +1,21 @@
-#ifndef __MOTIONVECTORCALLBACK_H__
-#define __MOTIONVECTORCALLBACK_H__
+#ifndef __MOTIONVECTORPREVIEWCALLBACK_H__
+#define __MOTIONVECTORPREVIEWCALLBACK_H__
 
 #include <memory>
 #include "MotionVectorCallback.h"
 #include "components/RaspiOverlayRenderer.h"
+#include <opencv2/core.hpp>
 
 namespace raspivid {
     class MotionVectorPreviewCallback : public MotionVectorCallback {
         public: 
-            void callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer);
-            MotionVectorPreviewCallback(uint16_t width, uint16_t height, shared_ptr< RaspiOverlayRenderer > renderer);
+            MotionVectorPreviewCallback(int width, int height);
+            void post_process();
         protected:
             shared_ptr< RaspiOverlayRenderer > renderer_;
     };
 }
 
 
-#endif /* __MOTIONVECTORCALLBACK_H__ */
+#endif /* __MOTIONVECTORPREVIEWCALLBACK_H__ */
 
