@@ -1,10 +1,29 @@
 #include "MotionVectorPreviewCallback.h"
 #include <stdlib.h>
+#include <opencv2/core.hpp>
 
 namespace raspivid {
     void MotionVectorPreviewCallback::post_process() {
-        if (fresh) {
+        char *red = new char[48];
+        for (int i = 0; i < 16; i++) {
+            red[i * 3] = 255;
+        }
+
+        int row_offset = cols_ * 48;
+        if (new_vectors) {
             MMAL_BUFFER_HEADER_T *buffer = renderer_->get_buffer();
+            for (auto region = regions.begin(); region != regions.end(); ++region) {
+                for (int row = region->row; row < region->row + region->height; row++) {
+                    for (int col = region->col; col < region->col + region->width; col++) {
+                        int buffer_pos = (row * cols_ * 256 + col * 16) * 3;
+                        for (int i = 0; i < 16; i++) {
+                            memcpy(&buffer->data[buffer_pos + i * row_offset], red, 48);
+                        }
+                    }
+                }
+            }
+            /*
+            // draw motion vector blocks
             int row_offset = cols_ * 16 * 3; 
             for (int row = 0; row < rows_; row++) {
                 for (int col = 0; col < cols_; col++) {
@@ -13,16 +32,11 @@ namespace raspivid {
                     for (int i = 0; i < 16; i++) {
                         memset(&buffer->data[buffer_pos + i * row_offset],  motion.data[data_pos], 48);
                     }
-                    /*
-                    memcpy(&buffer->data[buffer_pos]
-                    buffer->data[buffer_pos] = motion.data[data_pos];
-                    buffer->data[buffer_pos + 1] = motion.data[data_pos];
-                    buffer->data[buffer_pos + 2] = motion.data[data_pos];
-                    */
                 }
             }
+            */
+            delete red;
             renderer_->send_buffer(buffer);
-            fresh = false;
         }
     }
 
