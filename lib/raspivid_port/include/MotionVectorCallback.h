@@ -21,25 +21,31 @@ namespace raspivid {
             bool grow_down();
             bool grow_left();
             bool grow_right();
-            static int last_row;
-            static int last_col;
+            static int num_rows;
+            static int num_cols;
 
     };
 
     class MotionVectorCallback : public RaspiCallback {
         public: 
             MotionVectorCallback(int width, int height);
+            ~MotionVectorCallback();
             void callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer);
             void post_process();
             int buffer_pos(int row, int col);
-            bool check_col(MMAL_BUFFER_HEADER_T *buffer, bool *searched, int row, int col, int height);
-            bool check_row(MMAL_BUFFER_HEADER_T *buffer, bool *searched, int row, int col, int width);
-        protected:
+            bool check_left(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region);
+            bool check_right(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region);
+            bool check_top(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region);
+            bool check_bottom(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region);
+            void grow_region(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region);
+        // protected:
             int cols_;
             int rows_;
 
             bool new_vectors;
             vector< MotionRegion> regions;
+        private:
+            bool *searched;
         
     };
 }
