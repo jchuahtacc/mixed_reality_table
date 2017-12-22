@@ -10,9 +10,15 @@ namespace raspivid {
     class MotionVectorPreviewCallback : public MotionVectorCallback {
         public: 
             MotionVectorPreviewCallback(int width, int height);
+            int buffer_position(int row, int col, int row_offset);
             void post_process();
         protected:
             shared_ptr< RaspiOverlayRenderer > renderer_;
+            char red[3] = { 255, 0, 0 };
+            char green[3] = { 0, 255, 0 };
+            char blue[3] = { 0, 0, 255 };
+            
+            vector< char* > colors;
     };
 }
 
