@@ -21,13 +21,11 @@ namespace raspivid {
         }
     }
 
-    shared_ptr< RaspiPort > RaspiPort::create(MMAL_PORT_T *mmal_port) {
-        return shared_ptr< RaspiPort >( new RaspiPort(mmal_port) );
+    shared_ptr< RaspiPort > RaspiPort::create(MMAL_PORT_T *mmal_port, string port_name_) {
+        return shared_ptr< RaspiPort >( new RaspiPort(mmal_port, port_name_ ) );
     }
 
-    RaspiPort::RaspiPort(MMAL_PORT_T *mmal_port) {
-        port = mmal_port;
-        pool = NULL;
+    RaspiPort::RaspiPort(MMAL_PORT_T *mmal_port, string port_name_) : port(mmal_port), port_name(port_name_), pool(NULL) {
     }
 
     RASPIPORT_FORMAT_S RaspiPort::createDefaultPortFormat() {
@@ -87,6 +85,9 @@ namespace raspivid {
         vcos_assert(port);
         MMAL_STATUS_T status;
         mmal_format_copy(port->format, output_port->format);
+        if ((status = mmal_port_format_commit(port)) != MMAL_SUCCESS) {
+            vcos_log_error("RaspiPort::connect(): unable to commit new port format");
+        }
         if ((status = mmal_connection_create(connection, output_port, port, MMAL_CONNECTION_FLAG_TUNNELLING | MMAL_CONNECTION_FLAG_ALLOCATION_ON_INPUT)) != MMAL_SUCCESS) {
             vcos_log_error("RaspiPort::connect(): unable to connect port");
             return status;
@@ -111,7 +112,9 @@ namespace raspivid {
     void RaspiPort::callback_wrapper(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer) {
         RASPIPORT_USERDATA_S *userdata = (RASPIPORT_USERDATA_S *)port->userdata;
         vcos_assert(userdata);
+        mmal_buffer_header_mem_lock(buffer);
         userdata->cb_instance->callback(port, buffer);
+        mmal_buffer_header_mem_unlock(buffer);
         MMAL_POOL_T *pool = userdata->pool;
         mmal_buffer_header_release(buffer);
         if (pool && port->is_enabled) {
@@ -139,12 +142,13 @@ namespace raspivid {
         vcos_assert(port);
         if (!pool) {
             //port->buffer_num = port->buffer_num_recommended;
-            port->buffer_size = port->buffer_size_recommended;
+            //port->buffer_size = port->buffer_size_recommended;
             /*
             if (port->buffer_num < 3) {
                 port->buffer_num = 3;
             }
             */
+            vcos_log_error("RaspiPort::create_buffer_pool(): creating %d buffers of size %d for port %s", port->buffer_num, port->buffer_size, port_name.c_str());
             pool = mmal_port_pool_create(port, port->buffer_num, port->buffer_size);
             if (!pool) {
                 vcos_log_error("RaspiPort::create_buffer_pool(): unable to create buffer pool");

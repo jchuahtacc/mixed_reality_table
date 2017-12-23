@@ -26,7 +26,7 @@ namespace raspivid {
             return status;
         }
 
-        input = RaspiPort::create(component->input[0]);
+        input = RaspiPort::create(component->input[0], "RaspiNullsink::input");
 
         return MMAL_SUCCESS;
     }

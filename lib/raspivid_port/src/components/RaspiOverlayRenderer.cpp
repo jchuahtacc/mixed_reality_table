@@ -74,7 +74,7 @@ namespace raspivid {
             input_port->buffer_num = 2;
         }
 
-        input = RaspiPort::create(input_port);
+        input = RaspiPort::create(input_port, "RaspiOverlayRenderer::input");
         
         if ((status = input->create_buffer_pool()) != MMAL_SUCCESS) {
             vcos_log_error("RaspiOverlayrenderer::init(): could not create port buffer pool");

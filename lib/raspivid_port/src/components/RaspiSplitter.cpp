@@ -27,9 +27,9 @@ namespace raspivid {
         MMAL_PORT_T *mmal_output_0 = component->output[0];
         MMAL_PORT_T *mmal_output_1 = component->output[1];
 
-        input = RaspiPort::create(mmal_input);
-        output_0 = RaspiPort::create(mmal_output_0);
-        output_1 = RaspiPort::create(mmal_output_1);
+        input = RaspiPort::create(mmal_input, "RaspiSplitter::input");
+        output_0 = RaspiPort::create(mmal_output_0, "RaspiSplitter::output_0");
+        output_1 = RaspiPort::create(mmal_output_1, "RaspiSplitter::output_1");
 
         vcos_log_error("RaspiSplitter::init(): success!");
 

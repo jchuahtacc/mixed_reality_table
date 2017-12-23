@@ -48,8 +48,8 @@ namespace raspivid {
         MMAL_PORT_T *mmal_input = component->input[0];
         MMAL_PORT_T *mmal_output = component->output[0];
 
-        input = RaspiPort::create(mmal_input);
-        output = RaspiPort::create(mmal_output);
+        input = RaspiPort::create(mmal_input, "RaspiEncoder::input");
+        output = RaspiPort::create(mmal_output, "RaspiEncoder::output");
 
         mmal_format_copy(mmal_output->format, mmal_input->format);
 

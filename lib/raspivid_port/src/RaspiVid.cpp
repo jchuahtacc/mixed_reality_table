@@ -84,6 +84,7 @@ namespace raspivid {
         MMAL_STATUS_T status;
         if (options_.preview) {
             if (options_.raw_output) {
+                vcos_log_error("RaspiVid::connect_components(): configuring components for preview + raw output");
                 vcos_assert(splitter);
                 status = splitter->input->connect(camera->preview);
                 if (status != MMAL_SUCCESS) {
@@ -171,7 +172,7 @@ namespace raspivid {
     MMAL_STATUS_T RaspiVid::add_callbacks() {
         MMAL_STATUS_T status = MMAL_SUCCESS;
 
-        if (options_.raw_output) {
+        if (options_.preview && options_.raw_output) {
             roCallback = shared_ptr< RawOutputCallback >( new RawOutputCallback() );
             if (splitter->output_0->add_callback(roCallback) != MMAL_SUCCESS) {
                 vcos_log_error("RaspiVid::add_callbacks(): Could not add raw output callback");

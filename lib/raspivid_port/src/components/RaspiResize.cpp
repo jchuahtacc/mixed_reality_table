@@ -25,8 +25,8 @@ namespace raspivid {
         MMAL_PORT_T *mmal_input = component->input[0];
         MMAL_PORT_T *mmal_output = component->output[0];
 
-        input = RaspiPort::create(mmal_input);
-        output = RaspiPort::create(mmal_output);
+        input = RaspiPort::create(mmal_input, "RaspiResize::input");
+        output = RaspiPort::create(mmal_output, "RaspiResize::output");
 
         vcos_log_error("RaspiResize::init(): success!");
 
