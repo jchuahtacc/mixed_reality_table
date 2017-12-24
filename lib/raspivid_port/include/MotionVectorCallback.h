@@ -38,13 +38,12 @@ namespace raspivid {
             bool check_top(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region);
             bool check_bottom(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region);
             void grow_region(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region);
-        // protected:
+        protected:
             int cols_;
             int rows_;
 
             bool new_vectors;
             vector< MotionRegion> regions;
-        private:
             int buffer_count = 0;
             bool *searched;
         

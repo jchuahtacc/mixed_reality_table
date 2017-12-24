@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
         cout << "*** Frame " << i << "***" << endl;
         printMatrix((uint8_t*)frame); 
         callback.callback(NULL, &buffer);
-        printRegions(callback.regions);
+        //printRegions(callback.regions);
         cout << endl;
    }
 }

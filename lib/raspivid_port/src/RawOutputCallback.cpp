@@ -16,7 +16,8 @@ namespace raspivid {
     }
 
     void RawOutputCallback::callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer) {
-            copy_buffer(buffer);
+            imgPtr = shared_ptr< Mat >( new Mat(height_, width_, CV_8U ) );
+            //copy_buffer(buffer);
             buffer_count++;
             //vcos_log_error("RawOutputCallback::callback(): buffer #%d", buffer_count);
             auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start);
