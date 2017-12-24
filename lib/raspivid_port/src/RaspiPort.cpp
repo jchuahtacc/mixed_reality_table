@@ -26,6 +26,17 @@ namespace raspivid {
     }
 
     RaspiPort::RaspiPort(MMAL_PORT_T *mmal_port, string port_name_) : port(mmal_port), port_name(port_name_), pool(NULL) {
+        set_zero_copy();
+    }
+
+    MMAL_STATUS_T RaspiPort::set_zero_copy() {
+        MMAL_STATUS_T status;
+
+        if ((status = mmal_port_parameter_set_boolean(port, MMAL_PARAMETER_ZERO_COPY, MMAL_TRUE)) != MMAL_SUCCESS) {
+            vcos_log_error("RaspiPort::set_zero_copy: could not set zero copy on %s", port_name.c_str());
+        }
+
+        return status;
     }
 
     RASPIPORT_FORMAT_S RaspiPort::createDefaultPortFormat() {

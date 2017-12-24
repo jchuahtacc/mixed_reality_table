@@ -106,34 +106,13 @@ namespace raspivid {
             growing = check_top(buffer, searched, region) || growing;
             growing = check_right(buffer, searched, region) || growing;
             growing = check_bottom(buffer, searched, region) || growing;
-            /*
-            bool result = false;
-            result = check_left(buffer, searched, region);
-            while (result) {
-                result = check_left(buffer, searched, region);
-            }
-            growing = growing || result;
-            result = check_top(buffer, searched, region);
-            while (result) {
-                result = check_top(buffer, searched, region);
-            }
-            growing = growing || result;
-            result = check_right(buffer, searched, region);
-            while (result) {
-                result = check_right(buffer, searched, region);
-            }
-            growing = growing || result;
-            result = check_bottom(buffer, searched, region);
-            while (result) {
-                result = check_bottom(buffer, searched, region);
-            }
-            growing = growing || result;
-            */
         }
     }
 
     void MotionVectorCallback::callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer) {
         if ((buffer->flags & MMAL_BUFFER_HEADER_FLAG_CODECSIDEINFO)) {
+            // buffer_count++;
+            // vcos_log_error("MotionVectorCallback::callback(): buffer #%d", buffer_count);
             regions.clear();
             for (int i = 0; i < rows_ * cols_; searched[i++] = false);
             for (int row = 0; row < rows_; row++) {

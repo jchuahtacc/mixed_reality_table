@@ -45,6 +45,7 @@ namespace raspivid {
             bool new_vectors;
             vector< MotionRegion> regions;
         private:
+            int buffer_count = 0;
             bool *searched;
         
     };

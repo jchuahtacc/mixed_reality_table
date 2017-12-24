@@ -34,6 +34,7 @@ namespace raspivid {
             MMAL_STATUS_T create_buffer_pool();
             MMAL_BUFFER_HEADER_T* get_buffer();
             MMAL_STATUS_T send_buffer(MMAL_BUFFER_HEADER_T *buffer);
+            MMAL_STATUS_T set_zero_copy();
             void destroy();
             ~RaspiPort();
         protected:
