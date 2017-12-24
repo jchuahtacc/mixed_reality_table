@@ -12,8 +12,15 @@ namespace raspivid {
 
     RASPIVID_OPTIONS_S RaspiVid::createRaspiVidDefaultOptions() {
         RASPIVID_OPTIONS_S options;
-        options.width = 1640;       // Default to 1080p
+        
+        options.width = 1640;       
         options.height = 1232;
+
+        /*
+         options.width = 3240;
+         options.height = 2464;
+        */
+
         options.framerate = VIDEO_FRAME_RATE_NUM;
 
         options.verbose = true;
