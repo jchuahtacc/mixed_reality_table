@@ -26,6 +26,7 @@
 #include "components/RaspiSplitter.h"
 #include "components/RaspiResize.h"
 #include "components/RaspiCamera.h"
+#include "components/RaspiNullsink.h"
 
 
 // Video format information
@@ -109,6 +110,7 @@ namespace raspivid {
             shared_ptr< RaspiEncoder > encoder;
             shared_ptr< RaspiSplitter > splitter;
             shared_ptr< RaspiResize > resizer;
+            shared_ptr< RaspiNullsink > nullsink;
 
             shared_ptr< MotionVectorCallback > mvCallback;
             shared_ptr< RawOutputCallback > roCallback;

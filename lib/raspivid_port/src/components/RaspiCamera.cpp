@@ -183,7 +183,8 @@ namespace raspivid {
             mmal_port_parameter_set(video_port, &fps_range.hdr);
         }
 
-        format->encoding = MMAL_ENCODING_OPAQUE;
+        //format->encoding = MMAL_ENCODING_OPAQUE;
+        format->encoding = MMAL_ENCODING_I420;
         format->es->video.width = VCOS_ALIGN_UP(options_.width, 32);
         format->es->video.height = VCOS_ALIGN_UP(options_.height, 16);
         format->es->video.crop.x = 0;

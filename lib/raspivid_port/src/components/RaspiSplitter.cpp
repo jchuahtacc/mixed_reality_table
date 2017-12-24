@@ -41,11 +41,12 @@ namespace raspivid {
         vcos_assert(output_0);
         vcos_assert(output_1);
         MMAL_STATUS_T status;
-        if ((status = output_0->set_format(input->get_format())) != MMAL_SUCCESS) {
+        RASPIPORT_FORMAT_S format = input->get_format();
+        if ((status = output_0->set_format(format)) != MMAL_SUCCESS) {
             vcos_log_error("RaspiSplitter::connect(): Unable to set output_0 format to input format");
             return status;
         }
-        if ((status = output_1->set_format(input->get_format())) != MMAL_SUCCESS) {
+        if ((status = output_1->set_format(format)) != MMAL_SUCCESS) {
             vcos_log_error("RaspiSplitter::connect(): Unable to set output_1 format to input format");
             return status;
         }

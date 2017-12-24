@@ -76,6 +76,11 @@ namespace raspivid {
             return MMAL_ENOSYS;
         }
 
+        nullsink = RaspiNullsink::create();
+        if (nullsink == NULL) {
+            vcos_log_error("RaspiVid::create_components(): Failed to create null sink");
+        }
+
        
         return MMAL_SUCCESS;
     }
@@ -83,105 +88,60 @@ namespace raspivid {
     MMAL_STATUS_T RaspiVid::connect_components() {
         MMAL_STATUS_T status;
         if (options_.preview) {
-            if (options_.raw_output) {
-                vcos_log_error("RaspiVid::connect_components(): configuring components for preview + raw output");
-                vcos_assert(splitter);
-                status = splitter->input->connect(camera->preview);
-                if (status != MMAL_SUCCESS) {
-                    vcos_log_error("RaspiVid::connect_components(): failed to connect camera preview to splitter input");
-                    return status;
-                }
-
-                if (splitter->duplicate_input() != MMAL_SUCCESS) {
-                    vcos_log_error("RaspiVid::connect_components(): unable to copy splitter input format to outputs");
-                }
-                
-                // Connect splitter to preview
-                status = preview_renderer->input->connect(splitter->output_1);
-                if (status != MMAL_SUCCESS) {
-                    vcos_log_error("RaspiVid::connect_components(): failed to connect preview_renderer");
-                    return status;
-                }
-            } else {
-                // Want preview, don't want raw output
-                if (options_.verbose) {
-                   fprintf(stderr, "Connecting camera preview port to preview input port\n");
-                   fprintf(stderr, "Starting video preview\n");
-                }
-
-                // Connect camera to preview
-                status = preview_renderer->input->connect(camera->preview);
-                if (status != MMAL_SUCCESS) {
-                    vcos_log_error("RaspiVid::connect_components: Failed to connect camera preview to preview input port");
-                    return status;
-                }
+            if ((status = preview_renderer->input->connect(camera->preview)) != MMAL_SUCCESS) {
+                vcos_log_error("RaspiVid::connect_components(): couldn't connect camera preview to preview renderer");
+                return status;
             }
         } else {
-            if (options_.raw_output) {
-                // Don't want preview, but want raw output
-                if (options_.verbose) {
-                    fprintf(stderr, "Connecting camera preview port to splitter input port\n");
-                }
-
-                // Connect camera to splitter
-                status = splitter->input->connect(camera->preview);
-                if (status != MMAL_SUCCESS) {
-                    vcos_log_error("RaspiVid::connect_components(): Failed to connect camera preview port to splitter input");
-                    return status;
-                }
-                if (splitter->duplicate_input() != MMAL_SUCCESS) {
-                    vcos_log_error("RaspiComponent::connect_components(): unable to copy splitter input format to outputs");
-                }
-
-                // TODO: Connect Nullsink
-            } else {
-                // Don't want preview or raw output
-                // TODO: Connect null sink
+            if ((status = nullsink->input->connect(camera->preview)) != MMAL_SUCCESS) {
+                vcos_log_error("RaspiVid::connect_components(): couldn't connect nullsink input to camera preview");
+                return status;
             }
         }
-
-        if (options_.verbose)
-            fprintf(stderr, "Connecting camera video port to resizer input port\n");
-
-        // Connect camera to resizer
-        vcos_assert(resizer->input);
-        status = resizer->input->connect(camera->video);
-        if (status != MMAL_SUCCESS) {
-            vcos_log_error("RaspiVid::connect_components(): Failed to connect RaspiResizer to camera_video_port");
+        if ((status = splitter->input->connect(camera->video)) != MMAL_SUCCESS) {
+            vcos_log_error("RaspiVid::connect_components(): couldn't connect camera video to splitter");
             return status;
         }
-        status = resizer->set_output(options_.resizer_width, options_.resizer_height);
-        if (status != MMAL_SUCCESS) {
-            vcos_log_error("RaspiVid::connect_components(): Failed to set output format on resizer");
+        if ((status = splitter->duplicate_input()) != MMAL_SUCCESS) {
+            vcos_log_error("RaspiVid::connect_components(): couldn't duplicate splitter input");
             return status;
         }
-        
-        // Connect resizer to encoder
-        vcos_assert(encoder->input);
-        vcos_assert(resizer->output);
-        status = encoder->input->connect(resizer->output);
-        if (status != MMAL_SUCCESS) {
-            vcos_log_error("RaspiVid::connect_components(): Failed to connect RaspiEncoder to RaspiResizer");
+        if ((status = resizer->input->connect(splitter->output_1)) != MMAL_SUCCESS) {
+            vcos_log_error("RaspiVid::connect_components(): couldn't connect splitter output_1 to resizer");
+            return status;
+        }
+        if ((status = resizer->set_output(options_.resizer_width, options_.resizer_height)) != MMAL_SUCCESS) {
+            vcos_log_error("RaspiVid::connect_components(): couldn't set resizer image size");
+            return status;
+        }
+        if ((status = encoder->input->connect(resizer->output)) != MMAL_SUCCESS) {
+            vcos_log_error("RaspiVid::connect_components(): couldn't connect splitter output_1 to encoder");
             return status;
         }
 
         return MMAL_SUCCESS;
     }
 
-
     MMAL_STATUS_T RaspiVid::add_callbacks() {
         MMAL_STATUS_T status = MMAL_SUCCESS;
 
-        if (options_.preview && options_.raw_output) {
-            roCallback = shared_ptr< RawOutputCallback >( new RawOutputCallback() );
-            if (splitter->output_0->add_callback(roCallback) != MMAL_SUCCESS) {
-                vcos_log_error("RaspiVid::add_callbacks(): Could not add raw output callback");
+        roCallback = shared_ptr< RawOutputCallback >( new RawOutputCallback() );
+        if (splitter->output_0->add_callback(roCallback) != MMAL_SUCCESS) {
+            vcos_log_error("RaspiVid::add_callbacks(): Could not add raw output callback");
+        }
+        if (options_.preview) {
+            mvCallback = shared_ptr< MotionVectorPreviewCallback >( new MotionVectorPreviewCallback(options_.resizer_width, options_.resizer_height) );
+            if (encoder->output->add_callback(mvCallback) != MMAL_SUCCESS) {
+                vcos_log_error("RaspiVid::add_callbacks(): couldn't add motion vector preview callback");
+            }
+        } else {
+            mvCallback = shared_ptr< MotionVectorCallback >( new MotionVectorCallback(options_.resizer_width, options_.resizer_height) );
+            if (encoder->output->add_callback(mvCallback) != MMAL_SUCCESS) {
+                vcos_log_error("RaspiVid::add_callbacks(): couldn't add motion vector callback");
             }
         }
-
-        mvCallback = shared_ptr< MotionVectorPreviewCallback >( new MotionVectorPreviewCallback(options_.resizer_width, options_.resizer_height) );
-        encoder->output->add_callback(mvCallback);
         return MMAL_SUCCESS;
+
     }
 
     MMAL_STATUS_T RaspiVid::init() {
@@ -207,12 +167,13 @@ namespace raspivid {
         if (options_.verbose) {
             fprintf(stderr, "Starting callback addition stage\n");
         }
-
+        /*
         if ((status = add_callbacks()) != MMAL_SUCCESS) {
             vcos_log_error("RaspiVid::init(): Failed to add one or more callbacks");
             return status;
 
         }
+        */
         return MMAL_SUCCESS;
     }
 
