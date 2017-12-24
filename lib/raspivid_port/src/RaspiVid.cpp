@@ -20,7 +20,6 @@ namespace raspivid {
         options.cameraNum = 0;
 
         options.raw_output_fmt = RAW_OUTPUT_FMT_GRAY;
-        options.raw_output = true;
         options.preview = true;
 
         options.resizer_width = 640;

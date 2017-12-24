@@ -71,7 +71,6 @@ namespace raspivid {
        uint32_t framerate;                      /// Requested frame rate (fps)
        bool verbose;                        /// !0 if want detailed run information
 
-       bool raw_output;                      /// Output raw video from camera as well
        RAW_OUTPUT_FMT raw_output_fmt;       /// The raw video format
        int cameraNum;                       /// Camera number
        int sensor_mode;			            /// Sensor mode. 0=auto. Check docs/forum for modes selected by other values.
