@@ -124,7 +124,7 @@ namespace raspivid {
     MMAL_STATUS_T RaspiVid::add_callbacks() {
         MMAL_STATUS_T status = MMAL_SUCCESS;
 
-        roCallback = shared_ptr< RawOutputCallback >( new RawOutputCallback() );
+        roCallback = shared_ptr< RawOutputCallback >( new RawOutputCallback(options_.width, options_.height) );
         if (splitter->output_0->add_callback(roCallback) != MMAL_SUCCESS) {
             vcos_log_error("RaspiVid::add_callbacks(): Could not add raw output callback");
         }
@@ -166,13 +166,11 @@ namespace raspivid {
         if (options_.verbose) {
             fprintf(stderr, "Starting callback addition stage\n");
         }
-        /*
         if ((status = add_callbacks()) != MMAL_SUCCESS) {
             vcos_log_error("RaspiVid::init(): Failed to add one or more callbacks");
             return status;
 
         }
-        */
         return MMAL_SUCCESS;
     }
 
