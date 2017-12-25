@@ -3,51 +3,7 @@
 
 namespace raspivid {
 
-    int MotionRegion::num_rows = 0;
-    int MotionRegion::num_cols = 0;
-
-    MotionRegion::MotionRegion(int row_, int col_) : row(row_), col(col_), width(1), height(1) {
-        grow_up();
-        grow_down();
-        grow_left();
-        grow_right();
-    }
-
-    bool MotionRegion::grow_up() {
-        if (row > 0) {
-            row = row - 1;
-            height = height + 1;
-            return true;
-        }
-        return false;
-    }
-
-    bool MotionRegion::grow_down() {
-        if (row + height < num_rows) {
-            height = height + 1;
-            return true;
-        }
-        return false;
-    }
-
-    bool MotionRegion::grow_left() {
-        if (col > 0) {
-            col = col - 1;
-            width = width + 1;
-            return true;
-        }
-        return false;
-    }
-
-    bool MotionRegion::grow_right() {
-        if (col + width < num_cols) {
-            width = width + 1;
-            return true;
-        }
-        return false;
-    }
-
-    MotionVectorCallback::MotionVectorCallback(int width, int height) : cols_(width / 16), rows_(height / 16), new_vectors(false) {
+    MotionVectorCallback::MotionVectorCallback(int width, int height) : cols_(width / 16), rows_(height / 16), lastRegions(nullptr) {
         MotionRegion::num_rows = rows_;
         MotionRegion::num_cols = cols_;
         int elements = rows_ * cols_;
@@ -113,7 +69,8 @@ namespace raspivid {
         if ((buffer->flags & MMAL_BUFFER_HEADER_FLAG_CODECSIDEINFO)) {
             // buffer_count++;
             // vcos_log_error("MotionVectorCallback::callback(): buffer #%d", buffer_count);
-            regions.clear();
+            lastRegions = nullptr;
+            auto regions = shared_ptr< vector< MotionRegion > >( new vector< MotionRegion >() );
             for (int i = 0; i < rows_ * cols_; searched[i++] = false);
             for (int row = 0; row < rows_; row++) {
                 for (int col = 0; col < cols_; col++) {
@@ -131,18 +88,18 @@ namespace raspivid {
                             }
                         }
 
-                        regions.push_back(region);
+                        regions->push_back(region);
                         
                     }
                 }
             }
-            new_vectors = true;
+            if (regions->size()) {
+                lastRegions = regions;
+                MotionData::stage_regions( regions );
+            }
         }
     }
 
     void MotionVectorCallback::post_process() {
-        if (new_vectors) {
-            new_vectors = false;
-        }
     }
 }

@@ -1,7 +1,10 @@
 #ifndef __RAWOUTPUTCALLBACK_H__
 #define __RAWOUTPUTCALLBACK_H__
 
+#define REGION_TIMEOUT 100 
+
 #include "RaspiCallback.h"
+#include "MotionData.h"
 #include <string>
 #include <memory>
 #include <chrono>

@@ -12,10 +12,10 @@ namespace raspivid {
     }
 
     void MotionVectorPreviewCallback::post_process() {
-        if (new_vectors) {
+        if (lastRegions) {
             MMAL_BUFFER_HEADER_T *buffer = renderer_->get_buffer();
             Mat img = Mat::zeros(480, 640, CV_8UC3);
-            for (auto region = regions.begin(); region != regions.end(); ++region) {
+            for (auto region = lastRegions->begin(); region != lastRegions->end(); ++region) {
                 rectangle(img, Point(region->col * 16, region->row * 16), Point((region->col + region->width) * 16, (region->row + region->height) * 16), Scalar(255, 0, 0), 2);
             }
             memcpy(buffer->data, img.data, 480 * 640 * 3);
@@ -24,9 +24,6 @@ namespace raspivid {
     }
 
     MotionVectorPreviewCallback::MotionVectorPreviewCallback(int width, int height) : MotionVectorCallback(width, height) {
-        colors.push_back(red);
-        colors.push_back(blue);
-        colors.push_back(green);
         RASPIOVERLAYRENDERER_FORMAT_S format = RaspiOverlayRenderer::createDefaultOverlayFormat();
         format.width = width;
         format.height = height;

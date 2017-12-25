@@ -5,26 +5,13 @@
 #define MOTION_THRESHOLD 60
 
 #include "RaspiCallback.h"
+#include "MotionData.h"
 #include <memory>
 #include <vector>
 
 using namespace std;
 
 namespace raspivid {
-
-    class MotionRegion {
-        public:
-            MotionRegion(int row, int col);
-            int row, col, width, height;
-            bool contains(int row, int col);
-            bool grow_up();
-            bool grow_down();
-            bool grow_left();
-            bool grow_right();
-            static int num_rows;
-            static int num_cols;
-
-    };
 
     class MotionVectorCallback : public RaspiCallback {
         public: 
@@ -42,8 +29,8 @@ namespace raspivid {
             int cols_;
             int rows_;
 
-            bool new_vectors;
-            vector< MotionRegion> regions;
+            // vector< MotionRegion> regions;
+            shared_ptr< vector< MotionRegion > > lastRegions = nullptr;
             int buffer_count = 0;
             bool *searched;
         
