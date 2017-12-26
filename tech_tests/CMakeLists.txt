@@ -11,7 +11,7 @@ target_link_libraries(detect_bounds ${OpenCV_LIBS} ${Boost_LIBRARIES} Threads::T
 add_executable(omx_frames omx_frames.cpp)
 target_link_libraries(omx_frames ${OpenCV_LIBS} ${Boost_LIBRARIES} Threads::Threads raspberrypi-omxcam )
 
-add_executable(mmal_test mmal_test.c RaspiCLI.c RaspiPreview.c RaspiCamControl.c RaspiCLI.h RaspiPreview.h RaspiCamControl.h)
-add_executable(raspivid RaspiVid.c RaspiCLI.c RaspiPreview.c RaspiCamControl.c RaspiCLI.h RaspiPreview.h RaspiCamControl.h)
+add_executable(mmal_test mmal_test.c RaspiCLI.c RaspiPreview.c )
+#add_executable(raspivid RaspiVid.c RaspiCLI.c RaspiPreview.c RaspiCamControl.c RaspiCLI.h RaspiPreview.h RaspiCamControl.h)
 target_link_libraries(mmal_test ${MMAL_LIBRARIES} Threads::Threads )
-target_link_libraries(raspivid ${MMAL_LIBRARIES} Threads::Threads )
+#target_link_libraries(raspivid ${MMAL_LIBRARIES} Threads::Threads )
