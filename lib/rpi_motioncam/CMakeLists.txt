@@ -15,7 +15,7 @@ add_subdirectory(lib)
 
 set(RPI_MOTIONCAM_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include CACHE PATH "rpi_motioncam header files")
 
-include_directories("${LIBRASPIVID_INCLUDE_DIRS}")
+# include_directories("${LIBRASPIVID_INCLUDE_DIRS}")
 include_directories("${RPI_MOTIONCAM_INCLUDE_DIRS}")
 
 add_library(rpi_motioncam ./src/RPiMotionCam.cpp ./src/MotionVectorCallback.cpp ./src/MotionVectorPreviewCallback.cpp ./src/RawOutputCallback.cpp ./src/MotionData.cpp ./src/MotionRegion.cpp)

@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <memory>
-#include "components/RaspiOverlayRenderer.h"
-#include "MotionVectorCallback.h"
+#include "raspivid/components/RaspiOverlayRenderer.h"
+#include "rpi_motioncam/MotionVectorCallback.h"
 #include <fstream>
 
 using namespace std;

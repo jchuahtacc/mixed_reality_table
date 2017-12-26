@@ -2,7 +2,7 @@
    #define _GNU_SOURCE
 #endif
 
-#include "RPiMotionCam.h"
+#include "rpi_motioncam/RPiMotionCam.h"
 
 using namespace raspi_cam_control;
 using namespace raspivid;

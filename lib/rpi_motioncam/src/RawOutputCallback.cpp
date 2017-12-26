@@ -1,4 +1,4 @@
-#include "RawOutputCallback.h"
+#include "rpi_motioncam/RawOutputCallback.h"
 
 namespace rpi_motioncam {
     RawOutputCallback::RawOutputCallback(int width, int height) : width_(VCOS_ALIGN_UP(width, 32)), height_(VCOS_ALIGN_UP(height, 16)) {

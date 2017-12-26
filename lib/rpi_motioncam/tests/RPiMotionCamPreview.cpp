@@ -1,5 +1,5 @@
 #include <iostream>
-#include "RPiMotionCam.h"
+#include "rpi_motioncam/RPiMotionCam.h"
 #include <chrono>
 #include <thread>
 
