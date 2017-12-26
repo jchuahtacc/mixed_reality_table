@@ -13,6 +13,22 @@ namespace raspivid {
         return MMAL_SUCCESS;
     }
 
+    MMAL_STATUS_T RaspiComponent::connect( shared_ptr< RaspiComponent > source_component ) {
+        if ( default_input && source_component->default_output ) {
+            return connect( source_component->default_output );
+        } else {
+            return MMAL_EINVAL;
+        }
+    }
+
+    MMAL_STATUS_T RaspiComponent::connect( shared_ptr< RaspiPort > source_port ) {
+        if ( default_input && source_port ) {
+            return default_input->connect( source_port );
+        } else {
+            return MMAL_EINVAL;
+        }
+    }
+
     void RaspiComponent::assert_ports(int inputs, int outputs) {
         vcos_assert(component);
         vcos_assert(component->input_num >= inputs);

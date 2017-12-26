@@ -5,8 +5,10 @@ namespace raspivid {
         return "vc.ril.resize";
     }
 
-    shared_ptr< RaspiResize > RaspiResize::create() {
+    shared_ptr< RaspiResize > RaspiResize::create(int width, int height) {
         shared_ptr< RaspiResize > result = shared_ptr< RaspiResize >( new RaspiResize() );
+        result->width_ = width;
+        result->height_ = height;
         if (result->init() != MMAL_SUCCESS) {
             return nullptr;
         }
@@ -27,25 +29,37 @@ namespace raspivid {
 
         input = RaspiPort::create(mmal_input, "RaspiResize::input");
         output = RaspiPort::create(mmal_output, "RaspiResize::output");
+        default_input = input;
+        default_output = output;
 
         vcos_log_error("RaspiResize::init(): success!");
 
         return MMAL_SUCCESS;
     }
 
-    MMAL_STATUS_T RaspiResize::set_output(int width, int height) {
+    MMAL_STATUS_T RaspiResize::connect( shared_ptr< RaspiComponent > source_component ) {
+        return RaspiComponent::connect( source_component );
+    }
+
+    MMAL_STATUS_T RaspiResize::connect( shared_ptr< RaspiPort > source_port ) {
+        MMAL_STATUS_T status;
+        if ((status = RaspiComponent::connect(source_port)) != MMAL_SUCCESS) {
+            return status;
+        }
+
         RASPIPORT_FORMAT_S format = input->get_format();
         format.encoding = MMAL_ENCODING_I420;
         format.encoding_variant = MMAL_ENCODING_I420;
-        format.width = VCOS_ALIGN_UP(width, 32);
-        format.height = VCOS_ALIGN_UP(height, 16);
-        format.crop.width = width;
-        format.crop.height = height;
-        MMAL_STATUS_T status;
+        format.width = VCOS_ALIGN_UP(width_, 32);
+        format.height = VCOS_ALIGN_UP(height_, 16);
+        format.crop.width = width_;
+        format.crop.height = height_;
+
         if ((status = output->set_format(format)) != MMAL_SUCCESS) {
-            vcos_log_error("RaspiResize::set_output(): unable to set output size format");
+            vcos_log_error("RaspiResize::connect(): unable to set output size format");
             return status;
         }
+
         return MMAL_SUCCESS;
     }
 

@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string>
 #include <memory.h>
+#include "RaspiPort.h"
 
 #include "interface/vcos/vcos.h"
 
@@ -25,6 +26,10 @@ namespace raspivid {
         public:
             ~RaspiComponent();
             void destroy();
+            MMAL_STATUS_T connect(shared_ptr< RaspiComponent > source_component);
+            MMAL_STATUS_T connect(shared_ptr< RaspiPort > source_port);
+            shared_ptr< RaspiPort > default_input = nullptr;
+            shared_ptr< RaspiPort > default_output = nullptr;
         protected:
             RaspiComponent();
             MMAL_STATUS_T init();

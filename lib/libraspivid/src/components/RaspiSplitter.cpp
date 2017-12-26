@@ -30,17 +30,23 @@ namespace raspivid {
         input = RaspiPort::create(mmal_input, "RaspiSplitter::input");
         output_0 = RaspiPort::create(mmal_output_0, "RaspiSplitter::output_0");
         output_1 = RaspiPort::create(mmal_output_1, "RaspiSplitter::output_1");
+        default_input = input;
+        default_output = output_0;
 
         vcos_log_error("RaspiSplitter::init(): success!");
 
         return MMAL_SUCCESS;
     }
 
-    MMAL_STATUS_T RaspiSplitter::duplicate_input() {
-        vcos_assert(input);
-        vcos_assert(output_0);
-        vcos_assert(output_1);
+    MMAL_STATUS_T RaspiSplitter::connect( shared_ptr< RaspiComponent > source_component ) {
+        return RaspiComponent::connect( source_component );
+    }
+
+    MMAL_STATUS_T RaspiSplitter::connect( shared_ptr< RaspiPort > source_port ) {
         MMAL_STATUS_T status;
+        if ((status = RaspiComponent::connect( source_port )) != MMAL_SUCCESS) {
+            return status;
+        }
         RASPIPORT_FORMAT_S format = input->get_format();
         if ((status = output_0->set_format(format)) != MMAL_SUCCESS) {
             vcos_log_error("RaspiSplitter::connect(): Unable to set output_0 format to input format");
@@ -50,7 +56,6 @@ namespace raspivid {
             vcos_log_error("RaspiSplitter::connect(): Unable to set output_1 format to input format");
             return status;
         }
-
         return MMAL_SUCCESS;
     }
 }

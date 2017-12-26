@@ -38,6 +38,7 @@ namespace raspivid {
 
         MMAL_PORT_T *mmal_input = component->input[0];
         input = RaspiPort::create(mmal_input, "RaspiRenderer::input");
+        default_input = input;
 
         MMAL_DISPLAYREGION_T param;
         param.hdr.id = MMAL_PARAMETER_DISPLAYREGION;
