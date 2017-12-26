@@ -15,7 +15,7 @@ set(LIBRASPIVID_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include ${BROADCOM_INCL
 
 include_directories("${LIBRASPIVID_INCLUDE_DIRS}")
 
-add_library(raspivid ./src/components/RaspiRenderer.cpp ./src/RaspiCamControl.cpp ./src/components/RaspiComponent.cpp ./src/components/RaspiNullsink.cpp ./src/components/RaspiEncoder.cpp ./src/RaspiPort.cpp ./src/components/RaspiSplitter.cpp ./src/components/RaspiResize.cpp ./src/components/RaspiCamera.cpp ./src/components/RaspiOverlayRenderer.cpp)
+add_library(raspivid ./src/components/RaspiRenderer.cpp ./src/RaspiCamControl.cpp ./src/components/RaspiComponent.cpp ./src/components/RaspiNullsink.cpp ./src/components/RaspiEncoder.cpp ./src/RaspiPort.cpp ./src/components/RaspiSplitter.cpp ./src/components/RaspiResize.cpp ./src/components/RaspiCamera.cpp ./src/components/RaspiOverlayRenderer.cpp )
 
 target_include_directories(raspivid PUBLIC ${LIBRASPIVID_INCLUDE_DIRS})
 target_link_libraries(raspivid ${MMAL_LIBRARIES} pthread)

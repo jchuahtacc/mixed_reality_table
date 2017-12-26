@@ -1,3 +1,7 @@
+/**
+ \file RaspiRenderer.h
+ */
+
 #ifndef __RASPIRENDERER_H__
 #define __RASPIRENDERER_H__
 
@@ -26,11 +30,27 @@
 
 namespace raspivid {
 
+    /**
+     \class RaspiRenderer RaspiRenderer.h "components/RaspiRenderer.h"
+     \brief Creates a simple preview renderer. Connect this to a RaspiCamera's preview port to get a video preview of camera output.
+     \see RaspiCamera#preview
+     */
     class RaspiRenderer : public RaspiComponent {
         public:
+            /**
+             \brief Creates a RaspiRenderer with the specified alpha transparency and layer.
+             \param alpha The alpha transparency of the preview.
+             \param layer The layer at which the preview is rendered.
+             \return A shared pointer to a RaspiRenderer.
+             */
             static shared_ptr< RaspiRenderer > create(int alpha, int layer);
+
+            /**
+             \brief Creates a RaspiRenderer with an alpha value of 255 (opaque) at layer 2.
+             \return A shared pointer to a RaspiRenderer.
+             */
             static shared_ptr< RaspiRenderer > create();
-            shared_ptr< RaspiPort > input;
+            shared_ptr< RaspiPort > input;      /**< The input port for this renderer. This is the default_input for this component. \see RaspiComponent::default_input */
         protected:
             const char* component_name();
             int alpha_ = 255;
