@@ -36,6 +36,16 @@ namespace rpi_motioncam {
         return options;
     }
 
+    bool RPiMotionCam::frame_ready() {
+        return MotionData::has_ready_frame();
+    }
+
+    shared_ptr< MotionData > RPiMotionCam::get_frame() {
+        shared_ptr< MotionData > frame;
+        MotionData::get_ready_frame(frame);
+        return frame;
+    }
+
     MMAL_STATUS_T RPiMotionCam::create_components() {
         MMAL_STATUS_T status = MMAL_SUCCESS;
  
@@ -210,6 +220,10 @@ namespace rpi_motioncam {
             RPiMotionCam::singleton_ = shared_ptr< RPiMotionCam >( new RPiMotionCam() );
         }
         RPiMotionCam::singleton_->options_ = options; 
+        MMAL_STATUS_T status;
+        if ((status = RPiMotionCam::singleton_->init()) != MMAL_SUCCESS) {
+            return nullptr;
+        }
         return RPiMotionCam::singleton_;
     }
 

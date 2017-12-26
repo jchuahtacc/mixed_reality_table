@@ -71,6 +71,8 @@ namespace rpi_motioncam {
             static RPI_MOTIONCAM_OPTION_S createMotionCamDefaultOptions();
             MMAL_STATUS_T init();
             MMAL_STATUS_T start();
+            bool frame_ready();
+            shared_ptr< MotionData > get_frame();
             void stop();
             ~RPiMotionCam();
 

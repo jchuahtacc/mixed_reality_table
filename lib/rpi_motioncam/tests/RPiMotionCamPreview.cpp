@@ -6,6 +6,8 @@
 using namespace std;
 using namespace rpi_motioncam;
 
+auto cam = RPiMotionCam::create();
+
 bool running = true;
 
 void consume_frames() {
@@ -16,11 +18,10 @@ void consume_frames() {
     int regions = 0;
     int seconds = 0;
     while (running) {
-        if (MotionData::has_ready_frame()) {
-            while (MotionData::has_ready_frame()) {
+        if (cam->frame_ready()) {
+            while (cam->frame_ready()) {
                 frames++;
-                shared_ptr< MotionData > frame;
-                MotionData::get_ready_frame(frame);
+                auto frame = cam->get_frame();
                 regions += frame->regions->size();
                 for (auto region = frame->regions->begin(); region != frame->regions->end(); ++region) {
                     bytes += region->imgPtr->total();
@@ -53,17 +54,6 @@ int wait() {
 
 
 int main(int argc, char** argv) {
-    RPI_MOTIONCAM_OPTION_S options = RPiMotionCam::createMotionCamDefaultOptions();
-    options.preview = true;
-    auto cam = RPiMotionCam::create(options);
-
-    if (cam->init() == MMAL_SUCCESS) {
-        cout << "Init success" << endl;
-    } else {
-        cout << "Init failed" << endl;
-        return -1;
-    }
-
     if (cam->start() == MMAL_SUCCESS) {
         cout << "Start success" << endl;
     } else {
