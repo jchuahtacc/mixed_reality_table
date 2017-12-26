@@ -11,13 +11,14 @@ set(BUILD_LIBRASPIVID_EXAMPLES FALSE CACHE PATH "Build libraspivid example progr
 include_directories("${BROADCOM_INCLUDE_DIRS}")
 include_directories("${MMAL_INCLUDE_DIRS}")
 
-set(LIBRASPIVID_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include CACHE PATH "libraspivid header files")
+set(LIBRASPIVID_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include ${BROADCOM_INCLUDE_DIRS} ${MMAL_INCLUDE_DIRS} CACHE PATH "libraspivid header files")
 
 include_directories("${LIBRASPIVID_INCLUDE_DIRS}")
 
 add_library(raspivid ./src/components/RaspiRenderer.cpp ./src/RaspiCamControl.cpp ./src/components/RaspiComponent.cpp ./src/components/RaspiNullsink.cpp ./src/components/RaspiEncoder.cpp ./src/RaspiPort.cpp ./src/components/RaspiSplitter.cpp ./src/components/RaspiResize.cpp ./src/components/RaspiCamera.cpp ./src/components/RaspiOverlayRenderer.cpp)
 
-target_link_libraries(raspivid ${OpenCV_LIBS} ${MMAL_LIBRARIES} pthread)
+target_include_directories(raspivid PUBLIC ${LIBRASPIVID_INCLUDE_DIRS})
+target_link_libraries(raspivid ${MMAL_LIBRARIES} pthread)
 
 if (BUILD_LIBRASPIVID_EXAMPLES)
     add_subdirectory(examples)
