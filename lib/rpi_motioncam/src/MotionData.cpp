@@ -1,4 +1,4 @@
-#include "rpi_motioncam/MotionData.h"
+#include "MotionData.h"
 
 namespace rpi_motioncam {
     concurrent_queue< shared_ptr< MotionData > > MotionData::staging_queue = concurrent_queue< shared_ptr< MotionData > >();

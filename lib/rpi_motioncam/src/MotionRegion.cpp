@@ -1,4 +1,4 @@
-#include "rpi_motioncam/MotionRegion.h"
+#include "MotionRegion.h"
 
 namespace rpi_motioncam {
     int MotionRegion::num_rows = 0;

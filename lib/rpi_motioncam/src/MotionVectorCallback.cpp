@@ -1,4 +1,4 @@
-#include "rpi_motioncam/MotionVectorCallback.h"
+#include "MotionVectorCallback.h"
 #include <iostream>
 
 namespace rpi_motioncam {
