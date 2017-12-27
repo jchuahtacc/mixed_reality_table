@@ -1,18 +1,10 @@
-#ifndef _GNU_SOURCE
-   #define _GNU_SOURCE
-#endif
-
 #include "rpi_motioncam/RPiMotionCam.h"
 
 using namespace raspi_cam_control;
-using namespace raspivid;
 
 namespace rpi_motioncam {
-
-    shared_ptr< RPiMotionCam > RPiMotionCam::singleton_ = nullptr;
-
-    RPI_MOTIONCAM_OPTION_S RPiMotionCam::createMotionCamDefaultOptions() {
-        RPI_MOTIONCAM_OPTION_S  options;
+    RPIMOTIONCAM_OPTION_S RPiMotionCam::createMotionCamDefaultOptions() {
+        RPIMOTIONCAM_OPTION_S options;
         
         options.width = 1640;       
         options.height = 1232;
@@ -32,6 +24,8 @@ namespace rpi_motioncam {
 
         options.resizer_width = 640;
         options.resizer_height = 480;
+
+        options.motion_threshold = MOTION_THRESHOLD_DEFAULT;
 
         return options;
     }
@@ -57,28 +51,21 @@ namespace rpi_motioncam {
         options.cameraNum = options_.cameraNum;
 
         camera = RaspiCamera::create(options);
-        if (camera == nullptr ) {
+        if (camera == NULL) {
             vcos_log_error("RPiMotionCam::create_components(): Failed to create camera");
             return MMAL_ENOSYS;
         }
 
-        RASPIPORT_FORMAT_S format = camera->video->get_format();
-        format.encoding = MMAL_ENCODING_I420;
-        if ((status = camera->video->set_format(format)) != MMAL_SUCCESS) {
-            vcos_log_error("RPimotionCam::create_components(): Failed to set camera video port format");
-            return status;
-        }
-
         if (options_.preview) {
             preview_renderer = RaspiRenderer::create();
-            if (preview_renderer == nullptr ) {
+            if (preview_renderer == NULL) {
                 vcos_log_error("RPiMotionCam::create_components(): Failed to create preview_renderer");
                 return MMAL_ENOSYS;
             }
         }
 
-        resizer = RaspiResize::create(options_.resizer_width, options_.resizer_height);
-        if (resizer == nullptr) {
+        resizer = RaspiResize::create();
+        if (resizer == NULL) {
             vcos_log_error("RPiMotionCam::create_components(): Failed to create resizer");
             return MMAL_ENOSYS;
         }
@@ -89,70 +76,68 @@ namespace rpi_motioncam {
         encoder_options.height = options_.resizer_height;
         encoder = RaspiEncoder::create(encoder_options);
 
-        if (encoder == nullptr) {
+        if (encoder == NULL) {
             vcos_log_error("RPiMotionCam::create_components(): Failed to create encoder");
             return MMAL_ENOSYS;
         }
 
         splitter = RaspiSplitter::create();
-        if (splitter == nullptr) {
+        if (splitter == NULL) {
             vcos_log_error("RPiMotionCam::create_components(): Failed to create splitter");
             return MMAL_ENOSYS;
         }
 
-        preview_nullsink = RaspiNullsink::create();
-        if (preview_nullsink == nullptr) {
+        nullsink = RaspiNullsink::create();
+        if (nullsink == NULL) {
             vcos_log_error("RPiMotionCam::create_components(): Failed to create null sink");
         }
 
-        still_nullsink = RaspiNullsink::create();
-        if (still_nullsink == nullptr) {
-            vcos_log_error("RPiMotionCam::create_components(): Failed to create null sink");
-        }
        
         return MMAL_SUCCESS;
     }
 
     MMAL_STATUS_T RPiMotionCam::connect_components() {
         MMAL_STATUS_T status;
-
-        if ((status = still_nullsink->connect(camera->still)) != MMAL_SUCCESS) {
-            vcos_log_error("RPiMotionCam::connect_components(): couldn't connect camera still port to nullsink");
-            return status;
-        }
-
         if (options_.preview) {
-            if ((status = preview_renderer->connect(camera->preview)) != MMAL_SUCCESS) {
+            if ((status = preview_renderer->input->connect(camera->preview)) != MMAL_SUCCESS) {
                 vcos_log_error("RPiMotionCam::connect_components(): couldn't connect camera preview to preview renderer");
                 return status;
             }
         } else {
-            if ((status = preview_nullsink->connect(camera->preview)) != MMAL_SUCCESS) {
+            if ((status = nullsink->input->connect(camera->preview)) != MMAL_SUCCESS) {
                 vcos_log_error("RPiMotionCam::connect_components(): couldn't connect nullsink input to camera preview");
                 return status;
             }
         }
-        if ((status = splitter->connect(camera)) != MMAL_SUCCESS) {
+        if ((status = splitter->input->connect(camera->video)) != MMAL_SUCCESS) {
             vcos_log_error("RPiMotionCam::connect_components(): couldn't connect camera video to splitter");
             return status;
         }
-        if ((status = resizer->connect(splitter)) != MMAL_SUCCESS) {
-            vcos_log_error("RPiMotionCam::connect_components(): couldn't connect splitter output_0 to resizer");
+        if ((status = splitter->duplicate_input()) != MMAL_SUCCESS) {
+            vcos_log_error("RPiMotionCam::connect_components(): couldn't duplicate splitter input");
             return status;
         }
-        if ((status = encoder->connect(resizer)) != MMAL_SUCCESS) {
-            vcos_log_error("RPiMotionCam::connect_components(): couldn't connect splitter output_0 to encoder");
+        if ((status = resizer->input->connect(splitter->output_1)) != MMAL_SUCCESS) {
+            vcos_log_error("RPiMotionCam::connect_components(): couldn't connect splitter output_1 to resizer");
             return status;
         }
+        if ((status = resizer->set_output(options_.resizer_width, options_.resizer_height)) != MMAL_SUCCESS) {
+            vcos_log_error("RPiMotionCam::connect_components(): couldn't set resizer image size");
+            return status;
+        }
+        if ((status = encoder->input->connect(resizer->output)) != MMAL_SUCCESS) {
+            vcos_log_error("RPiMotionCam::connect_components(): couldn't connect splitter output_1 to encoder");
+            return status;
+        }
+
         return MMAL_SUCCESS;
     }
 
     MMAL_STATUS_T RPiMotionCam::add_callbacks() {
         MMAL_STATUS_T status = MMAL_SUCCESS;
 
-
         roCallback = shared_ptr< RawOutputCallback >( new RawOutputCallback(options_.width, options_.height) );
-        if (splitter->output_1->add_callback(roCallback) != MMAL_SUCCESS) {
+        if (splitter->output_0->add_callback(roCallback) != MMAL_SUCCESS) {
             vcos_log_error("RPiMotionCam::add_callbacks(): Could not add raw output callback");
         }
         if (options_.preview) {
@@ -161,7 +146,7 @@ namespace rpi_motioncam {
                 vcos_log_error("RPiMotionCam::add_callbacks(): couldn't add motion vector preview callback");
             }
         } else {
-            mvCallback = shared_ptr< MotionVectorCallback >( new MotionVectorCallback(options_.resizer_width, options_.resizer_height) );
+            mvCallback = shared_ptr< MotionVectorCallback >( new MotionVectorCallback(options_.resizer_width, options_.resizer_height, options_.motion_threshold) );
             if (encoder->output->add_callback(mvCallback) != MMAL_SUCCESS) {
                 vcos_log_error("RPiMotionCam::add_callbacks(): couldn't add motion vector callback");
             }
@@ -182,7 +167,7 @@ namespace rpi_motioncam {
         }
 
         if (options_.verbose) {
-            vcos_log_error("RPiMotionCam::init():Starting component connection");
+            fprintf(stderr, "Starting component connection stage\n");
         }
 
         if ((status = connect_components()) != MMAL_SUCCESS) {
@@ -191,7 +176,7 @@ namespace rpi_motioncam {
         }
 
         if (options_.verbose) {
-            vcos_log_error("RPiMotionCam::init(): Starting callback addition");
+            fprintf(stderr, "Starting callback addition stage\n");
         }
         if ((status = add_callbacks()) != MMAL_SUCCESS) {
             vcos_log_error("RPiMotionCam::init(): Failed to add one or more callbacks");
@@ -215,22 +200,30 @@ namespace rpi_motioncam {
         return RPiMotionCam::create(RPiMotionCam::createMotionCamDefaultOptions());
     }
 
-    shared_ptr< RPiMotionCam > RPiMotionCam::create(RPI_MOTIONCAM_OPTION_S options) {
-        if (!RPiMotionCam::singleton_) {
-            RPiMotionCam::singleton_ = shared_ptr< RPiMotionCam >( new RPiMotionCam() );
-        }
-        RPiMotionCam::singleton_->options_ = options; 
+    shared_ptr< RPiMotionCam > RPiMotionCam::create(RPIMOTIONCAM_OPTION_S options) {
+        auto result = shared_ptr< RPiMotionCam >( new RPiMotionCam() );
+        result->options_ = options; 
+
         MMAL_STATUS_T status;
-        if ((status = RPiMotionCam::singleton_->init()) != MMAL_SUCCESS) {
+
+        if ((status = result->init()) != MMAL_SUCCESS) {
             return nullptr;
         }
-        return RPiMotionCam::singleton_;
+        return result;
     }
 
-    shared_ptr< RPiMotionCam > RPiMotionCam::getInstance() {
-        return RPiMotionCam::singleton_;
+    bool RPiMotionCam::frame_ready() {
+        return MotionData::has_ready_frame();
     }
-    
+
+    shared_ptr< MotionData > RPiMotionCam::get_frame() {
+        shared_ptr< MotionData > result;
+        if (MotionData::get_ready_frame(result)) {
+            return result;
+        }
+        return nullptr;
+    }
+
     RPiMotionCam::RPiMotionCam() {
     }
 

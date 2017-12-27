@@ -3,12 +3,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <memory>
-#include "raspivid/components/RaspiOverlayRenderer.h"
-#include "rpi_motioncam/MotionVectorCallback.h"
+#include "rpi_motioncam/components/RaspiOverlayRenderer.h"
+#include "rpi_motioncam/callbacks/MotionVectorCallback.h"
 #include <fstream>
 
 using namespace std;
-using namespace raspivid;
 using namespace rpi_motioncam;
 
 
@@ -58,7 +57,7 @@ void printMatrix(uint8_t* frame) {
     for (int row = 0; row < 480 / 16; row++) {
         cout << setw(4) << row << ":"; 
         for (int col = 0; col < 640 / 16; col++) {
-            if (frame[callback.buffer_pos(row, col)] > MOTION_THRESHOLD) {
+            if (frame[callback.buffer_pos(row, col)] > MOTION_THRESHOLD_DEFAULT) {
                 cout << setw(3) << "xx";
                 if (first_row == -1) {
                     first_row = row;
