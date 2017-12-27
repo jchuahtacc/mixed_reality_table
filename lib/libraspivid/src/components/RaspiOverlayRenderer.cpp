@@ -75,7 +75,6 @@ namespace raspivid {
         }
 
         input = RaspiPort::create(input_port, "RaspiOverlayRenderer::input");
-        default_input = input;
         
         if ((status = input->create_buffer_pool()) != MMAL_SUCCESS) {
             vcos_log_error("RaspiOverlayrenderer::init(): could not create port buffer pool");
@@ -88,10 +87,10 @@ namespace raspivid {
             param.hdr.size = sizeof(MMAL_DISPLAYREGION_T);
 
             param.set = MMAL_DISPLAY_SET_LAYER;
-            param.layer = format_.layer;
+            param.layer = format_.layer;    //On top of most things
 
             param.set |= MMAL_DISPLAY_SET_ALPHA;
-            param.alpha = format_.alpha;
+            param.alpha = format_.alpha;    //0 = opaque, 255 = transparent IIRC
 
             param.set |= (MMAL_DISPLAY_SET_DEST_RECT | MMAL_DISPLAY_SET_FULLSCREEN);
             param.fullscreen = format_.fullscreen;

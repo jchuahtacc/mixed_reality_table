@@ -27,7 +27,6 @@ namespace raspivid {
         }
 
         input = RaspiPort::create(component->input[0], "RaspiNullsink::input");
-        default_input = input;
 
         return MMAL_SUCCESS;
     }

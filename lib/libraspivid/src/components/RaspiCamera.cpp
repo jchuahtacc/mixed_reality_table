@@ -79,7 +79,6 @@ namespace raspivid {
         preview = RaspiPort::create(preview_port, "RaspiCamera::preview");
         still = RaspiPort::create(still_port, "RaspiCamera::still");
         video = RaspiPort::create(video_port, "RaspiCamera::video");
-        default_output = video;
 
         if ((status = mmal_port_parameter_set_uint32(component->control, MMAL_PARAMETER_CAMERA_CUSTOM_SENSOR_CONFIG, options_.sensor_mode)) != MMAL_SUCCESS) {
             vcos_log_error("RaspiCamera::init(): unable to set sensor mode (%u)", status);

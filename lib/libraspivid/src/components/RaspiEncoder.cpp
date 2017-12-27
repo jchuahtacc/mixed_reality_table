@@ -50,8 +50,6 @@ namespace raspivid {
 
         input = RaspiPort::create(mmal_input, "RaspiEncoder::input");
         output = RaspiPort::create(mmal_output, "RaspiEncoder::output");
-        default_input = input;
-        default_output = output;
 
         mmal_format_copy(mmal_output->format, mmal_input->format);
 

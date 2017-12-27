@@ -17,8 +17,7 @@ namespace raspivid {
             shared_ptr< RaspiPort > input;
             shared_ptr< RaspiPort > output_0;
             shared_ptr< RaspiPort > output_1;
-            MMAL_STATUS_T connect( shared_ptr< RaspiComponent > component );
-            MMAL_STATUS_T connect( shared_ptr< RaspiPort > src );
+            MMAL_STATUS_T duplicate_input(); 
         protected:
             const char* component_name();
             MMAL_STATUS_T init();

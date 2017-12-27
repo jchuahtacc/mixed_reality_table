@@ -3,9 +3,8 @@
 
 #include <memory>
 #include <string>
+#include "components/RaspiComponent.h"
 #include "RaspiCallback.h"
-
-using namespace std;
 
 namespace raspivid {
     typedef struct {
