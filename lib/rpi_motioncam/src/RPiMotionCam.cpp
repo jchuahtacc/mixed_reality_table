@@ -30,16 +30,6 @@ namespace rpi_motioncam {
         return options;
     }
 
-    bool RPiMotionCam::frame_ready() {
-        return MotionData::has_ready_frame();
-    }
-
-    shared_ptr< MotionData > RPiMotionCam::get_frame() {
-        shared_ptr< MotionData > frame;
-        MotionData::get_ready_frame(frame);
-        return frame;
-    }
-
     MMAL_STATUS_T RPiMotionCam::create_components() {
         MMAL_STATUS_T status = MMAL_SUCCESS;
  

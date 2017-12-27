@@ -95,8 +95,6 @@ namespace rpi_motioncam {
             shared_ptr< MotionData > get_frame();
             void stop();
             ~RPiMotionCam();
-            bool frame_ready();
-            shared_ptr< MotionData > get_frame();
 
         protected:
             RPIMOTIONCAM_OPTION_S options_;
