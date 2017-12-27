@@ -2,7 +2,7 @@
 #define __MOTIONVECTORCALLBACK_H__
 
 
-#define MOTION_THRESHOLD 60
+#define MOTION_THRESHOLD_DEFAULT 60
 
 #include "RaspiCallback.h"
 #include "MotionData.h"
@@ -15,7 +15,7 @@ namespace raspivid {
 
     class MotionVectorCallback : public RaspiCallback {
         public: 
-            MotionVectorCallback(int width, int height);
+            MotionVectorCallback(int width, int height, int threshold = MOTION_THRESHOLD_DEFAULT);
             ~MotionVectorCallback();
             void callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer);
             void post_process();
@@ -28,6 +28,9 @@ namespace raspivid {
         protected:
             int cols_;
             int rows_;
+            int width_;
+            int height_;
+            int threshold_;
 
             // vector< MotionRegion> regions;
             shared_ptr< vector< MotionRegion > > lastRegions = nullptr;

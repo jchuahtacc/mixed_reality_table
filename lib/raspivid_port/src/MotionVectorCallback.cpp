@@ -3,7 +3,7 @@
 
 namespace raspivid {
 
-    MotionVectorCallback::MotionVectorCallback(int width, int height) : cols_(width / 16), rows_(height / 16), lastRegions(nullptr) {
+    MotionVectorCallback::MotionVectorCallback(int width, int height, int threshold) : cols_(width / 16), rows_(height / 16), lastRegions(nullptr), threshold_(threshold), width_(width), height_(height) {
         MotionRegion::num_rows = rows_;
         MotionRegion::num_cols = cols_;
         int elements = rows_ * cols_;
@@ -20,7 +20,7 @@ namespace raspivid {
 
     bool MotionVectorCallback::check_left(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region) {
         for (int row = region.row; row < region.row + region.height; row++) {
-            if (!(searched[row * cols_ + region.col]) && buffer->data[buffer_pos(row, region.col)] > MOTION_THRESHOLD) {
+            if (!(searched[row * cols_ + region.col]) && buffer->data[buffer_pos(row, region.col)] > threshold_) {
                 return region.grow_left();
             }
         }
@@ -29,7 +29,7 @@ namespace raspivid {
 
     bool MotionVectorCallback::check_right(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region) {
         for (int row = region.row; row < region.row + region.height; row++) {
-            if (!(searched[row * cols_ + region.col]) && buffer->data[buffer_pos(row, region.col + region.width - 1)] > MOTION_THRESHOLD) {
+            if (!(searched[row * cols_ + region.col]) && buffer->data[buffer_pos(row, region.col + region.width - 1)] > threshold_) {
                 return region.grow_right();
             }
         }
@@ -38,7 +38,7 @@ namespace raspivid {
 
     bool MotionVectorCallback::check_top(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region) {
         for (int col = region.col; col < region.col + region.width; col++) {
-            if (!(searched[region.row * cols_ + col]) && buffer->data[buffer_pos(region.row, col)] > MOTION_THRESHOLD) {
+            if (!(searched[region.row * cols_ + col]) && buffer->data[buffer_pos(region.row, col)] > threshold_) {
                 return region.grow_up();
             }
         }
@@ -47,7 +47,7 @@ namespace raspivid {
 
     bool MotionVectorCallback::check_bottom(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region) {
         for (int col = region.col; col < region.col + region.width; col++) {
-            if (!(searched[region.row * cols_ + col]) &&buffer->data[buffer_pos(region.row + region.height - 1, col)] > MOTION_THRESHOLD) {
+            if (!(searched[region.row * cols_ + col]) &&buffer->data[buffer_pos(region.row + region.height - 1, col)] > threshold_) {
                 return region.grow_down();
             }
         }
@@ -77,7 +77,7 @@ namespace raspivid {
                     if (searched[row * cols_ + col]) {
                         break;
                     }
-                    if (buffer->data[buffer_pos(row, col)] > MOTION_THRESHOLD) {
+                    if (buffer->data[buffer_pos(row, col)] > threshold_) {
                         MotionRegion region = MotionRegion(row, col);
 
                         grow_region(buffer, searched, region);

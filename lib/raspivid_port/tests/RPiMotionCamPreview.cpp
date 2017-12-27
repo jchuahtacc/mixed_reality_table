@@ -56,6 +56,9 @@ int wait() {
 int main(int argc, char** argv) {
     RASPIVID_OPTIONS_S options = RaspiVid::createRaspiVidDefaultOptions();
     options.preview = true;
+    options.motion_threshold = 200;
+    //options.resizer_width = 1024;
+    //options.resizer_height = 768;
     auto cam = RaspiVid::create(options);
 
     if (cam->init() == MMAL_SUCCESS) {

@@ -32,6 +32,8 @@ namespace raspivid {
         options.resizer_width = 640;
         options.resizer_height = 480;
 
+        options.motion_threshold = MOTION_THRESHOLD_DEFAULT;
+
         return options;
     }
 
@@ -141,7 +143,7 @@ namespace raspivid {
                 vcos_log_error("RaspiVid::add_callbacks(): couldn't add motion vector preview callback");
             }
         } else {
-            mvCallback = shared_ptr< MotionVectorCallback >( new MotionVectorCallback(options_.resizer_width, options_.resizer_height) );
+            mvCallback = shared_ptr< MotionVectorCallback >( new MotionVectorCallback(options_.resizer_width, options_.resizer_height, options_.motion_threshold) );
             if (encoder->output->add_callback(mvCallback) != MMAL_SUCCESS) {
                 vcos_log_error("RaspiVid::add_callbacks(): couldn't add motion vector callback");
             }

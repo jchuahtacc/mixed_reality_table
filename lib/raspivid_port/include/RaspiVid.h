@@ -77,6 +77,7 @@ namespace raspivid {
 
        uint32_t resizer_width;               /// Resizer component width for compressed motion vectors
        uint32_t resizer_height;              /// Resizer component height 
+       int motion_threshold;
        
        bool preview;
 
