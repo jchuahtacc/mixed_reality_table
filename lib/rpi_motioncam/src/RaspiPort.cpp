@@ -7,7 +7,7 @@ namespace rpi_motioncam {
     }
 
     void RaspiPort::destroy() {
-        if (connection) {
+        if (connection && connection->is_enabled) {
             mmal_connection_destroy(connection);
             connection = NULL;
         } else {
