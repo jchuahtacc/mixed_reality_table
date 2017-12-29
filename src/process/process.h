@@ -7,21 +7,22 @@
 #include "ArucoFunctor.h"
 #include "OutputFunctor.h"
 #include "BlobFunctor.h"
+#include "ImgRecord.h"
 
 using namespace tbb::flow;
 using namespace std;
 
 namespace mrtable_process {
-    typedef function_node< int, int > InputNodeType;
-    typedef function_node< int, int > ArucoNodeType;
-    typedef function_node< int, int > BlobNodeType;
-    typedef function_node< int > OutputNodeType;
+    typedef function_node< shared_ptr< MotionData >, shared_ptr< ImgRecord > > InputNodeType;
+    typedef function_node< shared_ptr< ImgRecord >, shared_ptr< ImgRecord > > ArucoNodeType;
+    typedef function_node< shared_ptr< ImgRecord >, shared_ptr< ImgRecord > > BlobNodeType;
+    typedef function_node< shared_ptr< ImgRecord > > OutputNodeType;
 
     class ImgProcessor {
         public:
             ImgProcessor();
             ~ImgProcessor();
-            bool put(int input);
+            bool put(shared_ptr< MotionData > input);
         private:
             graph g;
             shared_ptr< InputNodeType > input_node;

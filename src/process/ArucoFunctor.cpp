@@ -1,7 +1,9 @@
 #include "ArucoFunctor.h"
 
+using namespace std;
+
 namespace mrtable_process {
-    int ArucoFunctor::operator()(int input) {
-        return input * input;
+    shared_ptr< ImgRecord > ArucoFunctor::operator()(shared_ptr< ImgRecord > input) {
+        return input;
     }
 }

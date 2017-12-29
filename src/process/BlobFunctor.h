@@ -2,13 +2,16 @@
 #define __BLOBFUNCTOR_H__
 
 #include <opencv2/features2d.hpp>
+#include <memory>
+#include "ImgRecord.h"
 
 using namespace cv;
+using namespace std;
 
 namespace mrtable_process {
     class BlobFunctor {
         public:
-            int operator()(int input);
+            shared_ptr< ImgRecord > operator()(shared_ptr< ImgRecord > input);
     };
 }
 

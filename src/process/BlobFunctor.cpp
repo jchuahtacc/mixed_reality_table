@@ -1,7 +1,7 @@
 #include "BlobFunctor.h"
 
 namespace mrtable_process {
-    int BlobFunctor::operator()(int input) {
-        return input / 2;
+    shared_ptr< ImgRecord > BlobFunctor::operator()(shared_ptr< ImgRecord > input) {
+        return input;
     }
 }
