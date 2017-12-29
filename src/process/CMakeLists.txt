@@ -1,0 +1,17 @@
+cmake_minimum_required(VERSION 3.1)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+set(CMAKE_CXX_STANDARD 11)
+message(STATUS "Building mrtable_process")
+add_definitions(-DTBB_USE_GCC_BUILTINS=1)
+add_definitions(-D__TBB_64BIT_ATOMICS=0)
+find_package( OpenCV REQUIRED )
+find_package( TBB REQUIRED )
+set(BUILD_PROCESS_TESTS FALSE CACHE PATH "Build mrtable_process test progs")
+
+include_directories("./")
+add_library(mrtable_process process.cpp ThresholdFunctor.cpp OutputFunctor.cpp)
+target_link_libraries(mrtable_process tbb ${OpenCV_LIBS}) 
+
+if(BUILD_PROCESS_TESTS) 
+    add_subdirectory(tests)    
+endif(BUILD_PROCESS_TESTS)
