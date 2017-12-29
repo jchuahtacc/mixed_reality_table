@@ -6,8 +6,9 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/aruco.hpp>
 #include <string>
-#include "ContourParams.hpp"
-#include "parsers.hpp"
+#include <memory>
+#include "ContourParams.h"
+#include "parsers.h"
 
 using namespace mrtable::config;
 using namespace std;
@@ -16,7 +17,7 @@ namespace mrtable {
     namespace config {
         class ServerConfig {
             public: 
-                static cv::Ptr<mrtable::config::ContourParams> contourParameters;
+                static shared_ptr<mrtable::config::ContourParams> contourParameters;
                 static cv::Ptr<aruco::DetectorParameters> detectorParameters;
                 static cv::Ptr<aruco::Dictionary> dictionary;
                 static Mat cameraMatrix;

@@ -1,7 +1,3 @@
-
-#ifndef __PARSERS_HPP__
-#define __PARSERS_HPP__
-
 #include <iostream>
 #include <vector>
 #include <opencv2/aruco.hpp>
@@ -11,6 +7,7 @@
 #include <streambuf>
 #include <string>
 #include <sstream>
+#include "parsers.h"
 
 using namespace std;
 using namespace cv;
@@ -363,5 +360,3 @@ namespace mrtable {
         }
     }
 }
-
-#endif

@@ -1,21 +1,18 @@
-#ifndef __SERVERCONFIG_CPP__
-#define __SERVERCONFIG_CPP__
-
 #include "DetectBounds.h"
 #include "ServerConfig.h"
 #include <iostream>
 #include <opencv2/core/core.hpp>
 #include <opencv2/aruco.hpp>
 #include <string>
-#include "ContourParams.hpp"
-#include "parsers.hpp"
+#include "ContourParams.h"
+#include "parsers.h"
 
 using namespace mrtable::config;
 using namespace std;
 
 namespace mrtable {
     namespace config {
-        cv::Ptr<mrtable::config::ContourParams> ServerConfig::contourParameters = ContourParams::create();
+        shared_ptr<mrtable::config::ContourParams> ServerConfig::contourParameters = ContourParams::create();
         cv::Ptr<aruco::DetectorParameters> ServerConfig::detectorParameters = cv::aruco::DetectorParameters::create();
         cv::Ptr<aruco::Dictionary> ServerConfig::dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_100);
         Mat ServerConfig::cameraMatrix = Mat1f(3, 3);
@@ -113,7 +110,6 @@ namespace mrtable {
             if (temp.compare("default") != 0) {
                 contourParametersFile = temp;
             }
-            contourParameters.release();
             contourParameters = mrtable::config::ContourParams::create(contourParametersFile);
 
             fs["cameraParameters"] >> temp;
@@ -254,12 +250,9 @@ namespace mrtable {
 
 
         ServerConfig::~ServerConfig() {
-            contourParameters.release();
             distortionCoefficients.release();
             dictionary.release();
         }
 
     }
 }
-
-#endif
