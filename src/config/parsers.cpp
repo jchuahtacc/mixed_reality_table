@@ -112,7 +112,7 @@ namespace mrtable {
             fs["minCornerDistanceRate"] >> params->minCornerDistanceRate;
             fs["minDistanceToBorder"] >> params->minDistanceToBorder;
             fs["minMarkerDistanceRate"] >> params->minMarkerDistanceRate;
-            fs["doCornerRefinement"] >> params->doCornerRefinement;
+            fs["cornerRefinementMethod"] >> params->cornerRefinementMethod;
             fs["cornerRefinementWinSize"] >> params->cornerRefinementWinSize;
             fs["cornerRefinementMaxIterations"] >> params->cornerRefinementMaxIterations;
             fs["cornerRefinementMinAccuracy"] >> params->cornerRefinementMinAccuracy;
@@ -139,7 +139,7 @@ namespace mrtable {
             fs << "minCornerDistanceRate" << params->minCornerDistanceRate;
             fs << "minDistanceToBorder" << params->minDistanceToBorder;
             fs << "minMarkerDistanceRate" << params->minMarkerDistanceRate;
-            fs << "doCornerRefinement" << params->doCornerRefinement;
+            fs << "cornerRefinementMethod" << params->cornerRefinementMethod;
             fs << "cornerRefinementWinSize" << params->cornerRefinementWinSize;
             fs << "cornerRefinementMaxIterations" << params->cornerRefinementMaxIterations;
             fs << "cornerRefinementMinAccuracy" << params->cornerRefinementMinAccuracy;
@@ -173,7 +173,8 @@ namespace mrtable {
             outs << "perspectiveRemoveIgnoredMarginPerCell: " << params->perspectiveRemoveIgnoredMarginPerCell << endl;
             outs << "perspectiveRemovePixelPerCell: " << params->perspectiveRemovePixelPerCell << endl;
             outs << "polygonalApproxAccuracyRate: " << params->polygonalApproxAccuracyRate << endl;
-            outs << "doCornerRefinement: " << (params->doCornerRefinement ? "true" : "false") << endl;
+            //outs << "cornerRefinementMethod: " << (params->cornerRefinementMethod ? "true" : "false") << endl;
+            outs << "cornerRefinementMethod: " << params->cornerRefinementMethod  << endl;
 
             return outs;
         }
@@ -347,13 +348,8 @@ namespace mrtable {
                     if (key.compare("polygonalapproxaccuracyrate") == 0) {
                         params->polygonalApproxAccuracyRate = stof(value);
                     }
-                    if (key.compare("docornerrefinement") == 0) {
-                        if (value.compare("true") == 0) {
-                            params->doCornerRefinement = true;
-                        }
-                        if (value.compare("false") == 0) {
-                            params->doCornerRefinement = false;
-                        }
+                    if (key.compare("cornerrefinementmethod") == 0) {
+                        params->cornerRefinementMethod = stoi(value);
                     }
                 }                
             }
