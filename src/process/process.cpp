@@ -2,11 +2,18 @@
 
 namespace mrtable_process {
     ImgProcessor::ImgProcessor() {
-        threshold_functor = shared_ptr< ThresholdFunctor >(new ThresholdFunctor());
+        input_functor = shared_ptr< InputFunctor >(new InputFunctor());
+        aruco_functor = shared_ptr< ArucoFunctor >(new ArucoFunctor());
+        blob_functor = shared_ptr< BlobFunctor >(new BlobFunctor());
         output_functor = shared_ptr< OutputFunctor >(new OutputFunctor());
-        threshold_node = shared_ptr< ThresholdNodeType >(new ThresholdNodeType(g, 1, *threshold_functor));
+        input_node = shared_ptr< InputNodeType >(new InputNodeType(g, 1, *input_functor));
+        aruco_node = shared_ptr< ArucoNodeType >(new ArucoNodeType(g, tbb::flow::unlimited, *aruco_functor));
+        blob_node = shared_ptr< ArucoNodeType >(new BlobNodeType(g, tbb::flow::unlimited, *blob_functor));
         output_node = shared_ptr< OutputNodeType >(new OutputNodeType(g, 1, *output_functor));
-        make_edge( *threshold_node, *output_node);
+        make_edge( *input_node, *aruco_node);
+        make_edge( *input_node, *blob_node);
+        make_edge( *aruco_node, *output_node);
+        make_edge( *blob_node, *output_node);
     }
 
     ImgProcessor::~ImgProcessor() {
@@ -14,6 +21,6 @@ namespace mrtable_process {
     }
 
     bool ImgProcessor::put(int input) {
-        return threshold_node->try_put(input);
+        return input_node->try_put(input);
     }
 }

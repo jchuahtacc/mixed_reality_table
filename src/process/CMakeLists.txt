@@ -9,7 +9,7 @@ find_package( TBB REQUIRED )
 set(BUILD_PROCESS_TESTS FALSE CACHE PATH "Build mrtable_process test progs")
 
 include_directories("./")
-add_library(mrtable_process process.cpp ThresholdFunctor.cpp OutputFunctor.cpp)
+add_library(mrtable_process process.cpp InputFunctor.cpp OutputFunctor.cpp ArucoFunctor.cpp BlobFunctor.cpp)
 target_link_libraries(mrtable_process tbb ${OpenCV_LIBS}) 
 
 if(BUILD_PROCESS_TESTS) 

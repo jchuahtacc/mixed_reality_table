@@ -1,8 +1,8 @@
-#ifndef __THRESHOLDFUNCTOR_H__
-#define __THRESHOLDFUNCTOR_H__
+#ifndef __INPUTFUNCTOR_H__
+#define __INPUTFUNCTOR_H__ 
 
 namespace mrtable_process {
-    class ThresholdFunctor {
+    class InputFunctor {
         public:
             int operator()(int input);
     };
