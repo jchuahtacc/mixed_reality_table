@@ -5,8 +5,6 @@
 namespace rpi_motioncam {
 
     MotionVectorCallback::MotionVectorCallback(RPIMOTIONCAM_OPTION_S options) : cols_(options.resizer_width / 16), rows_(options.resizer_height / 16), options_(options), width_scale(options.width / cols_), height_scale(options.height / rows_) {
-        MotionRegion::num_rows = rows_;
-        MotionRegion::num_cols = cols_;
         int elements = rows_ * cols_;
         searched = new bool[elements];
     }
@@ -19,10 +17,44 @@ namespace rpi_motioncam {
         return (row * (cols_ + 1) + col) * 4 + 2;
     }
 
+    bool MotionVectorCallback::grow_up(MotionRegion &region) {
+        if (region.row > 0) {
+            region.row = region.row - 1;
+            region.height = region.height + 1;
+            return true;
+        }
+        return false;
+    }
+
+    bool MotionVectorCallback::grow_down(MotionRegion &region) {
+        if (region.row + region.height < rows_) {
+            region.height = region.height + 1;
+            return true;
+        }
+        return false;
+    }
+
+    bool MotionVectorCallback::grow_left(MotionRegion &region) {
+        if (region.col > 0) {
+            region.col = region.col - 1;
+            region.width = region.width + 1;
+            return true;
+        }
+        return false;
+    }
+
+    bool MotionVectorCallback::grow_right(MotionRegion &region) {
+        if (region.col + region.width < cols_) {
+            region.width = region.width + 1;
+            return true;
+        }
+        return false;
+    }
+
     bool MotionVectorCallback::check_left(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region) {
         for (int row = region.row; row < region.row + region.height; row++) {
             if (!(searched[row * cols_ + region.col]) && buffer->data[buffer_pos(row, region.col)] > options_.motion_threshold) {
-                return region.grow_left();
+                return grow_left(region);
             }
         }
         return false;
@@ -31,7 +63,7 @@ namespace rpi_motioncam {
     bool MotionVectorCallback::check_right(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region) {
         for (int row = region.row; row < region.row + region.height; row++) {
             if (!(searched[row * cols_ + region.col]) && buffer->data[buffer_pos(row, region.col + region.width - 1)] > threshold_) {
-                return region.grow_right();
+                return grow_right(region);
             }
         }
         return false;
@@ -40,7 +72,7 @@ namespace rpi_motioncam {
     bool MotionVectorCallback::check_top(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region) {
         for (int col = region.col; col < region.col + region.width; col++) {
             if (!(searched[region.row * cols_ + col]) && buffer->data[buffer_pos(region.row, col)] > threshold_) {
-                return region.grow_up();
+                return grow_up(region);
             }
         }
         return false;
@@ -49,7 +81,7 @@ namespace rpi_motioncam {
     bool MotionVectorCallback::check_bottom(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region) {
         for (int col = region.col; col < region.col + region.width; col++) {
             if (!(searched[region.row * cols_ + col]) &&buffer->data[buffer_pos(region.row + region.height - 1, col)] > threshold_) {
-                return region.grow_down();
+                return grow_down(region);
             }
         }
         return false;
@@ -83,10 +115,18 @@ namespace rpi_motioncam {
                         break;
                     }
                     if (buffer->data[buffer_pos(row, col)] > threshold_) {
-                        MotionRegion region = MotionRegion(row, col);
-
+                        MotionRegion region;
+                        region.row = row;
+                        region.col = col;
+                        region.width = 1;
+                        region.height = 1;
+                        grow_up(region);
+                        grow_down(region);
+                        grow_left(region);
+                        grow_right(region);
                         grow_region(buffer, searched, region);
-                        region.roi = calculate_roi(region);
+
+                        region.allocate(calculate_roi(region));
 
                         for (int i = region.row; i < region.row + region.height; i++) {
                             for (int j = region.col; j < region.col + region.width; j++) {

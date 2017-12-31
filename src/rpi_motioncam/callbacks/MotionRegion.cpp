@@ -1,47 +1,22 @@
 #include "rpi_motioncam/callbacks/MotionRegion.h"
 
 namespace rpi_motioncam {
-    int MotionRegion::num_rows = 0;
-    int MotionRegion::num_cols = 0;
-
-    MotionRegion::MotionRegion(int row_, int col_) : row(row_), col(col_), width(1), height(1) {
-        grow_up();
-        grow_down();
-        grow_left();
-        grow_right();
+    MotionRegion::MotionRegion() : imgPtr_mtx_p(shared_ptr< tbb::queuing_rw_mutex >(new tbb::queuing_rw_mutex() ) ) {
     }
 
-    bool MotionRegion::grow_up() {
-        if (row > 0) {
-            row = row - 1;
-            height = height + 1;
-            return true;
-        }
-        return false;
+    MotionRegion::MotionRegion(const MotionRegion& other) {
+        row = other.row;
+        col = other.col;
+        width = other.width;
+        height = other.height;
+        imgPtr = other.imgPtr;
+        roi = other.roi;
+        imgPtr_mtx_p = other.imgPtr_mtx_p;
     }
 
-    bool MotionRegion::grow_down() {
-        if (row + height < num_rows) {
-            height = height + 1;
-            return true;
-        }
-        return false;
+    void MotionRegion::allocate(cv::Rect roi_) {
+        roi = roi_;
+        imgPtr = shared_ptr< Mat >( new Mat(roi.height, roi.width, CV_8U) );
     }
 
-    bool MotionRegion::grow_left() {
-        if (col > 0) {
-            col = col - 1;
-            width = width + 1;
-            return true;
-        }
-        return false;
-    }
-
-    bool MotionRegion::grow_right() {
-        if (col + width < num_cols) {
-            width = width + 1;
-            return true;
-        }
-        return false;
-    }
 }

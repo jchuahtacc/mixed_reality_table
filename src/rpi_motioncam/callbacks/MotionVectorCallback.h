@@ -23,6 +23,11 @@ namespace rpi_motioncam {
             void post_process();
             int buffer_pos(int row, int col);
             cv::Rect calculate_roi(const MotionRegion &region);
+            bool grow_up(MotionRegion &region);
+            bool grow_down(MotionRegion &region);
+            bool grow_left(MotionRegion &region);
+            bool grow_right(MotionRegion &region);
+
             bool check_left(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region);
             bool check_right(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region);
             bool check_top(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region);
