@@ -9,7 +9,7 @@ find_package( TBB REQUIRED )
 set(BUILD_PROCESS_TESTS FALSE CACHE PATH "Build mrtable_process test progs")
 
 include_directories("./")
-include_directories(${RPI_MOTIONCAM_INCLUDE_DIRS})
+include_directories("../")
 include_directories(${BROADCOM_INCLUDE_DIRS})
 include_directories(${MMAL_INCLUDE_DIRS})
 add_library(mrtable_process process.cpp InputFunctor.cpp OutputFunctor.cpp ArucoFunctor.cpp BlobFunctor.cpp ImgRecord.cpp)
