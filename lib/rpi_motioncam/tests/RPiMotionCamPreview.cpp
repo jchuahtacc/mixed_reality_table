@@ -6,7 +6,7 @@
 using namespace std;
 using namespace rpi_motioncam;
 
-auto cam = RPiMotionCam::create();
+shared_ptr< RPiMotionCam > cam = nullptr;
 
 bool running = true;
 
@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
     options.motion_threshold = 200;
     //options.resizer_width = 1024;
     //options.resizer_height = 768;
-    auto cam = RPiMotionCam::create(options);
+    cam = RPiMotionCam::create(options);
 
     if (cam->start() == MMAL_SUCCESS) {
         cout << "Start success" << endl;
