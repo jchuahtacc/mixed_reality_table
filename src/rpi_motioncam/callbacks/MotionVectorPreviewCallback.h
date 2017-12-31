@@ -1,15 +1,16 @@
 #ifndef __MOTIONVECTORPREVIEWCALLBACK_H__
 #define __MOTIONVECTORPREVIEWCALLBACK_H__
 
+#include "../typedefs.h"
 #include <memory>
-#include "rpi_motioncam/callbacks/MotionVectorCallback.h"
-#include "rpi_motioncam/components/RaspiOverlayRenderer.h"
+#include "MotionVectorCallback.h"
+#include "../components/RaspiOverlayRenderer.h"
 #include <opencv2/core.hpp>
 
 namespace rpi_motioncam {
     class MotionVectorPreviewCallback : public MotionVectorCallback {
         public: 
-            MotionVectorPreviewCallback(int width, int height);
+            MotionVectorPreviewCallback(RPIMOTIONCAM_OPTION_S options);
             int buffer_position(int row, int col, int row_offset);
             void post_process();
         protected:

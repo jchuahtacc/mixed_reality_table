@@ -23,10 +23,10 @@ namespace rpi_motioncam {
         }
     }
 
-    MotionVectorPreviewCallback::MotionVectorPreviewCallback(int width, int height) : MotionVectorCallback(width, height) {
+    MotionVectorPreviewCallback::MotionVectorPreviewCallback(RPIMOTIONCAM_OPTION_S options) : MotionVectorCallback(options) {
         RASPIOVERLAYRENDERER_FORMAT_S format = RaspiOverlayRenderer::createDefaultOverlayFormat();
-        format.width = width;
-        format.height = height;
+        format.width = options.resizer_width;
+        format.height = options.resizer_height;
         format.layer = 128;
         format.alpha = 200;
         format.fullscreen = true;

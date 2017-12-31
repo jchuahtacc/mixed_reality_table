@@ -5,13 +5,14 @@
 #include <memory>
 #include "rpi_motioncam/components/RaspiOverlayRenderer.h"
 #include "rpi_motioncam/callbacks/MotionVectorCallback.h"
+#include "rpi_motioncam/RPiMotionCam.h"
 #include <fstream>
 
 using namespace std;
 using namespace rpi_motioncam;
 
-
-MotionVectorCallback callback(640, 480);
+RPIMOTIONCAM_OPTION_S options = RPiMotionCam::createMotionCamDefaultOptions();
+MotionVectorCallback callback(options);
 
 void printRegions(vector< MotionRegion > regions) {
     int grid[ 480 / 16 ][ 640 / 16];

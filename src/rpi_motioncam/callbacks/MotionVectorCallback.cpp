@@ -3,7 +3,7 @@
 
 namespace rpi_motioncam {
 
-    MotionVectorCallback::MotionVectorCallback(int width, int height, int threshold) : cols_(width / 16), rows_(height / 16), lastRegions(nullptr), threshold_(threshold), width_(width), height_(height) {
+    MotionVectorCallback::MotionVectorCallback(RPIMOTIONCAM_OPTION_S options) : cols_(options.resizer_width / 16), rows_(options.resizer_height / 16), lastRegions(nullptr), threshold_(options.motion_threshold), width_(options.resizer_width), height_(options.resizer_height), options_(options) {
         MotionRegion::num_rows = rows_;
         MotionRegion::num_cols = cols_;
         int elements = rows_ * cols_;

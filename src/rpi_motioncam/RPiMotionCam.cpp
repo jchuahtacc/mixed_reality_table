@@ -131,12 +131,12 @@ namespace rpi_motioncam {
             vcos_log_error("RPiMotionCam::add_callbacks(): Could not add raw output callback");
         }
         if (options_.preview) {
-            mvCallback = shared_ptr< MotionVectorPreviewCallback >( new MotionVectorPreviewCallback(options_.resizer_width, options_.resizer_height) );
+            mvCallback = shared_ptr< MotionVectorPreviewCallback >( new MotionVectorPreviewCallback(options_) );
             if (encoder->output->add_callback(mvCallback) != MMAL_SUCCESS) {
                 vcos_log_error("RPiMotionCam::add_callbacks(): couldn't add motion vector preview callback");
             }
         } else {
-            mvCallback = shared_ptr< MotionVectorCallback >( new MotionVectorCallback(options_.resizer_width, options_.resizer_height, options_.motion_threshold) );
+            mvCallback = shared_ptr< MotionVectorCallback >( new MotionVectorCallback(options_) );
             if (encoder->output->add_callback(mvCallback) != MMAL_SUCCESS) {
                 vcos_log_error("RPiMotionCam::add_callbacks(): couldn't add motion vector callback");
             }

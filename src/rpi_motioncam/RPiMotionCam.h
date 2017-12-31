@@ -3,6 +3,7 @@
 #define __RPIMOTIONCAM_H__
 #include <memory>
 
+#include "typedefs.h"
 #include "bcm_host.h"
 #include "interface/vcos/vcos.h"
 
@@ -17,17 +18,17 @@
 
 #include "RaspiCamControl.h"
 #include "RaspiPort.h"
-#include "rpi_motioncam/callbacks/MotionRegion.h"
-#include "rpi_motioncam/callbacks/MotionData.h"
-#include "rpi_motioncam/callbacks/MotionVectorCallback.h"
-#include "rpi_motioncam/callbacks/MotionVectorPreviewCallback.h"
-#include "rpi_motioncam/callbacks/RawOutputCallback.h"
-#include "rpi_motioncam/components/RaspiRenderer.h"
-#include "rpi_motioncam/components/RaspiEncoder.h"
-#include "rpi_motioncam/components/RaspiSplitter.h"
-#include "rpi_motioncam/components/RaspiResize.h"
-#include "rpi_motioncam/components/RaspiCamera.h"
-#include "rpi_motioncam/components/RaspiNullsink.h"
+#include "callbacks/MotionRegion.h"
+#include "callbacks/MotionData.h"
+#include "callbacks/MotionVectorCallback.h"
+#include "callbacks/MotionVectorPreviewCallback.h"
+#include "callbacks/RawOutputCallback.h"
+#include "components/RaspiRenderer.h"
+#include "components/RaspiEncoder.h"
+#include "components/RaspiSplitter.h"
+#include "components/RaspiResize.h"
+#include "components/RaspiCamera.h"
+#include "components/RaspiNullsink.h"
 
 
 // Video format information
@@ -52,37 +53,6 @@ namespace rpi_motioncam {
     int mmal_status_to_int(MMAL_STATUS_T status);
     static void signal_handler(int signal_number);
 
-    // Forward
-    typedef struct RASPIVID_STATE_S RASPIVID_STATE;
-
-    /** Possible raw output formats
-     */
-    typedef enum {
-       RAW_OUTPUT_FMT_YUV = 1,
-       RAW_OUTPUT_FMT_RGB,
-       RAW_OUTPUT_FMT_GRAY,
-    } RAW_OUTPUT_FMT;
-
-    /** Structure containing all state information for the current run
-     */
-    struct RPIMOTIONCAM_OPTION_S
-    {
-       uint32_t width;                          /// Requested width of image
-       uint32_t height;                         /// requested height of image
-       uint32_t framerate;                      /// Requested frame rate (fps)
-       bool verbose;                        /// !0 if want detailed run information
-
-       RAW_OUTPUT_FMT raw_output_fmt;       /// The raw video format
-       int cameraNum;                       /// Camera number
-       int sensor_mode;			            /// Sensor mode. 0=auto. Check docs/forum for modes selected by other values.
-
-       uint32_t resizer_width;               /// Resizer component width for compressed motion vectors
-       uint32_t resizer_height;              /// Resizer component height 
-       int motion_threshold;
-       
-       bool preview;
-
-    };
 
     class RPiMotionCam {
         public:

@@ -4,18 +4,20 @@
 
 #define MOTION_THRESHOLD_DEFAULT 60
 
-#include "rpi_motioncam/RaspiCallback.h"
-#include "rpi_motioncam/callbacks/MotionData.h"
+#include "../typedefs.h"
+#include "../RaspiCallback.h"
+#include "MotionData.h"
 #include <memory>
 #include <vector>
 
 using namespace std;
+using namespace rpi_motioncam;
 
 namespace rpi_motioncam {
 
     class MotionVectorCallback : public RaspiCallback {
         public: 
-            MotionVectorCallback(int width, int height, int threshold = MOTION_THRESHOLD_DEFAULT);
+            MotionVectorCallback(RPIMOTIONCAM_OPTION_S options);
             ~MotionVectorCallback();
             void callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer);
             void post_process();
@@ -31,6 +33,7 @@ namespace rpi_motioncam {
             int width_;
             int height_;
             int threshold_;
+            RPIMOTIONCAM_OPTION_S options_;
 
             // vector< MotionRegion> regions;
             shared_ptr< vector< MotionRegion > > lastRegions = nullptr;
