@@ -1,9 +1,10 @@
 #include "rpi_motioncam/callbacks/MotionVectorCallback.h"
+#include <opencv2/core.hpp>
 #include <iostream>
 
 namespace rpi_motioncam {
 
-    MotionVectorCallback::MotionVectorCallback(RPIMOTIONCAM_OPTION_S options) : cols_(options.resizer_width / 16), rows_(options.resizer_height / 16), lastRegions(nullptr), threshold_(options.motion_threshold), width_(options.resizer_width), height_(options.resizer_height), options_(options) {
+    MotionVectorCallback::MotionVectorCallback(RPIMOTIONCAM_OPTION_S options) : cols_(options.resizer_width / 16), rows_(options.resizer_height / 16), options_(options), width_scale(options.width / cols_), height_scale(options.height / rows_) {
         MotionRegion::num_rows = rows_;
         MotionRegion::num_cols = cols_;
         int elements = rows_ * cols_;
@@ -20,7 +21,7 @@ namespace rpi_motioncam {
 
     bool MotionVectorCallback::check_left(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region) {
         for (int row = region.row; row < region.row + region.height; row++) {
-            if (!(searched[row * cols_ + region.col]) && buffer->data[buffer_pos(row, region.col)] > threshold_) {
+            if (!(searched[row * cols_ + region.col]) && buffer->data[buffer_pos(row, region.col)] > options_.motion_threshold) {
                 return region.grow_left();
             }
         }
@@ -54,6 +55,10 @@ namespace rpi_motioncam {
         return false;
     }
 
+    cv::Rect MotionVectorCallback::calculate_roi(const MotionRegion &region) {
+        return cv::Rect(region.col * width_scale, region.row * height_scale, region.width * width_scale, region.height * height_scale);
+    }
+
     void MotionVectorCallback::grow_region(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region) {
         bool growing = true;
         while (growing) {
@@ -81,6 +86,7 @@ namespace rpi_motioncam {
                         MotionRegion region = MotionRegion(row, col);
 
                         grow_region(buffer, searched, region);
+                        region.roi = calculate_roi(region);
 
                         for (int i = region.row; i < region.row + region.height; i++) {
                             for (int j = region.col; j < region.col + region.width; j++) {

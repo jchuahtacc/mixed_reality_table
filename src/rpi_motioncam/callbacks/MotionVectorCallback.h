@@ -22,6 +22,7 @@ namespace rpi_motioncam {
             void callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer);
             void post_process();
             int buffer_pos(int row, int col);
+            cv::Rect calculate_roi(const MotionRegion &region);
             bool check_left(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region);
             bool check_right(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region);
             bool check_top(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region);
@@ -30,9 +31,9 @@ namespace rpi_motioncam {
         protected:
             int cols_;
             int rows_;
-            int width_;
-            int height_;
             int threshold_;
+            int width_scale;
+            int height_scale;
             RPIMOTIONCAM_OPTION_S options_;
 
             // vector< MotionRegion> regions;

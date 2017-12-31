@@ -30,7 +30,20 @@ namespace rpi_motioncam {
             auto buffImg = shared_ptr< Mat >(new Mat(height_, width_, CV_8U, buffer->data) );
             // vcos_log_error("RawOutputCallback::callback(): found frame with %d regions", frame->regions->size());
             for (auto region = frame->regions->begin(); region != frame->regions->end(); ++region) {
+                /*
+                
+                region of interest now calculated by MotionVectorCallback.cpp
+                 
+                Rect verified(region->col * width_scale, region->row * height_scale, region->width * width_scale, region->height * height_scale);
+                vcos_assert(region->roi.x == verified.x);
+                vcos_assert(region->roi.y == verified.y);
+                vcos_assert(region->roi.width == verified.width);
+                vcos_assert(region->roi.height == verified.height);
+
                 region->roi = Rect(region->col * width_scale, region->row * height_scale, region->width * width_scale, region->height * height_scale);
+
+                */
+
                 region->imgPtr = shared_ptr< Mat >( new Mat(region->roi.height, region->roi.width, CV_8U) );
                 (*buffImg)( region->roi ).copyTo( *region->imgPtr );
             }

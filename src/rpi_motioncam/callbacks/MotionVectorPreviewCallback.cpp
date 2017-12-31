@@ -14,11 +14,11 @@ namespace rpi_motioncam {
     void MotionVectorPreviewCallback::post_process() {
         if (lastRegions) {
             MMAL_BUFFER_HEADER_T *buffer = renderer_->get_buffer();
-            Mat img = Mat::zeros(height_, width_, CV_8UC3);
+            Mat img = Mat::zeros(options_.resizer_height, options_.resizer_width, CV_8UC3);
             for (auto region = lastRegions->begin(); region != lastRegions->end(); ++region) {
                 rectangle(img, Point(region->col * 16, region->row * 16), Point((region->col + region->width) * 16, (region->row + region->height) * 16), Scalar(255, 0, 0), 2);
             }
-            memcpy(buffer->data, img.data, width_ * height_ * 3);
+            memcpy(buffer->data, img.data, options_.resizer_width * options_.resizer_height * 3);
             renderer_->send_buffer(buffer);
         }
     }
