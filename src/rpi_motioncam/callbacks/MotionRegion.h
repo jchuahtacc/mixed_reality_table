@@ -1,6 +1,9 @@
 #ifndef __MOTIONREGION_H__
 #define __MOTIONREGION_H__
 
+#define MOTIONREGION_WRITE_LOCK(region_ptr) tbb::queuing_rw_mutex::scoped_lock write_lock(*(region_ptr->imgPtr_mtx_p), true)
+#define MOTIONREGION_READ_LOCK(region_ptr) tbb::queuing_rw_mutex::scoped_lock read_lock(*(region_ptr->imgPtr_mtx_p))
+
 #include <opencv2/core.hpp>
 #include <memory>
 #include "tbb/queuing_rw_mutex.h"
@@ -15,10 +18,6 @@ namespace rpi_motioncam {
             MotionRegion(const MotionRegion &other);
             int row, col, width, height;
             bool contains(int row, int col);
-            bool grow_up();
-            bool grow_down();
-            bool grow_left();
-            bool grow_right();
             void allocate(cv::Rect roi);
             shared_ptr< Mat > imgPtr;
             cv::Rect roi;

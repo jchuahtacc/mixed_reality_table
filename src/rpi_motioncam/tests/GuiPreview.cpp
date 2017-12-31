@@ -29,6 +29,7 @@ void consume_frames(shared_ptr< RPiMotionCam > cam) {
                 auto frame = cam->get_frame();
                 regions += frame->regions->size();
                 for (auto region = frame->regions->begin(); region != frame->regions->end(); ++region) {
+                    MOTIONREGION_READ_LOCK(region);
                     Rect destRect = Rect((int)(region->roi.x * width_scale), (int)(region->roi.y * height_scale), (int)(region->roi.width * width_scale), (int)(region->roi.height * height_scale));
                     Mat dest = img(destRect);
                     resize(*(region->imgPtr), dest, Size(), width_scale, height_scale);

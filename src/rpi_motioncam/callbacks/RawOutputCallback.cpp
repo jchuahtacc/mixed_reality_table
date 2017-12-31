@@ -28,28 +28,10 @@ namespace rpi_motioncam {
             }
         }
         if (frame) {
-            //int width_scale = width_ / MotionRegion::num_cols;
-            //int height_scale = height_ / MotionRegion::num_rows;
             auto buffImg = shared_ptr< Mat >(new Mat(height_, width_, CV_8U, buffer->data) );
             // vcos_log_error("RawOutputCallback::callback(): found frame with %d regions", frame->regions->size());
             for (auto region = frame->regions->begin(); region != frame->regions->end(); ++region) {
-                /*
-                
-                region of interest now calculated by MotionVectorCallback.cpp
-                 
-                Rect verified(region->col * width_scale, region->row * height_scale, region->width * width_scale, region->height * height_scale);
-                vcos_assert(region->roi.x == verified.x);
-                vcos_assert(region->roi.y == verified.y);
-                vcos_assert(region->roi.width == verified.width);
-                vcos_assert(region->roi.height == verified.height);
-
-                region->roi = Rect(region->col * width_scale, region->row * height_scale, region->width * width_scale, region->height * height_scale);
-
-                */
-
-                //region->imgPtr = shared_ptr< Mat >( new Mat(region->roi.height, region->roi.width, CV_8U) );
-                //auto write_lock = region->get_write_lock();
-                tbb::queuing_rw_mutex::scoped_lock write_lock(*(region->imgPtr_mtx_p), true);
+                MOTIONREGION_WRITE_LOCK(region);
                 (*buffImg)( region->roi ).copyTo( *region->imgPtr );
             }
             MotionData::stage_ready_frame( frame );
