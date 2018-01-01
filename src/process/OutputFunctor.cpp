@@ -5,7 +5,7 @@
 using namespace std;
 
 namespace mrtable_process {
-    void OutputFunctor::operator() (const shared_ptr< ImgRecord > input) {
+    void OutputFunctor::operator() (const RegionRecord &input) {
         cout << "Output functor" << endl;
     }
 }

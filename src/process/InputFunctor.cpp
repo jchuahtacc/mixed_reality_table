@@ -1,7 +1,12 @@
 #include "InputFunctor.h"
 
 namespace mrtable_process {
-    shared_ptr< ImgRecord > InputFunctor::operator()(shared_ptr< MotionData > input) {
-        return std::make_shared< ImgRecord >(input);
+    void InputFunctor::operator()(const shared_ptr< MotionRegion > &region, InputNodeType::output_ports_type &ports) {
+        if (region->tag.empty() || region->tag == "aruco") {
+            std::get< ARUCO_PORT >(ports).try_put( RegionRecord( region ) );
+        }
+        if (region->tag.empty() || region->tag == "aruco") {
+            std::get< BLOB_PORT >(ports).try_put( RegionRecord( region ) );
+        }
     }
 }

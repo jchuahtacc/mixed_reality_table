@@ -3,15 +3,18 @@
 
 #include <opencv2/features2d.hpp>
 #include <memory>
-#include "ImgRecord.h"
+#include "RegionRecord.h"
+#include "tbb/flow_graph.h"
 
 using namespace cv;
 using namespace std;
 
 namespace mrtable_process {
+    typedef tbb::flow::function_node< RegionRecord, RegionRecord > BlobNodeType;
+
     class BlobFunctor {
         public:
-            shared_ptr< ImgRecord > operator()(shared_ptr< ImgRecord > input);
+            RegionRecord operator()(RegionRecord input);
     };
 }
 

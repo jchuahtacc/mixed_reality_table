@@ -10,8 +10,12 @@ namespace mrtable_process {
         aruco_node = shared_ptr< ArucoNodeType >(new ArucoNodeType(g, tbb::flow::unlimited, *aruco_functor));
         blob_node = shared_ptr< BlobNodeType >(new BlobNodeType(g, tbb::flow::unlimited, *blob_functor));
         output_node = shared_ptr< OutputNodeType >(new OutputNodeType(g, 1, *output_functor));
-        make_edge( *input_node, *aruco_node);
-        make_edge( *input_node, *blob_node);
+
+        output_port< ARUCO_PORT >( *input_node ).register_successor( *aruco_node );
+        output_port< BLOB_PORT >( *input_node ).register_successor( *blob_node );
+
+        //make_edge( *input_node, *aruco_node);
+        //make_edge( *input_node, *blob_node);
         make_edge( *aruco_node, *output_node);
         make_edge( *blob_node, *output_node);
     }
@@ -20,7 +24,7 @@ namespace mrtable_process {
         g.wait_for_all();
     }
 
-    bool ImgProcessor::put(shared_ptr< MotionData > input) {
+    bool ImgProcessor::put(shared_ptr< MotionRegion > input) {
         return input_node->try_put(input);
     }
 }
