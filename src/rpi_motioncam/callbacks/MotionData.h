@@ -18,7 +18,7 @@ namespace rpi_motioncam {
     class MotionData {
         public:
             
-            static void stage_frame( vector< shared_ptr< MotionRegion > > regions );
+            static void stage_frame( MotionFrame frame );
             static bool get_staged_frame( MotionFrame &destination );
             static void ready_frame( MotionFrame frame );
             static bool get_ready_frame( MotionFrame &destination ); 

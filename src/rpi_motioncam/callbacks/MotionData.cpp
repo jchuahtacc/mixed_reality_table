@@ -34,8 +34,8 @@ namespace rpi_motioncam {
         return result;
     }
 
-    void MotionData::stage_frame( vector< shared_ptr< MotionRegion > > regions ) {
-        MotionData::staging_queue.push(MotionFrame(regions) );
+    void MotionData::stage_frame( MotionFrame frame ) {
+        MotionData::staging_queue.push( frame );
     }
 
     bool MotionData::get_staged_frame( MotionFrame &destination ) {

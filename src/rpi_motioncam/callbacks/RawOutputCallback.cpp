@@ -31,10 +31,7 @@ namespace rpi_motioncam {
             }
         }
 
-        frame.add_regions( MotionData::get_mandatory_regions() );
-
         auto buffImg = shared_ptr< Mat >(new Mat(height_, width_, CV_8U, buffer->data) );
-        // vcos_log_error("RawOutputCallback::callback(): found frame with %d regions", frame->regions->size());
         for (auto it = frame.regions.begin(); it != frame.regions.end(); ++it) {
             shared_ptr< MotionRegion > region = *it;
             MOTIONREGION_WRITE_LOCK(region);
@@ -44,7 +41,6 @@ namespace rpi_motioncam {
         MotionData::ready_frame( frame );
 
         buffer_count++;
-        //vcos_log_error("RawOutputCallback::callback(): buffer #%d", buffer_count);
         auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start);
         if (elapsed.count() > 1000) {
             vcos_log_error("RawOutputCallback::callback(): %d buffers in last second", buffer_count);

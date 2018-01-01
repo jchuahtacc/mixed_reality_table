@@ -15,7 +15,7 @@ namespace rpi_motioncam {
                 shared_ptr< MotionRegion > region = *it;
                 Scalar color = Scalar(255, 0, 0);
                 if (region->mandatory) {
-                    color = Scalar(0, 255, 0);
+                    color = Scalar(0, 0, 255);
                 }
                 rectangle(img, Point(region->roi.x * width_scale, region->roi.y * height_scale), Point((region->roi.x + region->roi.width) * width_scale, (region->roi.y + region->roi.height) * height_scale), color, 2);
             }

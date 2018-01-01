@@ -156,11 +156,13 @@ namespace rpi_motioncam {
                     }
                 }
             }
-            if (regions.size()) {
-                lastFrame = MotionFrame( regions );
-                MotionData::stage_frame( regions );
-            } else {
-                lastFrame.regions.clear();
+
+            MotionFrame frame( regions );
+            frame.add_regions( MotionData::get_mandatory_regions() );
+            lastFrame = frame;
+
+            if (frame.regions.size()) {
+                MotionData::stage_frame( frame );
             }
             if (vector_preview) {
                 vector_preview->draw( lastBuffer );
