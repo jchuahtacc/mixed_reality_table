@@ -36,6 +36,7 @@ namespace rpi_motioncam {
             shared_ptr< MotionRegion > region = *it;
             MOTIONREGION_WRITE_LOCK(region);
             (*buffImg)( region->roi ).copyTo( *region->imgPtr );
+            region->log_event("buffered");
         }
 
         MotionData::ready_frame( frame );

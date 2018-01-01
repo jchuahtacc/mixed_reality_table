@@ -6,24 +6,35 @@
 
 #include <opencv2/core.hpp>
 #include <memory>
+#include <chrono>
 #include "tbb/queuing_rw_mutex.h"
+#include "tbb/concurrent_vector.h"
 
 using namespace std;
 using namespace cv;
+using namespace tbb;
 
 namespace rpi_motioncam {
+    typedef struct {
+        std::chrono::time_point<std::chrono::system_clock> time;
+        string event;
+    } MotionRegionEvent;
     class MotionRegion {
         public:
             MotionRegion();
             MotionRegion(const MotionRegion &other);
+            concurrent_vector< MotionRegionEvent > events;
             int row, col, width, height;
             bool contains(int row, int col);
+            void log_event(string event);
+            bool get_event(string event_name, std::chrono::time_point<std::chrono::system_clock> &destination);
             void allocate(cv::Rect roi);
             shared_ptr< Mat > imgPtr;
             cv::Rect roi;
             shared_ptr< tbb::queuing_rw_mutex > imgPtr_mtx_p; /**< Queueing RW Mutex pointer to lock imgPtr for reads/writes */
             bool mandatory;
             int id;
+            string tag;
     };
 }
 
