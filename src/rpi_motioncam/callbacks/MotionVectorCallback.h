@@ -7,6 +7,7 @@
 #include "../typedefs.h"
 #include "../RaspiCallback.h"
 #include "MotionData.h"
+#include "MotionFrame.h"
 #include <memory>
 #include <vector>
 
@@ -22,17 +23,17 @@ namespace rpi_motioncam {
             void callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer);
             void post_process();
             int buffer_pos(int row, int col);
-            cv::Rect calculate_roi(const MotionRegion &region);
-            bool grow_up(MotionRegion &region);
-            bool grow_down(MotionRegion &region);
-            bool grow_left(MotionRegion &region);
-            bool grow_right(MotionRegion &region);
+            cv::Rect calculate_roi(shared_ptr< MotionRegion > region);
+            bool grow_up(shared_ptr< MotionRegion > region);
+            bool grow_down(shared_ptr< MotionRegion > region);
+            bool grow_left(shared_ptr< MotionRegion > region);
+            bool grow_right(shared_ptr< MotionRegion > region);
 
-            bool check_left(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region);
-            bool check_right(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region);
-            bool check_top(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region);
-            bool check_bottom(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region);
-            void grow_region(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region);
+            bool check_left(MMAL_BUFFER_HEADER_T *buffer, bool *searched, shared_ptr< MotionRegion > region);
+            bool check_right(MMAL_BUFFER_HEADER_T *buffer, bool *searched, shared_ptr< MotionRegion > region);
+            bool check_top(MMAL_BUFFER_HEADER_T *buffer, bool *searched, shared_ptr< MotionRegion > region);
+            bool check_bottom(MMAL_BUFFER_HEADER_T *buffer, bool *searched, shared_ptr< MotionRegion > region);
+            void grow_region(MMAL_BUFFER_HEADER_T *buffer, bool *searched, shared_ptr< MotionRegion > region);
         protected:
             int cols_;
             int rows_;
@@ -41,8 +42,7 @@ namespace rpi_motioncam {
             int height_scale;
             RPIMOTIONCAM_OPTION_S options_;
 
-            // vector< MotionRegion> regions;
-            shared_ptr< vector< MotionRegion > > lastRegions = nullptr;
+            MotionFrame lastFrame;
             int buffer_count = 0;
             bool *searched;
         

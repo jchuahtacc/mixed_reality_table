@@ -17,81 +17,81 @@ namespace rpi_motioncam {
         return (row * (cols_ + 1) + col) * 4 + 2;
     }
 
-    bool MotionVectorCallback::grow_up(MotionRegion &region) {
-        if (region.row > 0) {
-            region.row = region.row - 1;
-            region.height = region.height + 1;
+    bool MotionVectorCallback::grow_up(shared_ptr< MotionRegion > region) {
+        if (region->row > 0) {
+            region->row = region->row - 1;
+            region->height = region->height + 1;
             return true;
         }
         return false;
     }
 
-    bool MotionVectorCallback::grow_down(MotionRegion &region) {
-        if (region.row + region.height < rows_) {
-            region.height = region.height + 1;
+    bool MotionVectorCallback::grow_down(shared_ptr< MotionRegion > region) {
+        if (region->row + region->height < rows_) {
+            region->height = region->height + 1;
             return true;
         }
         return false;
     }
 
-    bool MotionVectorCallback::grow_left(MotionRegion &region) {
-        if (region.col > 0) {
-            region.col = region.col - 1;
-            region.width = region.width + 1;
+    bool MotionVectorCallback::grow_left(shared_ptr< MotionRegion > region) {
+        if (region->col > 0) {
+            region->col = region->col - 1;
+            region->width = region->width + 1;
             return true;
         }
         return false;
     }
 
-    bool MotionVectorCallback::grow_right(MotionRegion &region) {
-        if (region.col + region.width < cols_) {
-            region.width = region.width + 1;
+    bool MotionVectorCallback::grow_right(shared_ptr< MotionRegion > region) {
+        if (region->col + region->width < cols_) {
+            region->width = region->width + 1;
             return true;
         }
         return false;
     }
 
-    bool MotionVectorCallback::check_left(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region) {
-        for (int row = region.row; row < region.row + region.height; row++) {
-            if (!(searched[row * cols_ + region.col]) && buffer->data[buffer_pos(row, region.col)] > options_.motion_threshold) {
+    bool MotionVectorCallback::check_left(MMAL_BUFFER_HEADER_T *buffer, bool *searched, shared_ptr< MotionRegion > region) {
+        for (int row = region->row; row < region->row + region->height; row++) {
+            if (!(searched[row * cols_ + region->col]) && buffer->data[buffer_pos(row, region->col)] > options_.motion_threshold) {
                 return grow_left(region);
             }
         }
         return false;
     }
 
-    bool MotionVectorCallback::check_right(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region) {
-        for (int row = region.row; row < region.row + region.height; row++) {
-            if (!(searched[row * cols_ + region.col]) && buffer->data[buffer_pos(row, region.col + region.width - 1)] > threshold_) {
+    bool MotionVectorCallback::check_right(MMAL_BUFFER_HEADER_T *buffer, bool *searched, shared_ptr< MotionRegion > region) {
+        for (int row = region->row; row < region->row + region->height; row++) {
+            if (!(searched[row * cols_ + region->col]) && buffer->data[buffer_pos(row, region->col + region->width - 1)] > threshold_) {
                 return grow_right(region);
             }
         }
         return false;
     }
 
-    bool MotionVectorCallback::check_top(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region) {
-        for (int col = region.col; col < region.col + region.width; col++) {
-            if (!(searched[region.row * cols_ + col]) && buffer->data[buffer_pos(region.row, col)] > threshold_) {
+    bool MotionVectorCallback::check_top(MMAL_BUFFER_HEADER_T *buffer, bool *searched, shared_ptr< MotionRegion > region) {
+        for (int col = region->col; col < region->col + region->width; col++) {
+            if (!(searched[region->row * cols_ + col]) && buffer->data[buffer_pos(region->row, col)] > threshold_) {
                 return grow_up(region);
             }
         }
         return false;
     }
 
-    bool MotionVectorCallback::check_bottom(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region) {
-        for (int col = region.col; col < region.col + region.width; col++) {
-            if (!(searched[region.row * cols_ + col]) &&buffer->data[buffer_pos(region.row + region.height - 1, col)] > threshold_) {
+    bool MotionVectorCallback::check_bottom(MMAL_BUFFER_HEADER_T *buffer, bool *searched, shared_ptr< MotionRegion > region) {
+        for (int col = region->col; col < region->col + region->width; col++) {
+            if (!(searched[region->row * cols_ + col]) && buffer->data[buffer_pos(region->row + region->height - 1, col)] > threshold_) {
                 return grow_down(region);
             }
         }
         return false;
     }
 
-    cv::Rect MotionVectorCallback::calculate_roi(const MotionRegion &region) {
-        return cv::Rect(region.col * width_scale, region.row * height_scale, region.width * width_scale, region.height * height_scale);
+    cv::Rect MotionVectorCallback::calculate_roi(shared_ptr< MotionRegion > region) {
+        return cv::Rect(region->col * width_scale, region->row * height_scale, region->width * width_scale, region->height * height_scale);
     }
 
-    void MotionVectorCallback::grow_region(MMAL_BUFFER_HEADER_T *buffer, bool *searched, MotionRegion &region) {
+    void MotionVectorCallback::grow_region(MMAL_BUFFER_HEADER_T *buffer, bool *searched, shared_ptr< MotionRegion > region) {
         bool growing = true;
         while (growing) {
             growing = false;
@@ -106,8 +106,7 @@ namespace rpi_motioncam {
         if ((buffer->flags & MMAL_BUFFER_HEADER_FLAG_CODECSIDEINFO)) {
             // buffer_count++;
             // vcos_log_error("MotionVectorCallback::callback(): buffer #%d", buffer_count);
-            lastRegions = nullptr;
-            auto regions = shared_ptr< vector< MotionRegion > >( new vector< MotionRegion >() );
+            vector< shared_ptr< MotionRegion > > regions;
             for (int i = 0; i < rows_ * cols_; searched[i++] = false);
             for (int row = 0; row < rows_; row++) {
                 for (int col = 0; col < cols_; col++) {
@@ -115,33 +114,33 @@ namespace rpi_motioncam {
                         break;
                     }
                     if (buffer->data[buffer_pos(row, col)] > threshold_) {
-                        MotionRegion region;
-                        region.row = row;
-                        region.col = col;
-                        region.width = 1;
-                        region.height = 1;
+                        auto region = shared_ptr< MotionRegion >(new MotionRegion());
+                        region->row = row;
+                        region->col = col;
+                        region->width = 1;
+                        region->height = 1;
                         grow_up(region);
                         grow_down(region);
                         grow_left(region);
                         grow_right(region);
                         grow_region(buffer, searched, region);
 
-                        region.allocate(calculate_roi(region));
+                        region->allocate(calculate_roi(region));
 
-                        for (int i = region.row; i < region.row + region.height; i++) {
-                            for (int j = region.col; j < region.col + region.width; j++) {
+                        for (int i = region->row; i < region->row + region->height; i++) {
+                            for (int j = region->col; j < region->col + region->width; j++) {
                                 searched[i * cols_ + j] = true;
                             }
                         }
 
-                        regions->push_back(region);
+                        regions.push_back(region);
                         
                     }
                 }
             }
-            if (regions->size()) {
-                lastRegions = regions;
-                MotionData::stage_regions( regions );
+            if (regions.size()) {
+                lastFrame = MotionFrame( regions );
+                MotionData::stage_frame( regions );
             }
         }
     }

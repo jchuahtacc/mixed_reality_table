@@ -202,18 +202,6 @@ namespace rpi_motioncam {
         return result;
     }
 
-    bool RPiMotionCam::frame_ready() {
-        return MotionData::has_ready_frame();
-    }
-
-    shared_ptr< MotionData > RPiMotionCam::get_frame() {
-        shared_ptr< MotionData > result;
-        if (MotionData::get_ready_frame(result)) {
-            return result;
-        }
-        return nullptr;
-    }
-
     RPiMotionCam::RPiMotionCam() {
     }
 

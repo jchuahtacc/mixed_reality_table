@@ -18,22 +18,25 @@ void consume_frames() {
     int regions = 0;
     int seconds = 0;
     while (running) {
-        if (cam->frame_ready()) {
-            while (cam->frame_ready()) {
+        if (MotionData::has_ready_frames()) {
+            while (MotionData::has_ready_frames()) {
                 frames++;
-                auto frame = cam->get_frame();
-                regions += frame->regions->size();
-                for (auto region = frame->regions->begin(); region != frame->regions->end(); ++region) {
-                    MOTIONREGION_READ_LOCK(region);
-                    bytes += region->imgPtr->total();
-                }
-                if (std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::system_clock::now() - last_time ).count() > 1000) {
-                    seconds++;
-                    last_time = std::chrono::system_clock::now();
-                    cout << bytes << " bytes consumed from " << regions << " regions across " << frames << " frames" << endl;
-                    bytes = 0;
-                    frames = 0;
-                    regions = 0;
+                MotionFrame frame;
+                if (MotionData::get_ready_frame(frame)) {
+                    regions += frame.regions.size();
+                    for (auto it = frame.regions.begin(); it != frame.regions.end(); ++it) {
+                        shared_ptr< MotionRegion > region = *it;
+                        MOTIONREGION_READ_LOCK(region);
+                        bytes += region->imgPtr->total();
+                    }
+                    if (std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::system_clock::now() - last_time ).count() > 1000) {
+                        seconds++;
+                        last_time = std::chrono::system_clock::now();
+                        cout << bytes << " bytes consumed from " << regions << " regions across " << frames << " frames" << endl;
+                        bytes = 0;
+                        frames = 0;
+                        regions = 0;
+                    }
                 }
             }
         }
