@@ -1,7 +1,5 @@
-#include "rpi_motioncam/callbacks/MotionVectorPreviewCallback.h"
+#include "VectorRenderer.h"
 #include <stdlib.h>
-#include <opencv2/core.hpp>
-#include <opencv2/imgproc.hpp>
 #include <iostream>
 
 using namespace std;
@@ -26,7 +24,7 @@ namespace rpi_motioncam {
         renderer_->send_buffer(buffer);
     }
 
-    MotionVectorPreviewCallback::MotionVectorPreviewCallback(RPIMOTIONCAM_OPTION_S options) : MotionVectorCallback(options) {
+    static shared_ptr< VectorRenderer > create(RPI_MOTIONCAM_OPTION_S options) {
         RASPIOVERLAYRENDERER_FORMAT_S format = RaspiOverlayRenderer::createDefaultOverlayFormat();
         format.width = options.resizer_width;
         format.height = options.resizer_height;
@@ -34,6 +32,11 @@ namespace rpi_motioncam {
         format.alpha = 128;
         format.fullscreen = true;
         format.encoding = MMAL_ENCODING_RGB24;
+        return shared_ptr< VectorRenderer >(new VectorRenderer(format, options) );
+
+   }
+
+    VectorRenderer::VectorRenderer(RASPIOVERLAYRENDERER_OPTION_S renderer_options, RPIMOTIONCAM_OPTION_S motioncam_options) : options_(options) {
         scanline_bytes = options_.resizer_width * 3;
         row_bytes = 16 * scanline_bytes;
         col_bytes = options_.resizer_width / cols_ * 3;

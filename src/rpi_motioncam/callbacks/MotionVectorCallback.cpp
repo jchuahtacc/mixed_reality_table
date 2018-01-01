@@ -6,10 +6,13 @@ namespace rpi_motioncam {
 
     MotionVectorCallback::MotionVectorCallback(RPIMOTIONCAM_OPTION_S options) : cols_(options.resizer_width / 16), rows_(options.resizer_height / 16), options_(options), width_scale(options.width / cols_), height_scale(options.height / rows_) {
         int elements = rows_ * cols_;
-        searched = new bool[elements];
+        searched = new char[elements];
         lastBuffer = new char[elements];
-        output = shared_ptr< ofstream >( new ofstream("vectors", ios::out | ios::binary) );
-        frame_count = 0;
+        if (options.preview) {
+            vector_preview = shared_ptr< VectorPreview >( new VectorPreview( options ) );
+        } else {
+            vector_preview = nullptr;
+        }
     }
 
     MotionVectorCallback::~MotionVectorCallback() {
@@ -55,7 +58,7 @@ namespace rpi_motioncam {
         return false;
     }
 
-    bool MotionVectorCallback::check_left(MMAL_BUFFER_HEADER_T *buffer, bool *searched, shared_ptr< MotionRegion > region) {
+    bool MotionVectorCallback::check_left(MMAL_BUFFER_HEADER_T *buffer, char *searched, shared_ptr< MotionRegion > region) {
         for (int row = region->row; row < region->row + region->height; row++) {
             if (!(searched[row * cols_ + region->col]) && buffer->data[buffer_pos(row, region->col)] > options_.motion_threshold) {
                 return grow_left(region);
@@ -64,7 +67,7 @@ namespace rpi_motioncam {
         return false;
     }
 
-    bool MotionVectorCallback::check_right(MMAL_BUFFER_HEADER_T *buffer, bool *searched, shared_ptr< MotionRegion > region) {
+    bool MotionVectorCallback::check_right(MMAL_BUFFER_HEADER_T *buffer, char *searched, shared_ptr< MotionRegion > region) {
         for (int row = region->row; row < region->row + region->height; row++) {
             if (!(searched[row * cols_ + region->col]) && buffer->data[buffer_pos(row, region->col + region->width - 1)] > options_.motion_threshold) {
                 return grow_right(region);
@@ -73,7 +76,7 @@ namespace rpi_motioncam {
         return false;
     }
 
-    bool MotionVectorCallback::check_top(MMAL_BUFFER_HEADER_T *buffer, bool *searched, shared_ptr< MotionRegion > region) {
+    bool MotionVectorCallback::check_top(MMAL_BUFFER_HEADER_T *buffer, char *searched, shared_ptr< MotionRegion > region) {
         for (int col = region->col; col < region->col + region->width; col++) {
             if (!(searched[region->row * cols_ + col]) && buffer->data[buffer_pos(region->row, col)] > options_.motion_threshold) {
                 return grow_up(region);
@@ -82,7 +85,7 @@ namespace rpi_motioncam {
         return false;
     }
 
-    bool MotionVectorCallback::check_bottom(MMAL_BUFFER_HEADER_T *buffer, bool *searched, shared_ptr< MotionRegion > region) {
+    bool MotionVectorCallback::check_bottom(MMAL_BUFFER_HEADER_T *buffer, char *searched, shared_ptr< MotionRegion > region) {
         for (int col = region->col; col < region->col + region->width; col++) {
             if (!(searched[region->row * cols_ + col]) && buffer->data[buffer_pos(region->row + region->height - 1, col)] > options_.motion_threshold) {
                 return grow_down(region);
@@ -95,7 +98,7 @@ namespace rpi_motioncam {
         return cv::Rect(region->col * width_scale, region->row * height_scale, region->width * width_scale, region->height * height_scale);
     }
 
-    void MotionVectorCallback::grow_region(MMAL_BUFFER_HEADER_T *buffer, bool *searched, shared_ptr< MotionRegion > region) {
+    void MotionVectorCallback::grow_region(MMAL_BUFFER_HEADER_T *buffer, char *searched, shared_ptr< MotionRegion > region) {
         bool growing = true;
         while (growing) {
             growing = false;
@@ -111,16 +114,6 @@ namespace rpi_motioncam {
             // buffer_count++;
             // vcos_log_error("MotionVectorCallback::callback(): buffer #%d", buffer_count);
             vector< shared_ptr< MotionRegion > > regions;
-            frame_count++;
-            if (frame_count > 100 && frame_count <= 200) {
-                if (frame_count > 200) {
-                    cout << "Flushign" << endl;
-                    output->flush();
-                    output->close();
-                    output = nullptr;
-                }
-                output->write((char*)(buffer->data), 4920);
-            }
             for (int i = 0; i < rows_ * cols_; searched[i++] = false);
             for (int row = 0; row < rows_; row++) {
                 for (int col = 0; col < cols_; col++) {
@@ -165,5 +158,8 @@ namespace rpi_motioncam {
     }
 
     void MotionVectorCallback::post_process() {
+        if (vector_preview) {
+            vector_preview->draw( lastBuffer );
+        }
     }
 }

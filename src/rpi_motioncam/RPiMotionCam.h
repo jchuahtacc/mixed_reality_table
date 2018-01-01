@@ -21,7 +21,6 @@
 #include "callbacks/MotionRegion.h"
 #include "callbacks/MotionData.h"
 #include "callbacks/MotionVectorCallback.h"
-#include "callbacks/MotionVectorPreviewCallback.h"
 #include "callbacks/RawOutputCallback.h"
 #include "components/RaspiRenderer.h"
 #include "components/RaspiEncoder.h"
