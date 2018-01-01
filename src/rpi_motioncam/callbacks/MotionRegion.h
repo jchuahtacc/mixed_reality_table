@@ -22,6 +22,8 @@ namespace rpi_motioncam {
             shared_ptr< Mat > imgPtr;
             cv::Rect roi;
             shared_ptr< tbb::queuing_rw_mutex > imgPtr_mtx_p; /**< Queueing RW Mutex pointer to lock imgPtr for reads/writes */
+            bool mandatory;
+            int id;
     };
 }
 

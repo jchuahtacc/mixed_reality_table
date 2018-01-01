@@ -14,6 +14,7 @@ namespace rpi_motioncam {
             MotionFrame();
             MotionFrame(const MotionFrame &other);
             MotionFrame( vector< shared_ptr< MotionRegion > > regions_);
+            void add_regions( vector< shared_ptr< MotionRegion > > regions_);
             vector< shared_ptr< MotionRegion > > regions;
             std::chrono::time_point<std::chrono::system_clock> staged_timepoint;
             std::chrono::time_point<std::chrono::system_clock> ready_timepoint; 

@@ -8,6 +8,7 @@ namespace rpi_motioncam {
 
 
     void MotionData::set_mandatory_region( shared_ptr< MotionRegion > region ) {
+        region->mandatory = true;
         tbb::mutex::scoped_lock lock(*mandatory_region_mtx_ptr);
         for (auto it = mandatory_regions.begin(); it != mandatory_regions.end(); ++it) {
             if ((*it) == region) {

@@ -14,5 +14,8 @@ namespace rpi_motioncam {
         ready_timepoint = other.ready_timepoint;
     }
 
+    void MotionFrame::add_regions( vector< shared_ptr< MotionRegion > > regions_) {
+        regions.insert(regions.end(), regions_.begin(), regions_.end());
+    }
 
 }

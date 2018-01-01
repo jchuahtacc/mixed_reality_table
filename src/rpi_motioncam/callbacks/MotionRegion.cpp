@@ -1,7 +1,7 @@
 #include "rpi_motioncam/callbacks/MotionRegion.h"
 
 namespace rpi_motioncam {
-    MotionRegion::MotionRegion() : imgPtr_mtx_p(shared_ptr< tbb::queuing_rw_mutex >(new tbb::queuing_rw_mutex() ) ) {
+    MotionRegion::MotionRegion() : imgPtr_mtx_p(shared_ptr< tbb::queuing_rw_mutex >(new tbb::queuing_rw_mutex() ) ), id(-1), mandatory(false) {
     }
 
     MotionRegion::MotionRegion(const MotionRegion& other) {
@@ -12,6 +12,8 @@ namespace rpi_motioncam {
         imgPtr = other.imgPtr;
         roi = other.roi;
         imgPtr_mtx_p = other.imgPtr_mtx_p;
+        id = other.id;
+        mandatory = other.mandatory;
     }
 
     void MotionRegion::allocate(cv::Rect roi_) {

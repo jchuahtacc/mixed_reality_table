@@ -25,32 +25,23 @@ namespace rpi_motioncam {
             if (MotionData::get_staged_frame( candidate )) {
                 if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - candidate.staged_timepoint).count() < REGION_TIMEOUT) {
                     frame = candidate;
-                    gotFrame = true;
                 } else {
                     // Timeout
                 }
             }
         }
 
-        bool frameReady = false;
+        frame.add_regions( MotionData::get_mandatory_regions() );
 
-        if (gotFrame) {
-            auto buffImg = shared_ptr< Mat >(new Mat(height_, width_, CV_8U, buffer->data) );
-            // vcos_log_error("RawOutputCallback::callback(): found frame with %d regions", frame->regions->size());
-            for (auto it = frame.regions.begin(); it != frame.regions.end(); ++it) {
-                shared_ptr< MotionRegion > region = *it;
-                MOTIONREGION_WRITE_LOCK(region);
-                (*buffImg)( region->roi ).copyTo( *region->imgPtr );
-            }
-            frameReady = true;
-        } else {
-            // No frame, but possibly mandatory regions
-            // frameReady = true
+        auto buffImg = shared_ptr< Mat >(new Mat(height_, width_, CV_8U, buffer->data) );
+        // vcos_log_error("RawOutputCallback::callback(): found frame with %d regions", frame->regions->size());
+        for (auto it = frame.regions.begin(); it != frame.regions.end(); ++it) {
+            shared_ptr< MotionRegion > region = *it;
+            MOTIONREGION_WRITE_LOCK(region);
+            (*buffImg)( region->roi ).copyTo( *region->imgPtr );
         }
 
-        if (frameReady) {
-            MotionData::ready_frame( frame );
-        }
+        MotionData::ready_frame( frame );
 
         buffer_count++;
         //vcos_log_error("RawOutputCallback::callback(): buffer #%d", buffer_count);

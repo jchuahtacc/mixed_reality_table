@@ -58,6 +58,11 @@ int wait() {
 
 
 int main(int argc, char** argv) {
+
+    shared_ptr< MotionRegion > mandatory_region = shared_ptr< MotionRegion >(new MotionRegion() );
+    mandatory_region->allocate(cv::Rect(1, 1, 5, 5));
+    MotionData::set_mandatory_region(mandatory_region);
+
     RPIMOTIONCAM_OPTION_S options = RPiMotionCam::createMotionCamDefaultOptions();
     options.preview = true;
     options.motion_threshold = 200;
