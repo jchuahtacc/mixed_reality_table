@@ -8,6 +8,7 @@
 #include "../RaspiCallback.h"
 #include "MotionData.h"
 #include "MotionFrame.h"
+#include <fstream>
 #include <memory>
 #include <vector>
 
@@ -34,6 +35,7 @@ namespace rpi_motioncam {
             bool check_top(MMAL_BUFFER_HEADER_T *buffer, bool *searched, shared_ptr< MotionRegion > region);
             bool check_bottom(MMAL_BUFFER_HEADER_T *buffer, bool *searched, shared_ptr< MotionRegion > region);
             void grow_region(MMAL_BUFFER_HEADER_T *buffer, bool *searched, shared_ptr< MotionRegion > region);
+            MotionFrame lastFrame;
         protected:
             int cols_;
             int rows_;
@@ -42,9 +44,13 @@ namespace rpi_motioncam {
             int height_scale;
             RPIMOTIONCAM_OPTION_S options_;
 
-            MotionFrame lastFrame;
             int buffer_count = 0;
             bool *searched;
+
+            shared_ptr< ofstream > output;
+            int frame_count = 0;
+
+            char* lastBuffer;
         
     };
 }

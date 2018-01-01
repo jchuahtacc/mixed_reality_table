@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
 
     RPIMOTIONCAM_OPTION_S options = RPiMotionCam::createMotionCamDefaultOptions();
     options.preview = true;
-    options.motion_threshold = 200;
+    options.motion_threshold = 220;
     //options.resizer_width = 1024;
     //options.resizer_height = 768;
     cam = RPiMotionCam::create(options);

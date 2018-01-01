@@ -11,10 +11,13 @@ namespace rpi_motioncam {
     class MotionVectorPreviewCallback : public MotionVectorCallback {
         public: 
             MotionVectorPreviewCallback(RPIMOTIONCAM_OPTION_S options);
-            int buffer_position(int row, int col, int row_offset);
+            int render_buffer_position(int row, int col, int row_offset);
             void post_process();
         protected:
             shared_ptr< RaspiOverlayRenderer > renderer_;
+            int scanline_bytes;
+            int row_bytes;
+            int col_bytes;
     };
 }
 

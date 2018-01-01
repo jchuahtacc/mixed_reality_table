@@ -7,9 +7,13 @@ namespace rpi_motioncam {
     MotionVectorCallback::MotionVectorCallback(RPIMOTIONCAM_OPTION_S options) : cols_(options.resizer_width / 16), rows_(options.resizer_height / 16), options_(options), width_scale(options.width / cols_), height_scale(options.height / rows_) {
         int elements = rows_ * cols_;
         searched = new bool[elements];
+        lastBuffer = new char[elements];
+        output = shared_ptr< ofstream >( new ofstream("vectors", ios::out | ios::binary) );
+        frame_count = 0;
     }
 
     MotionVectorCallback::~MotionVectorCallback() {
+        delete lastBuffer;
         delete searched;
     }
 
@@ -107,7 +111,22 @@ namespace rpi_motioncam {
             // buffer_count++;
             // vcos_log_error("MotionVectorCallback::callback(): buffer #%d", buffer_count);
             vector< shared_ptr< MotionRegion > > regions;
+            frame_count++;
+            if (frame_count > 100 && frame_count <= 200) {
+                if (frame_count > 200) {
+                    cout << "Flushign" << endl;
+                    output->flush();
+                    output->close();
+                    output = nullptr;
+                }
+                output->write((char*)(buffer->data), 4920);
+            }
             for (int i = 0; i < rows_ * cols_; searched[i++] = false);
+            for (int row = 0; row < rows_; row++) {
+                for (int col = 0; col < cols_; col++) {
+                    lastBuffer[row * cols_ + col] = buffer->data[buffer_pos(row, col)];
+                }
+            }
             for (int row = 0; row < rows_; row++) {
                 for (int col = 0; col < cols_; col++) {
                     if (searched[row * cols_ + col]) {
