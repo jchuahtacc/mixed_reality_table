@@ -5,6 +5,7 @@
 #include <memory>
 #include "RegionRecord.h"
 #include "tbb/flow_graph.h"
+#include "../config/config.h"
 
 using namespace cv::aruco;
 using namespace std;
