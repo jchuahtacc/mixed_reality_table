@@ -66,7 +66,7 @@ namespace rpi_motioncam {
 
     bool MotionVectorCallback::check_right(MMAL_BUFFER_HEADER_T *buffer, bool *searched, shared_ptr< MotionRegion > region) {
         for (int row = region->row; row < region->row + region->height; row++) {
-            if (!(searched[row * cols_ + region->col]) && buffer->data[buffer_pos(row, region->col + region->width - 1)] > threshold_) {
+            if (!(searched[row * cols_ + region->col]) && buffer->data[buffer_pos(row, region->col + region->width - 1)] > options_.motion_threshold) {
                 return grow_right(region);
             }
         }
@@ -75,7 +75,7 @@ namespace rpi_motioncam {
 
     bool MotionVectorCallback::check_top(MMAL_BUFFER_HEADER_T *buffer, bool *searched, shared_ptr< MotionRegion > region) {
         for (int col = region->col; col < region->col + region->width; col++) {
-            if (!(searched[region->row * cols_ + col]) && buffer->data[buffer_pos(region->row, col)] > threshold_) {
+            if (!(searched[region->row * cols_ + col]) && buffer->data[buffer_pos(region->row, col)] > options_.motion_threshold) {
                 return grow_up(region);
             }
         }
@@ -84,7 +84,7 @@ namespace rpi_motioncam {
 
     bool MotionVectorCallback::check_bottom(MMAL_BUFFER_HEADER_T *buffer, bool *searched, shared_ptr< MotionRegion > region) {
         for (int col = region->col; col < region->col + region->width; col++) {
-            if (!(searched[region->row * cols_ + col]) && buffer->data[buffer_pos(region->row + region->height - 1, col)] > threshold_) {
+            if (!(searched[region->row * cols_ + col]) && buffer->data[buffer_pos(region->row + region->height - 1, col)] > options_.motion_threshold) {
                 return grow_down(region);
             }
         }
@@ -132,7 +132,7 @@ namespace rpi_motioncam {
                     if (searched[row * cols_ + col]) {
                         break;
                     }
-                    if (buffer->data[buffer_pos(row, col)] > threshold_) {
+                    if (buffer->data[buffer_pos(row, col)] > options_.motion_threshold) {
                         auto region = shared_ptr< MotionRegion >(new MotionRegion());
                         region->row = row;
                         region->col = col;

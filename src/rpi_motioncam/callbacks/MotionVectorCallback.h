@@ -39,7 +39,6 @@ namespace rpi_motioncam {
         protected:
             int cols_;
             int rows_;
-            int threshold_;
             int width_scale;
             int height_scale;
             RPIMOTIONCAM_OPTION_S options_;
