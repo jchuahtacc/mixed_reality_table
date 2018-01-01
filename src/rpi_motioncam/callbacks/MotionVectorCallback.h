@@ -9,6 +9,7 @@
 #include "MotionData.h"
 #include "MotionFrame.h"
 #include "VectorPreview.h"
+#include "FramePreview.h"
 #include <fstream>
 #include <memory>
 #include <vector>
@@ -43,6 +44,7 @@ namespace rpi_motioncam {
             int width_scale;
             int height_scale;
             shared_ptr< VectorPreview > vector_preview;
+            shared_ptr< FramePreview > frame_preview;
             RPIMOTIONCAM_OPTION_S options_;
 
             int buffer_count = 0;

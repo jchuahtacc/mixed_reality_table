@@ -10,8 +10,10 @@ namespace rpi_motioncam {
         lastBuffer = new char[elements];
         if (options.preview) {
             vector_preview = shared_ptr< VectorPreview >( new VectorPreview( options ) );
+            frame_preview = shared_ptr< FramePreview >( new FramePreview( options ) );
         } else {
             vector_preview = nullptr;
+            frame_preview = nullptr;
         }
     }
 
@@ -153,6 +155,8 @@ namespace rpi_motioncam {
             if (regions.size()) {
                 lastFrame = MotionFrame( regions );
                 MotionData::stage_frame( regions );
+            } else {
+                lastFrame.regions.clear();
             }
         }
     }
@@ -160,6 +164,9 @@ namespace rpi_motioncam {
     void MotionVectorCallback::post_process() {
         if (vector_preview) {
             vector_preview->draw( lastBuffer );
+        }
+        if (frame_preview) {
+            frame_preview->draw( lastFrame );
         }
     }
 }

@@ -18,7 +18,7 @@ set(BUILD_RPIMOTIONCAM_TESTS FALSE CACHE PATH "Build RPiMotionCam Test Programs"
 
 include_directories("../")
 
-add_library(rpi_motioncam RPiMotionCam.cpp components/RaspiRenderer.cpp RaspiCamControl.cpp components/RaspiComponent.cpp components/RaspiNullsink.cpp components/RaspiEncoder.cpp RaspiPort.cpp callbacks/MotionVectorCallback.cpp components/RaspiSplitter.cpp components/RaspiResize.cpp components/RaspiCamera.cpp components/RaspiOverlayRenderer.cpp callbacks/VectorPreview.cpp callbacks/RawOutputCallback.cpp callbacks/MotionData.cpp callbacks/MotionRegion.cpp callbacks/MotionFrame.cpp callbacks/MotionRegionPreviewCallback.cpp)
+add_library(rpi_motioncam RPiMotionCam.cpp components/RaspiRenderer.cpp RaspiCamControl.cpp components/RaspiComponent.cpp components/RaspiNullsink.cpp components/RaspiEncoder.cpp RaspiPort.cpp callbacks/MotionVectorCallback.cpp components/RaspiSplitter.cpp components/RaspiResize.cpp components/RaspiCamera.cpp components/RaspiOverlayRenderer.cpp callbacks/VectorPreview.cpp callbacks/RawOutputCallback.cpp callbacks/MotionData.cpp callbacks/MotionRegion.cpp callbacks/MotionFrame.cpp callbacks/FramePreview.cpp)
 target_link_libraries(rpi_motioncam ${OpenCV_LIBS} ${MMAL_LIBRARIES} pthread tbb)
 
 if(BUILD_RPIMOTIONCAM_TESTS)
