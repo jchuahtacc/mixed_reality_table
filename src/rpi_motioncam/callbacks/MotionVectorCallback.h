@@ -32,17 +32,18 @@ namespace rpi_motioncam {
             bool grow_left(shared_ptr< MotionRegion > region);
             bool grow_right(shared_ptr< MotionRegion > region);
 
-            bool check_left(MMAL_BUFFER_HEADER_T *buffer, char *searched, shared_ptr< MotionRegion > region);
-            bool check_right(MMAL_BUFFER_HEADER_T *buffer, char *searched, shared_ptr< MotionRegion > region);
-            bool check_top(MMAL_BUFFER_HEADER_T *buffer, char *searched, shared_ptr< MotionRegion > region);
-            bool check_bottom(MMAL_BUFFER_HEADER_T *buffer, char *searched, shared_ptr< MotionRegion > region);
-            void grow_region(MMAL_BUFFER_HEADER_T *buffer, char *searched, shared_ptr< MotionRegion > region);
+            bool check_left(shared_ptr< MotionRegion > region);
+            bool check_right(shared_ptr< MotionRegion > region);
+            bool check_top(shared_ptr< MotionRegion > region);
+            bool check_bottom(shared_ptr< MotionRegion > region);
+            void grow_region(shared_ptr< MotionRegion > region);
             MotionFrame lastFrame;
         protected:
             int cols_;
             int rows_;
             int width_scale;
             int height_scale;
+            int elements_;
             shared_ptr< VectorPreview > vector_preview;
             shared_ptr< FramePreview > frame_preview;
             RPIMOTIONCAM_OPTION_S options_;
@@ -53,6 +54,7 @@ namespace rpi_motioncam {
             int frame_count = 0;
 
             char* lastBuffer;
+            bool got_vectors = false;
         
     };
 }
