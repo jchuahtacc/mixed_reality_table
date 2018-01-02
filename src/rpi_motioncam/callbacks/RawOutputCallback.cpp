@@ -1,6 +1,7 @@
 #include "rpi_motioncam/callbacks/RawOutputCallback.h"
 #include "tbb/queuing_rw_mutex.h"
 #include <iostream>
+#include <chrono>
 
 using namespace std;
 
@@ -39,7 +40,7 @@ namespace rpi_motioncam {
             std::shared_ptr< MotionRegion > region = *it;
             MOTIONREGION_WRITE_LOCK(region);
             (*buffImg)( region->roi ).copyTo( *region->imgPtr );
-            region->log_event("buffered");
+            region->buffered = std::chrono::system_clock::now();
             if (region_callback) {
                 region_callback->process( region );
             } else {
@@ -53,7 +54,7 @@ namespace rpi_motioncam {
         buffer_count++;
         auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start);
         if (elapsed.count() > 1000) {
-            vcos_log_error("RawOutputCallback::callback(): %d buffers in last second", buffer_count);
+            vcos_log_error("RPiMotionCam: %d fps", buffer_count);
             buffer_count = 0;
             start = std::chrono::system_clock::now();
         }

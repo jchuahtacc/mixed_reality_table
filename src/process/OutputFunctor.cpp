@@ -10,13 +10,12 @@ namespace mrtable_process {
         start = system_clock::now();
     }
     void OutputFunctor::operator() (const RegionRecord &input) {
+        //cout << "Output " << input.region->id << endl;
         region_count++;
         byte_count += input.region->imgPtr->total();
-        std::chrono::time_point<std::chrono::system_clock> buffer_start;
 
-        if (input.region->get_event("buffered", buffer_start)) {
-            latencies += duration_cast<milliseconds>( system_clock::now() - buffer_start );
-        }
+        latencies += duration_cast<milliseconds>( system_clock::now() - input.region->requested );
+        input.region->requested = system_clock::now();
 
         auto now = system_clock::now();
         if (duration_cast<milliseconds>( now - start ).count() > 1000) {

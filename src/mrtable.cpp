@@ -65,7 +65,7 @@ int main(int argc, const char* argv[]) {
 
     cout << "Starting RPiMotionCam" << endl;
     auto options = RPiMotionCam::createMotionCamDefaultOptions();
-    options.motion_threshold = 80;
+    options.motion_threshold = 255;
     options.region_callback = shared_ptr< ImgProcessorCallback >( new ImgProcessorCallback( processor ) );
 
     auto cam = RPiMotionCam::create(options);
@@ -73,6 +73,15 @@ int main(int argc, const char* argv[]) {
         cout << "RPiMotionCam started" << endl;
     } else {
         cout << "RPiMotionCam failed to start" << endl;
+    }
+
+    for (int i = 0; i < 50; i++) {
+        shared_ptr< MotionRegion > region = shared_ptr< MotionRegion >( new MotionRegion() );
+        region->allocate(cv::Rect(i * 20, i * 20, 50, 50));
+        region->requested = std::chrono::system_clock::now();
+        region->mandatory = true;
+        region->id = i;
+        MotionData::set_mandatory_region(region);
     }
 
     while(wait());

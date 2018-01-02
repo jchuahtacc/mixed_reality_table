@@ -15,22 +15,6 @@ namespace rpi_motioncam {
         id = other.id;
         mandatory = other.mandatory;
         tag = other.tag;
-        events = other.events;
-    }
-
-    void MotionRegion::log_event(string event_name) {
-        events.push_back((MotionRegionEvent){ .time = std::chrono::system_clock::now(), .event = event_name });
-    }
-
-    bool MotionRegion::get_event(string event_name, std::chrono::time_point<std::chrono::system_clock> &destination) {
-        for (auto it = events.begin(); it != events.end(); ++it) {
-            MotionRegionEvent event = *it;
-            if (event.event == event_name) {
-                destination = event.time;
-                return true;
-            }
-        }
-        return false;
     }
 
     void MotionRegion::allocate(cv::Rect roi_) {

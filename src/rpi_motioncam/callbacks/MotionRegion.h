@@ -26,15 +26,15 @@ namespace rpi_motioncam {
             concurrent_vector< MotionRegionEvent > events;
             int row, col, width, height;
             bool contains(int row, int col);
-            void log_event(string event);
-            bool get_event(string event_name, std::chrono::time_point<std::chrono::system_clock> &destination);
-            void allocate(cv::Rect roi);
+           void allocate(cv::Rect roi);
             shared_ptr< Mat > imgPtr;
             cv::Rect roi;
             shared_ptr< tbb::queuing_rw_mutex > imgPtr_mtx_p; /**< Queueing RW Mutex pointer to lock imgPtr for reads/writes */
             bool mandatory;
             int id;
             string tag;
+            std::chrono::time_point<std::chrono::system_clock> requested;
+            std::chrono::time_point<std::chrono::system_clock> buffered;
     };
 }
 

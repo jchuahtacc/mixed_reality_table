@@ -151,6 +151,7 @@ namespace rpi_motioncam {
                             }
                         }
 
+                        region->requested = std::chrono::system_clock::now();
                         regions.push_back(region);
                         
                     }

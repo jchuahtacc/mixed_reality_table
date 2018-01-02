@@ -12,7 +12,7 @@ include_directories("./")
 include_directories("../")
 include_directories(${BROADCOM_INCLUDE_DIRS})
 include_directories(${MMAL_INCLUDE_DIRS})
-add_library(mrtable_process process.cpp InputFunctor.cpp OutputFunctor.cpp ArucoFunctor.cpp BlobFunctor.cpp RegionRecord.cpp)
+add_library(mrtable_process process.cpp OutputFunctor.cpp ArucoFunctor.cpp BlobFunctor.cpp RegionRecord.cpp)
 target_link_libraries(mrtable_process tbb ${OpenCV_LIBS} rpi_motioncam mrtable_config) 
 
 if(BUILD_PROCESS_TESTS) 

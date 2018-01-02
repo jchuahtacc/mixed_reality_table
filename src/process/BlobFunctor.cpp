@@ -8,10 +8,9 @@ namespace mrtable_process {
         if (!input.region->tag.empty() && !(input.region->tag == "blob")) {
             return input;
         }
-        input.region->log_event("blob_start");
+        //cout << "Blob " << input.region->id << endl;
         MOTIONREGION_READ_LOCK(input.region);
         BlobFunctor::detector->detect( *(input.region->imgPtr), input.blob_keypoints);
-        input.region->log_event("blob_finish");
         return input;
     }
 }
