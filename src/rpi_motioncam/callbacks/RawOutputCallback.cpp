@@ -42,8 +42,10 @@ namespace rpi_motioncam {
             region->log_event("buffered");
             if (region_callback) {
                 region_callback->process( region );
+            } else {
+                // Assuming that since there is no callback, the region should go in the producer/consumer queue
+                MotionData::ready_region( region );
             }
-            //MotionData::ready_region( region );
         }
 
         //MotionData::ready_frame( frame );
