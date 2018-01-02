@@ -5,7 +5,7 @@
 using namespace std;
 
 namespace rpi_motioncam {
-    RawOutputCallback::RawOutputCallback(int width, int height) : width_(VCOS_ALIGN_UP(width, 32)), height_(VCOS_ALIGN_UP(height, 16)) {
+    RawOutputCallback::RawOutputCallback(int width, int height, std::shared_ptr< RegionCallback > callback) : width_(VCOS_ALIGN_UP(width, 32)), height_(VCOS_ALIGN_UP(height, 16)), region_callback(callback) {
         start = std::chrono::system_clock::now();
         size_ = width_ * height_;
     }
@@ -34,13 +34,16 @@ namespace rpi_motioncam {
             }
         }
 
-        auto buffImg = shared_ptr< Mat >(new Mat(height_, width_, CV_8U, buffer->data) );
+        auto buffImg = std::shared_ptr< Mat >(new Mat(height_, width_, CV_8U, buffer->data) );
         for (auto it = frame.regions.begin(); it != frame.regions.end(); ++it) {
-            shared_ptr< MotionRegion > region = *it;
+            std::shared_ptr< MotionRegion > region = *it;
             MOTIONREGION_WRITE_LOCK(region);
             (*buffImg)( region->roi ).copyTo( *region->imgPtr );
             region->log_event("buffered");
-            MotionData::ready_region( region );
+            if (region_callback) {
+                region_callback->process( region );
+            }
+            //MotionData::ready_region( region );
         }
 
         //MotionData::ready_frame( frame );

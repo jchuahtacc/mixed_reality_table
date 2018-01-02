@@ -26,6 +26,7 @@ namespace rpi_motioncam {
         options.resizer_height = 480;
 
         options.motion_threshold = MOTION_THRESHOLD_DEFAULT;
+        options.region_callback = nullptr;
 
         return options;
     }
@@ -138,7 +139,7 @@ namespace rpi_motioncam {
     MMAL_STATUS_T RPiMotionCam::add_callbacks() {
         MMAL_STATUS_T status = MMAL_SUCCESS;
 
-        roCallback = shared_ptr< RawOutputCallback >( new RawOutputCallback(options_.width, options_.height) );
+        roCallback = shared_ptr< RawOutputCallback >( new RawOutputCallback(options_.width, options_.height, options_.region_callback) );
         if (splitter->output_0->add_callback(roCallback) != MMAL_SUCCESS) {
             vcos_log_error("RPiMotionCam::add_callbacks(): Could not add raw output callback");
         }

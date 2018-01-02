@@ -1,27 +1,13 @@
-#ifndef __RPIMOTIONCAM_TYPEDEFS_H__
-#define __RPIMOTIONCAM_TYPEDEFS_H__
-
-#include <stdint.h>
+#include "typedefs.h"
+#include "RegionCallback.h"
 #include <memory>
-#include "rpi_motioncam/RegionCallback.h"
 
 using namespace std;
 
 namespace rpi_motioncam {
-    // Forward
-    typedef struct RASPIVID_STATE_S RASPIVID_STATE;
-
-    /** Possible raw output formats
-     */
-    typedef enum {
-       RAW_OUTPUT_FMT_YUV = 1,
-       RAW_OUTPUT_FMT_RGB,
-       RAW_OUTPUT_FMT_GRAY,
-    } RAW_OUTPUT_FMT;
-
     /** Structure containing all state information for the current run
      */
-    typedef struct 
+    struct RPIMOTIONCAM_OPTION
     {
        uint32_t width;                          /// Requested width of image
        uint32_t height;                         /// requested height of image
@@ -35,12 +21,10 @@ namespace rpi_motioncam {
        uint32_t resizer_width;               /// Resizer component width for compressed motion vectors
        uint32_t resizer_height;              /// Resizer component height 
        int motion_threshold;
-       std::shared_ptr< RegionCallback > region_callback;
+       shared_ptr< RegionCallback > region_callback;
        
        bool preview;
 
-    } RPIMOTIONCAM_OPTION_S;
+    };
 
 }
-
-#endif

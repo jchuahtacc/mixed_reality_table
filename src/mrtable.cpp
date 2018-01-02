@@ -17,6 +17,16 @@ using namespace rpi_motioncam;
 
 shared_ptr< ContainerPtrQueue> container_queue = shared_ptr< ContainerPtrQueue >( new ContainerPtrQueue() );
 
+class ImgProcessorCallback : public RegionCallback {
+    public:
+        shared_ptr< ImgProcessor > processor;
+        ImgProcessorCallback(shared_ptr< ImgProcessor > processor_) : processor(processor_) {
+        }
+        void process(shared_ptr< MotionRegion > region) {
+            processor->put(region);
+        }
+};
+
 bool running = true;
 
 void transport_callback(shared_ptr< ImgProcessor > processor) {
@@ -51,10 +61,11 @@ int main(int argc, const char* argv[]) {
 
     auto processor = shared_ptr< ImgProcessor >( new ImgProcessor() );
 
-    std::thread transport_thread(transport_callback, processor);
+    //std::thread transport_thread(transport_callback, processor);
 
     cout << "Starting RPiMotionCam" << endl;
     auto options = RPiMotionCam::createMotionCamDefaultOptions();
+    options.region_callback = shared_ptr< ImgProcessorCallback >( new ImgProcessorCallback( processor ) );
 
     auto cam = RPiMotionCam::create(options);
     if (cam->start() == MMAL_SUCCESS) {
@@ -68,6 +79,6 @@ int main(int argc, const char* argv[]) {
     cout << "Shutting down" << endl;
     running = false;
 
-    transport_thread.join();
+    // transport_thread.join();
 
 }
