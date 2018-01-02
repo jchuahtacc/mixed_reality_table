@@ -1,5 +1,8 @@
 #include "rpi_motioncam/callbacks/RawOutputCallback.h"
 #include "tbb/queuing_rw_mutex.h"
+#include <iostream>
+
+using namespace std;
 
 namespace rpi_motioncam {
     RawOutputCallback::RawOutputCallback(int width, int height) : width_(VCOS_ALIGN_UP(width, 32)), height_(VCOS_ALIGN_UP(height, 16)) {
@@ -37,9 +40,10 @@ namespace rpi_motioncam {
             MOTIONREGION_WRITE_LOCK(region);
             (*buffImg)( region->roi ).copyTo( *region->imgPtr );
             region->log_event("buffered");
+            MotionData::ready_region( region );
         }
 
-        MotionData::ready_frame( frame );
+        //MotionData::ready_frame( frame );
 
         buffer_count++;
         auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start);

@@ -79,6 +79,7 @@ namespace rpi_motioncam {
             shared_ptr< RaspiSplitter > splitter;
             shared_ptr< RaspiResize > resizer;
             shared_ptr< RaspiNullsink > nullsink;
+            shared_ptr< RaspiNullsink > nullsink2;
 
             shared_ptr< MotionVectorCallback > mvCallback;
             shared_ptr< RawOutputCallback > roCallback;

@@ -10,38 +10,26 @@ shared_ptr< RPiMotionCam > cam = nullptr;
 
 bool running = true;
 
-void consume_frames() {
-    cout << "Frame consumer thread started" << endl;
+void consume_regions() {
+    cout << "Region consumer thread started" << endl;
     auto last_time = std::chrono::system_clock::now();
     int bytes = 0;
-    int frames = 0;
     int regions = 0;
-    int seconds = 0;
     while (running) {
-        if (MotionData::has_ready_frames()) {
-            while (MotionData::has_ready_frames()) {
-                frames++;
-                MotionFrame frame;
-                if (MotionData::get_ready_frame(frame)) {
-                    regions += frame.regions.size();
-                    for (auto it = frame.regions.begin(); it != frame.regions.end(); ++it) {
-                        shared_ptr< MotionRegion > region = *it;
-                        MOTIONREGION_READ_LOCK(region);
-                        bytes += region->imgPtr->total();
-                    }
-                    if (std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::system_clock::now() - last_time ).count() > 1000) {
-                        seconds++;
-                        last_time = std::chrono::system_clock::now();
-                        cout << bytes << " bytes consumed from " << regions << " regions across " << frames << " frames" << endl;
-                        bytes = 0;
-                        frames = 0;
-                        regions = 0;
-                    }
-                }
-            }
+        shared_ptr< MotionRegion > region;
+        if (MotionData::has_regions() && MotionData::get_region(region)) {
+            MOTIONREGION_READ_LOCK(region);
+            bytes += region->imgPtr->total();
+            regions++;
+        }
+        if (std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::system_clock::now() - last_time ).count() > 1000) {
+            last_time = std::chrono::system_clock::now();
+            cout << bytes << " bytes consumed from " << regions << " regions" << endl;
+            bytes = 0;
+            regions = 0;
         }
     }
-    cout << "Frame consumer thread ending" << endl;
+    cout << "Region consumer thread ending" << endl;
 }
 
 int wait() {
@@ -77,7 +65,7 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    std::thread frame_consumer_thread(consume_frames);
+    std::thread region_consumer_thread(consume_regions);
 
     while (wait());
 
@@ -85,9 +73,9 @@ int main(int argc, char** argv) {
 
     running = false;
 
-    frame_consumer_thread.join();
+    region_consumer_thread.join();
 
-    cout << "Frame consumer thread stopped" << endl;
+    cout << "Region consumer thread stopped" << endl;
 
     cam->stop();
 

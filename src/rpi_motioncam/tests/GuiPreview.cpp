@@ -13,45 +13,23 @@ RPIMOTIONCAM_OPTION_S options = RPiMotionCam::createMotionCamDefaultOptions();
 bool running = true;
 Mat img = Mat::zeros(600, 800, CV_8U);
 
-void consume_frames(shared_ptr< RPiMotionCam > cam) {
-    cout << "Frame consumer thread started" << endl;
+void consume_regions() {
+    cout << "Region consumer thread started" << endl;
     auto last_time = std::chrono::system_clock::now();
     int bytes = 0;
-    int frames = 0;
-    int regions = 0;
-    int seconds = 0;
     float width_scale = 800.0 / options.width;
     float height_scale = 600.0 / options.height;
     while (running) {
-        if (MotionData::has_ready_frames()) {
-            while (MotionData::has_ready_frames()) {
-                // frames++;
-                MotionFrame frame;
-                if (MotionData::get_ready_frame(frame)) {
-                    regions += frame.regions.size();
-                    for (auto it = frame.regions.begin(); it != frame.regions.end(); ++it) {
-                        shared_ptr< MotionRegion > region = *it;
-                        MOTIONREGION_READ_LOCK(region);
-                        Rect destRect = Rect((int)(region->roi.x * width_scale), (int)(region->roi.y * height_scale), (int)(region->roi.width * width_scale), (int)(region->roi.height * height_scale));
-                        Mat dest = img(destRect);
-                        resize(*(region->imgPtr), dest, Size(), width_scale, height_scale);
-                        bytes += region->imgPtr->total();
-                    }
-                    /*
-                    if (std::chrono::duration_cast<std::chrono::milliseconds>( std::chrono::system_clock::now() - last_time ).count() > 1000) {
-                        seconds++;
-                        last_time = std::chrono::system_clock::now();
-                        // cout << bytes << " bytes consumed from " << regions << " regions across " << frames << " frames" << endl;
-                        bytes = 0;
-                        frames = 0;
-                        regions = 0;
-                    }
-                    */
-                }
-            }
+        shared_ptr< MotionRegion > region;
+        if (MotionData::has_regions() && MotionData::get_region(region)) {
+            MOTIONREGION_READ_LOCK(region);
+            Rect destRect = Rect((int)(region->roi.x * width_scale), (int)(region->roi.y * height_scale), (int)(region->roi.width * width_scale), (int)(region->roi.height * height_scale));
+            Mat dest = img(destRect);
+            resize(*(region->imgPtr), dest, Size(), width_scale, height_scale);
+            bytes += region->imgPtr->total();
         }
     }
-    cout << "Frame consumer thread ending" << endl;
+    cout << "Region consumer thread ending" << endl;
 }
 
 int wait() {
@@ -85,7 +63,7 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    std::thread frame_consumer_thread(consume_frames, cam);
+    std::thread region_consumer_thread(consume_regions);
 
     while (waitKey(1) == -1) {
         imshow("GuiPreview", img);
@@ -97,9 +75,9 @@ int main(int argc, char** argv) {
 
     running = false;
 
-    frame_consumer_thread.join();
+    region_consumer_thread.join();
 
-    cout << "Frame consumer thread stopped" << endl;
+    cout << "Region consumer thread stopped" << endl;
 
     cam->stop();
 

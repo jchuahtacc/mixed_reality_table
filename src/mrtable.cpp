@@ -21,12 +21,10 @@ bool running = true;
 
 void transport_callback(shared_ptr< ImgProcessor > processor) {
     while (running) {
-        MotionFrame frame;
-        if (MotionData::has_ready_frames() && MotionData::get_ready_frame(frame)) {
-            for (auto it = frame.regions.begin(); it != frame.regions.end(); ++it) {
-                if (!processor->put(*it)) {
-                    cout << "Couldn't process region!" << endl;
-                }
+        shared_ptr< MotionRegion > region;
+        if (MotionData::has_regions() && MotionData::get_region(region)) {
+            if (!processor->put(region)) {
+                cout << "Couldn't process region!" << endl;
             }
         }
     }
@@ -56,7 +54,9 @@ int main(int argc, const char* argv[]) {
     std::thread transport_thread(transport_callback, processor);
 
     cout << "Starting RPiMotionCam" << endl;
-    auto cam = RPiMotionCam::create();
+    auto options = RPiMotionCam::createMotionCamDefaultOptions();
+
+    auto cam = RPiMotionCam::create(options);
     if (cam->start() == MMAL_SUCCESS) {
         cout << "RPiMotionCam started" << endl;
     } else {

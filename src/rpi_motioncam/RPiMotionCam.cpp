@@ -55,7 +55,7 @@ namespace rpi_motioncam {
         }
 
         resizer = RaspiResize::create();
-        if (resizer == NULL) {
+        if (resizer == nullptr) {
             vcos_log_error("RPiMotionCam::create_components(): Failed to create resizer");
             return MMAL_ENOSYS;
         }
@@ -66,20 +66,26 @@ namespace rpi_motioncam {
         encoder_options.height = options_.resizer_height;
         encoder = RaspiEncoder::create(encoder_options);
 
-        if (encoder == NULL) {
+        if (encoder == nullptr) {
             vcos_log_error("RPiMotionCam::create_components(): Failed to create encoder");
             return MMAL_ENOSYS;
         }
 
         splitter = RaspiSplitter::create();
-        if (splitter == NULL) {
+        if (splitter == nullptr) {
             vcos_log_error("RPiMotionCam::create_components(): Failed to create splitter");
             return MMAL_ENOSYS;
         }
 
         nullsink = RaspiNullsink::create();
-        if (nullsink == NULL) {
+        if (nullsink == nullptr) {
             vcos_log_error("RPiMotionCam::create_components(): Failed to create null sink");
+        }
+
+
+        nullsink2 = RaspiNullsink::create();
+        if (nullsink2 == nullptr) {
+            vcos_log_error("RPiMotionCam::create_components(): Failed to create second null sink");
         }
 
        
@@ -99,6 +105,12 @@ namespace rpi_motioncam {
                 return status;
             }
         }
+
+        if ((status = nullsink2->input->connect(camera->still)) != MMAL_SUCCESS) {
+            vcos_log_error("RPiMotionCam::connect_components(): couldn't connect second nullsink input to camera still port");
+            return status;
+        }
+
         if ((status = splitter->input->connect(camera->video)) != MMAL_SUCCESS) {
             vcos_log_error("RPiMotionCam::connect_components(): couldn't connect camera video to splitter");
             return status;

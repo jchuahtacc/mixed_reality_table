@@ -20,17 +20,21 @@ namespace rpi_motioncam {
             
             static void stage_frame( MotionFrame frame );
             static bool get_staged_frame( MotionFrame &destination );
-            static void ready_frame( MotionFrame frame );
-            static bool get_ready_frame( MotionFrame &destination ); 
+            //static void ready_frame( MotionFrame frame );
+            static void ready_region( shared_ptr< MotionRegion > region);
+            static bool has_regions();
+            static bool get_region(shared_ptr< MotionRegion > &destination);
+            //static bool get_ready_frame( MotionFrame &destination ); 
             static bool has_staged_frames();
-            static bool has_ready_frames();
+            //static bool has_ready_frames();
             static void set_mandatory_region( shared_ptr< MotionRegion > region );
             static void clear_mandatory_region( shared_ptr< MotionRegion > region );
             static vector< shared_ptr< MotionRegion > > get_mandatory_regions();
 
         protected:
             static concurrent_queue< MotionFrame > staging_queue;
-            static concurrent_queue< MotionFrame > ready_queue;
+            static concurrent_queue< shared_ptr< MotionRegion > > ready_queue;
+            //static concurrent_queue< MotionFrame > ready_queue;
             static vector< shared_ptr< MotionRegion > > mandatory_regions;
             static shared_ptr< tbb::mutex >  mandatory_region_mtx_ptr;
 
