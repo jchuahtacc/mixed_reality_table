@@ -7,9 +7,14 @@ using namespace mrtable::config;
 
 namespace mrtable_process {
     RegionRecord ArucoFunctor::operator()( RegionRecord input ) {
+        if (!input.region->tag.empty() && !(input.region->tag == "aruco")) {
+            return input;
+        }
         input.region->log_event("aruco_start");
+        MOTIONREGION_READ_LOCK(input.region);
         aruco::detectMarkers( *(input.region->imgPtr), ServerConfig::dictionary, input.corners, input.aruco_ids, ServerConfig::detectorParameters, input.rejected); 
         aruco::estimatePoseSingleMarkers(input.corners, ServerConfig::markerLength, ServerConfig::cameraMatrix, ServerConfig::distortionCoefficients, input.rvecs, input.tvecs); 
+        //detector->detect( *(input.region->imgPtr), input.blob_keypoints);
         input.region->log_event("aruco_finish");
         return input;
     }

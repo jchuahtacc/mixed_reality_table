@@ -16,7 +16,7 @@ namespace mrtable_process {
 
         //make_edge( *input_node, *aruco_node);
         //make_edge( *input_node, *blob_node);
-        make_edge( *aruco_node, *output_node);
+        make_edge( *aruco_node, *blob_node);
         make_edge( *blob_node, *output_node);
     }
 
@@ -24,7 +24,8 @@ namespace mrtable_process {
         g.wait_for_all();
     }
 
-    bool ImgProcessor::put(shared_ptr< MotionRegion > input) {
-        return aruco_node->try_put(RegionRecord(input));
+    bool ImgProcessor::put(shared_ptr< MotionRegion > region) {
+        //return aruco_node->try_put(RegionRecord(region, "aruco"));
+        return blob_node->try_put(RegionRecord(region, "aruco"));
     }
 }

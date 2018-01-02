@@ -2,6 +2,7 @@
 #define __ARUCOFUNCTOR_H__
 
 #include <opencv2/aruco.hpp>
+#include <opencv2/features2d.hpp>
 #include <memory>
 #include "RegionRecord.h"
 #include "tbb/flow_graph.h"

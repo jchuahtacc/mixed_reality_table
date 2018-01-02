@@ -17,8 +17,9 @@ namespace mrtable_process {
             OutputFunctor();
             void operator()(const RegionRecord &input);
             time_point<system_clock > start;
-            milliseconds aruco_duration;
-            int aruco_count = 0;
+            milliseconds latencies;
+            int region_count = 0;
+            int byte_count = 0;
     };
 }
 

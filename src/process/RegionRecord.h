@@ -17,7 +17,7 @@ namespace mrtable_process {
         public:
             RegionRecord();
             RegionRecord(const RegionRecord &other);
-            RegionRecord(shared_ptr< MotionRegion > region_);
+            RegionRecord(shared_ptr< MotionRegion > region_, string record_type_);
 
             shared_ptr< MotionRegion > region;
             vector< KeyPoint > blob_keypoints;
@@ -25,6 +25,8 @@ namespace mrtable_process {
             vector< int > aruco_ids;
             vector< vector< Point2f > > corners, rejected;
             vector< Vec3d > rvecs, tvecs;
+
+            string record_type;
     };
 }
 

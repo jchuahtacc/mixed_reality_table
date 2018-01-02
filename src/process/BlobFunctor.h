@@ -15,6 +15,7 @@ namespace mrtable_process {
     class BlobFunctor {
         public:
             RegionRecord operator()(RegionRecord input);
+            static cv::Ptr< SimpleBlobDetector > detector;
     };
 }
 

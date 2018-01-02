@@ -65,6 +65,7 @@ int main(int argc, const char* argv[]) {
 
     cout << "Starting RPiMotionCam" << endl;
     auto options = RPiMotionCam::createMotionCamDefaultOptions();
+    options.motion_threshold = 80;
     options.region_callback = shared_ptr< ImgProcessorCallback >( new ImgProcessorCallback( processor ) );
 
     auto cam = RPiMotionCam::create(options);
