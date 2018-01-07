@@ -13,20 +13,21 @@ bit_positions = [ (row + data_offset, col + data_offset) for row in range(fiduci
 bits = len(bit_positions)
 
 def make_fiducial(num):
-	bitmask = np.zeros((fiducial_size, fiducial_size), dtype=np.uint8)
-	bitmask[1][1] = 255
+	bitmask = np.zeros((fiducial_size, fiducial_size, 4), dtype=np.uint8)
+	bitmask[:] = (0, 0, 0, 255)
+	bitmask[1, 1] = (255, 255, 255, 255)
 	num_hot = 0
 	for i in range(fiducial_size):
-		bitmask[i][0] = 255
-		bitmask[i][fiducial_size - 1] = 255
-		bitmask[0][i] = 255
-		bitmask[fiducial_size - 1][i] = 255
+		bitmask[i][0] = (255, 255, 255, 255)
+		bitmask[i][fiducial_size - 1] = (255, 255, 255, 255)
+		bitmask[0][i] = (255, 255, 255, 255)
+		bitmask[fiducial_size - 1][i] = (255, 255, 255, 255)
 	for index in range(bits):
 		bit_position = bit_positions[index]
 		value = ((num >> index) & 1) * 255
 		if value > 0:
 			num_hot += 1
-		bitmask[bit_position[0], bit_position[1]] = value
+		bitmask[bit_position[0], bit_position[1]] = (value, value, value, 255)
 	if num_hot >= min_hot:
 		return bitmask
 	else:
@@ -39,7 +40,7 @@ def make_convolution(fiducial):
 			value = 0
 			for row_offset in range(-1, 1):
 				for col_offset in range(-1, 1):
-					value += fiducial[row + row_offset + data_offset][col + col_offset + data_offset]
+					value += fiducial[row + row_offset + data_offset][col + col_offset + data_offset][0]
 			convolution[row][col] = value
 	return convolution
 
@@ -50,8 +51,8 @@ def make_maxpool(fiducial):
 			value = 0
 			for row_offset in range(-1, 1):
 				for col_offset in range(-1, 1):
-					if fiducial[row + row_offset + data_offset][col + col_offset + data_offset] > value:
-						value = fiducial[row + row_offset + data_offset][col + col_offset + data_offset]
+					if fiducial[row + row_offset + data_offset][col + col_offset + data_offset][0] > value:
+						value = fiducial[row + row_offset + data_offset][col + col_offset + data_offset][0]
 			maxpool[row][col] = value
 	return maxpool
 
